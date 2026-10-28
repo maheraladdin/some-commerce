@@ -1,8 +1,8 @@
-# Payments, Global Shipping, Split COD, SNS Notifications & Digital Licensing Specification
+# Payments, Global Shipping, Split COD, SNS Notifications & 6-Mode Digital Licensing Specification
 
 ## 1. KMS-Encrypted Dynamic Payment Vault (`PaymentProvider` Trait)
 
-Store admins configure payment gateways directly from the Expo Admin Dashboard (`POST /v1/admin/payment-gateways`). Credentials are encrypted using [AWS KMS](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html) envelope encryption (`kms:Encrypt` with `EncryptionContext: {"tenant_id": "...", "provider": "..."}`) and stored in `SomeCommerceTable` (`PK = TENANT#<tid>`, `SK = PAYMENT_GW#<provider>`).
+Store admins configure payment gateways directly from the Expo Admin Dashboard (`POST /v1/admin/payment-gateways`). Credentials are encrypted using [AWS KMS](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html) envelope encryption (`kms:Encrypt` with `EncryptionContext: {"tenant_id": "...", "provider": "..."}`) and stored in `SomeCommerceTable` (`PK = TENANT#<tid>`, `SK = GW_VAULT#PAYMENT#<provider>`).
 
 ```rust
 #[async_trait::async_trait]
@@ -86,21 +86,21 @@ To protect merchants from fake or uncollected Return-to-Origin (RTO) shipments o
    * `deposit_required_cents = compute_deposit(total_cents, localized_shipping_cents, rule)`
    * `cod_collection_cents = total_cents - deposit_required_cents`
 3. **Order Lifecycle & Amazon SNS Notification Triggers**:
-   * `AWAITING_COD_DEPOSIT`: Payment intent created on Paymob/Stripe/BTCPay for `deposit_required_cents`. [Amazon SNS](https://docs.aws.amazon.com/sns/latest/dg/welcome.html) dispatches an SMS/Push payment link if initiated via B2B/phone order.
+   * `AWAITING_COD_DEPOSIT`: Payment intent created on Paymob/Stripe/BTCPay for `deposit_required_cents`. [Amazon SNS](https://docs.aws.amazon.com/sns/latest/dg/welcome.html) dispatches a localized SMS/Push payment link if initiated via B2B/phone order.
    * `DEPOSIT_PAID_COD_PENDING`: Payment webhook confirms `deposit_paid_cents == deposit_required_cents`.
    * `SHIPMENT_BOOKED`: `fulfillment-worker` calls Bosta/Aramex with `collectionAmount = cod_collection_cents` (the remaining balance) and publishes an SNS `ShipmentBooked` push/SMS notification with the live tracking link.
    * `COMPLETED`: Carrier webhook reports `Delivered` (`state = 45` in Bosta), confirming the courier collected `cod_collection_cents`.
    * `RTO_RETURNED`: Carrier webhook reports `Returned to Business`. The merchant's RTO policy retains the shipping-fee deposit to cover return freight and automatically refunds any excess product deposit.
 
-## 4. Cryptographic E-Product Licensing Engine (Ed25519 + AWS KMS)
+## 4. Six-Mode Cryptographic E-Product Licensing Engine (`crates/licensing-ed25519`)
 
-Digital products (software binaries, plugins, mobile apps, datasets, e-books) and hybrid physical+digital bundles are protected by a two-layer licensing architecture:
+Periodic online heartbeating (`POST /v1/licenses/heartbeat`) fails for offline/air-gapped customers and creates recurring AWS Lambda + DynamoDB read costs every time a customer opens their software. `some-commerce` provides **six selectable License Verification Modes** per digital product:
 
-1. **Offline Cryptographic Certificate (`.lic`)**:
-   * Signed using an asymmetric **Ed25519** key pair stored inside [AWS KMS](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html) (`kms:Sign` with `SigningAlgorithm: ED25519_SHA_512`).
-   * The `.lic` payload is a canonical JSON structure containing `license_key`, `tenant_id`, `product_id`, `customer_sub`, `b2b_org_id`, `max_seats`, `issued_at`, `expires_at`, and `entitlements[]`, appended with the Base64Url Ed25519 signature.
-   * Client applications embed only the public key to verify certificates offline with zero network dependency.
-2. **Online Activation, Heartbeat & Seat Management (`/v1/licenses/*`)**:
-   * `POST /v1/licenses/activate`: Registers a hashed hardware fingerprint (`machine_id`) in DynamoDB using an atomic conditional expression (`size(active_machines) < max_seats`).
-   * `POST /v1/licenses/verify`: Sub-10ms heartbeat check served by `storefront-sdui-api` returning license validity, seat status, and signed timestamp.
-   * **Automatic Refund & Return Revocation**: If a Stripe/Paymob refund or chargeback webhook fires—or if a Bosta/Aramex physical bundle is returned—`checkout-webhooks-api` atomically sets `license_status = REVOKED` and publishes a `LicenseRevoked` event to Amazon SNS.
+| Mode | Strategy Name | Ongoing AWS Cost | How Verification Works |
+| :--- | :--- | :--- | :--- |
+| **Mode 1** | **Pure Offline Signed Certificate ([Ed25519 RFC 8032](https://www.rfc-editor.org/info/rfc8032/))** | **$0 ongoing** (1 KMS sign call at purchase) | [AWS KMS](https://docs.aws.amazon.com/kms/latest/APIReference/API_Sign.html) signs a canonical `.lic` JSON file (`license_id`, `product_id`, `customer_sub`, `expires_at`, `entitlements[]`). The client embeds only the 32-byte public key (`kms:GetPublicKey`) and verifies the signature locally in microseconds. |
+| **Mode 2** | **Air-Gapped Challenge-Response / Mobile QR Activation** | **$0 ongoing** (1 Lambda call at initial pairing) | The offline machine generates a hardware fingerprint hash (`SHA-256(CPU + Board + Disk UUID)`) + cryptographic nonce as a `.req` file or **QR code**. The buyer scans the QR code in the `some-commerce` Expo mobile app (or uploads `.req`); the backend verifies seat limits and returns a hardware-bound `.cert` signed by AWS KMS that runs offline forever on that machine. |
+| **Mode 3** | **CloudFront Edge-Cached Revocation List / Bloom Filter ([CRL RFC 5280](https://www.rfc-editor.org/info/rfc5280/))** | **Near-$0** (static S3 + CloudFront cache hits; 0 Lambda/DB reads) | Whenever a Stripe/Paymob refund or Bosta return occurs, `fulfillment-worker` publishes a compact, Ed25519-signed **Revocation List / Bloom Filter (`revoked.crl.bin`)** to S3 behind [Amazon CloudFront](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html). Client apps verify `.lic` locally and check the static CDN file without invoking Lambda or DynamoDB. |
+| **Mode 4** | **Cryptographic Content Key Unsealing (AES-256-GCM Envelope Decryption)** | **$0 ongoing** after initial key exchange | Instead of a boolean `if (is_licensed)` check (which crackers can patch out in assembly), premium binary modules, AI weights, VST audio banks, or 3D assets are encrypted with **AES-256-GCM**. Upon activation, the backend wraps the symmetric Content Encryption Key (CEK) to the client device's X25519 public key. Without the mathematical key, the asset cannot be decrypted. |
+| **Mode 5** | **Release-Timestamp / Update-Time Gating ("Perpetual Fallback")** | **$0 during daily use** (1 check only when downloading updates) | The app never phones home during daily use. Each software release binary (`v2.4.0`) contains a signed `release_published_at` timestamp, and the buyer's `.lic` certificate has `updates_entitled_until`. The app locally checks `release_published_at <= updates_entitled_until`, and only contacts `/v1/licenses/download-update` when downloading a new release. |
+| **Mode 6** | **Event-Driven Push Revocation & B2B On-Premise License Proxy** | **Event-driven only** (0 idle polling) | Instead of clients polling the server, the server pushes a signed revocation or seat-update event via [Amazon SNS](https://docs.aws.amazon.com/sns/latest/dg/sns-mobile-application-as-subscriber.html) silent push—or, for B2B enterprises, a lightweight local LAN Docker container (`some-commerce-license-proxy`) manages floating seats internally using 1 master KMS-signed certificate. |

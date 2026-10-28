@@ -23,8 +23,8 @@ Built with a **5-binary Rust ([Axum](https://github.com/tokio-rs/axum) + [Cargo 
 ## Documentation Index (`docs/`)
 
 * **[System Architecture & Dual AWS Lambda Model (`docs/SYSTEM_ARCHITECTURE.md`)](docs/SYSTEM_ARCHITECTURE.md)** — 5-binary Cargo Lambda workspace, Amazon Cognito RBAC/ABAC, Elasticsearch + DynamoDB Dual-Tier Filtration, Unlimited N-Level Taxonomy (`TAXONOMY_NODE`), User-Customizable Product Properties (`PROPERTY_DEF`), Brands, and Amazon SNS notifications.
-* **[Deep Engineering User Stories & 12-Sprint Execution Plan (`docs/USER_STORIES_AND_SPRINTS.md`)](docs/USER_STORIES_AND_SPRINTS.md)** — Exhaustive user stories across all 6 production slices (`v1.0` to `v6.0`), including Cognito Personas, Multilingual/RTL-LTR rules, Dynamic Property/N-Level Category filtration specs, API Contracts, DynamoDB Access Patterns, and Given/When/Then Acceptance Criteria.
-* **[Payments, Global Shipping, Split COD & Digital Licensing (`docs/PAYMENTS_SHIPPING_AND_LICENSING.md`)](docs/PAYMENTS_SHIPPING_AND_LICENSING.md)** — KMS-encrypted vault for Paymob, Stripe, and BTCPay Server; global shipping via Bosta, Aramex, DHL Express, Shippo, and EasyPost; Upfront Deposit + Split Cash-on-Delivery (`DEPOSIT_COD`); and Ed25519 digital product licensing.
+* **[Deep Engineering User Stories & 12-Sprint Execution Plan (`docs/USER_STORIES_AND_SPRINTS.md`)](docs/USER_STORIES_AND_SPRINTS.md)** — Exhaustive user stories across all 6 production slices (`v1.0` to `v6.0`), including Cognito Personas, Multilingual/RTL-LTR rules, Dynamic Property/N-Level Category filtration specs, 6-Mode Licensing stories, API Contracts, DynamoDB Access Patterns, and Given/When/Then Acceptance Criteria.
+* **[Payments, Global Shipping, Split COD & 6-Mode Digital Licensing (`docs/PAYMENTS_SHIPPING_AND_LICENSING.md`)](docs/PAYMENTS_SHIPPING_AND_LICENSING.md)** — KMS-encrypted vault for Paymob, Stripe, and BTCPay Server; global shipping via Bosta, Aramex, DHL Express, Shippo, and EasyPost; Upfront Deposit + Split Cash-on-Delivery (`DEPOSIT_COD`); and **6 Non-Heartbeat E-Product License Verification Modes** (Offline Ed25519, QR Challenge-Response, CloudFront CRLs/Bloom Filters, AES-256-GCM Content Key Unsealing, Release-Timestamp Gating, and B2B On-Premise Proxy).
 * **[Server-Driven UI (SDUI), Dynamic Properties & Multilingual Engine (`docs/SDUI_AND_LOCALIZATION.md`)](docs/SDUI_AND_LOCALIZATION.md)** — Universal Expo SDUI JSON schema, `SearchFacetFilterBlock` (with dynamic `COLOR_SWATCH_GRID`, `RANGE_SLIDER`, `CHECKBOX_LIST`, `PILL_TAGS`), N-level `CategoryBreadcrumbBlock`, `BrandPillSelector`, and bidirectional RTL/LTR layout mirroring.
 
 ## Core Architecture Overview
@@ -33,6 +33,7 @@ Built with a **5-binary Rust ([Axum](https://github.com/tokio-rs/axum) + [Cargo 
 | :--- | :--- | :--- |
 | **Auth & Authorization** | [Amazon Cognito User Pools](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools.html) + [Pre-Token Lambda Trigger](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-pre-token-generation.html) | OIDC/PKCE auth across Web & Mobile; JWT custom claims (`tenant_id`, `persona`, `preferred_locale`, `b2b_org_id`, `vendor_id`) + RBAC groups (`STORE_ADMIN`, `VENDOR`, `B2B_BUYER`, `B2C_CUSTOMER`). |
 | **Dynamic Taxonomy, Properties & Search** | [Elasticsearch](https://www.elastic.co/docs/explore-analyze/query-filter/aggregations) / [Amazon OpenSearch](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/what-is.html) + DynamoDB General Filter | **Unlimited N-Level Categories** (`TAXONOMY_NODE`), **Brands**, and **User-Customizable Product Properties** (`PROPERTY_DEF`: `Color Swatch`, `Size`, `RAM`, `Custom Specs`) with automatic [Nested Aggregations](https://www.elastic.co/docs/reference/aggregations/search-aggregations-bucket-nested-aggregation) and customizable SDUI filter widgets. |
+| **6-Mode Digital Licensing** | [AWS KMS Asymmetric Ed25519](https://docs.aws.amazon.com/kms/latest/APIReference/API_Sign.html) + CloudFront CRLs + X25519/AES-256-GCM | 6 verification modes without constant heartbeating: Offline Ed25519 `.lic`, Air-Gapped QR Challenge-Response, CloudFront Signed Revocation Lists (`revoked.crl.bin`), CEK Content Decryption, Release-Timestamp Gating, and B2B LAN Proxy. |
 | **Multilingual Engine** | [`expo-localization`](https://docs.expo.dev/guides/localization/) + `crates/i18n-engine` (ICU MessageFormat) | Unlimited tenant languages with deterministic fallback (`requested_locale -> language_root -> default_locale -> en`), instant RTL/LTR layout mirroring, localized catalog/category/brand/property labels, and localized API errors. |
 | **Notifications & Pub/Sub** | [Amazon SNS](https://docs.aws.amazon.com/sns/latest/dg/welcome.html) ([Mobile Push](https://docs.aws.amazon.com/sns/latest/dg/sns-mobile-application-as-subscriber.html), SMS & Topic Fan-Out) | Sends localized Arabic/English/multi-language iOS (APNs) & Android (FCM) push notifications, transactional SMS shipment/COD alerts, and merchant webhook fan-out. |
 | **Backend Compute** | Rust + [Axum](https://github.com/tokio-rs/axum) + [Cargo Lambda](https://www.cargo-lambda.info/) | 5 domain-scoped binaries (`storefront-sdui-api`, `checkout-webhooks-api`, `admin-vendor-api`, `fulfillment-worker`, `durable-orchestrator`). |
@@ -40,7 +41,6 @@ Built with a **5-binary Rust ([Axum](https://github.com/tokio-rs/axum) + [Cargo 
 | **Storefront & Admin** | [Expo](https://docs.expo.dev/) + [Expo Router](https://docs.expo.dev/router/introduction/) + [Expo DOM](https://docs.expo.dev/guides/dom-components/) | Single TypeScript codebase exported via `npx expo export --platform web` to S3 + CloudFront (OAC) and compiled natively to iOS & Android. |
 | **Payment Gateways** | Rust `PaymentProvider` Trait + [AWS KMS](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html) | Zero-redeploy dashboard config for [Paymob](https://developers.paymob.com/paymob-docs), [Stripe](https://docs.stripe.com/api), and [BTCPay Server](https://docs.btcpayserver.org/API/Greenfield/v1/) + **Upfront Deposit on COD**. |
 | **Global Delivery** | Rust `ShippingProvider` Trait + Localized Fee Engine | Pluggable adapters for [Bosta](https://docs.bosta.co/), [Aramex](https://www.aramex.com/eg/en/developers-solution-center/aramex.com-platform), [DHL Express](https://developer.dhl.com/), [Shippo](https://docs.goshippo.com/), [EasyPost](https://docs.easypost.com/), and custom governorate/zone tables. |
-| **Digital Licensing** | Ed25519 ([AWS KMS](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html)) + S3 Presigned Delivery | Offline signed `.lic` certificates, online `/v1/licenses/heartbeat` verification, device seat limits, B2B floating licenses, and automatic refund revocation. |
 
 ## Master Implementation Checklist
 
@@ -60,27 +60,27 @@ Built with a **5-binary Rust ([Axum](https://github.com/tokio-rs/axum) + [Cargo 
   - [ ] Implement **Upfront COD Deposit (`DEPOSIT_COD`)** state machine (`AWAITING_COD_DEPOSIT` -> `DEPOSIT_PAID_COD_PENDING` -> Bosta `collectionAmount = total - deposit`)
   - [ ] Tag and release **`v1.0.0`**
 
-### Slice 2 (`v2.0`): Digital Products & Cryptographic Licensing Engine
-- [ ] **Sprint 2.1 (Weeks 5–6): S3 Protected Delivery, Custom Digital Properties, Digital VAT & Ed25519 KMS Signing**
-  - [ ] Support custom digital product properties (`OS Platform`, `File Format`, `Engine Version`, `License Type`) in Elasticsearch and DynamoDB General Filtration
-  - [ ] Add private S3 digital asset bucket and presigned download URL generator in `fulfillment-worker`
-  - [ ] Provision asymmetric Ed25519 signing key in [AWS KMS](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html) and mint signed `.lic` offline certificates on `OrderPaid`
+### Slice 2 (`v2.0`): Digital Products & 6-Mode Cryptographic Licensing Engine
+- [ ] **Sprint 2.1 (Weeks 5–6): S3 Protected Delivery, Offline Ed25519 `.lic` Signing, CEK Envelope Encryption & Release-Timestamp Gating**
+  - [ ] Support custom digital product properties (`OS Platform`, `File Format`, `Engine Version`, `License Verification Mode`) in Elasticsearch and DynamoDB General Filtration
+  - [ ] Provision asymmetric Ed25519 signing key in [AWS KMS](https://docs.aws.amazon.com/kms/latest/APIReference/API_Sign.html) and mint offline-verifiable `.lic` certificates (Mode 1) and release-timestamp gated certificates (Mode 5)
+  - [ ] Implement AES-256-GCM Content Encryption Key (CEK) wrapping via X25519 key exchange (Mode 4) for anti-tamper asset decryption
   - [ ] Add hybrid Physical + Digital bundle support (unlocking digital license when Bosta webhook confirms physical delivery)
-- [ ] **Sprint 2.2 (Weeks 7–8): Online License Heartbeat, Device Limits & Refund Revocation**
-  - [ ] Implement `/v1/licenses/activate`, `/v1/licenses/verify`, and `/v1/licenses/deactivate` in `storefront-sdui-api`
-  - [ ] Wire Stripe/Paymob refund webhooks and Bosta return webhooks to automatic license revocation and SNS security alerts
-  - [ ] Build localized SDUI `CustomerLicenseVaultBlock` and publish Rust/TypeScript client verification SDKs
+- [ ] **Sprint 2.2 (Weeks 7–8): Air-Gapped QR Challenge-Response, CloudFront Signed CRLs/Bloom Filters & Refund Revocation**
+  - [ ] Implement Air-Gapped Challenge-Response `.req` / Mobile QR scanner activation endpoint (`/v1/licenses/challenge-activate` — Mode 2)
+  - [ ] Implement automated S3 + CloudFront signed Revocation List / Bloom Filter publishing (`revoked.crl.bin` — Mode 3) and SNS silent push revocation (Mode 6) when Stripe/Paymob refund or Bosta return webhooks fire
+  - [ ] Build localized SDUI `CustomerLicenseVaultBlock` (including QR scanner for offline device pairing) and publish Rust/TypeScript client verification SDKs
   - [ ] Tag and release **`v2.0.0`**
 
-### Slice 3 (`v3.0`): B2B Wholesale, Cross-Border Express (Aramex & DHL), RFQ & Floating Seat Licenses
+### Slice 3 (`v3.0`): B2B Wholesale, Cross-Border Express (Aramex & DHL), RFQ & B2B On-Premise License Proxy
 - [ ] **Sprint 3.1 (Weeks 9–10): Cognito B2B Orgs, B2B Custom Property/MOQ Filtration, Aramex + DHL Express Adapters**
   - [ ] Add `B2B_ORG_ADMIN` and `B2B_BUYER` Cognito groups and B2B Elasticsearch facets (`moq_range`, `b2b_tier_price`, `authorized_distributor_brands`)
   - [ ] Build multilingual B2B SDUI components (`BulkOrderMatrix` across dynamic variant axes, `TieredPriceTable`, `RfqSubmissionDrawer`)
   - [ ] Implement `AramexProvider` ([Aramex API](https://www.aramex.com/eg/en/developers-solution-center/aramex.com-platform)) and `DhlExpressProvider` ([MyDHL API](https://developer.dhl.com/)) with volumetric weight, HS codes, and bilingual (`ar` + `en`) commercial invoices
-- [ ] **Sprint 3.2 (Weeks 11–12): RFQ State Machine, Milestone Deposits & B2B Seat Licensing**
+- [ ] **Sprint 3.2 (Weeks 11–12): RFQ State Machine, Milestone Deposits & B2B On-Premise License Server**
   - [ ] Build Request-for-Quote (RFQ) negotiation flow with custom B2B milestone deposit percentages (e.g., 30% upfront, 70% on delivery / Net-30)
   - [ ] Configure `durable-orchestrator` ([AWS Lambda Durable Functions](https://aws.plainenglish.io/aws-lambda-updates-in-2025-2e664f4070d2)) to publish localized Net-30 invoice reminders via Amazon SNS
-  - [ ] Implement multi-seat B2B floating license pools managed by `B2B_ORG_ADMIN`
+  - [ ] Ship lightweight `some-commerce-license-proxy` Docker image for B2B LAN multi-seat management (Mode 6)
   - [ ] Tag and release **`v3.0.0`**
 
 ### Slice 4 (`v4.0`): Multi-Vendor Marketplace, Shippo/EasyPost Global Shipping, Split Escrow & Crypto
