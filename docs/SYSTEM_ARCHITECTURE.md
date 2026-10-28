@@ -27,55 +27,59 @@
 +----------------------------------+          +-----------------------+  +-----------------------+
                                               | Amazon DynamoDB       |  | Elasticsearch /       |
 +----------------------------------+          | (SomeCommerceTable)   |  | Amazon OpenSearch     |
-| Amazon SNS Notification Engine   | <--------+ - Single-Table Design |  | - Multilingual Stemmer|
-| - Mobile Push (APNs / FCM)       |          | - General Filtration  |  | - Nested Facet Aggs   |
-| - Transactional SMS & Fan-Out    |          | - Streams / Zero-ETL -+->| - Category/Brand Trees|
+| Amazon SNS Notification Engine   | <--------+ - N-Level Taxonomy    |  | - Multilingual Stemmer|
+| - Mobile Push (APNs / FCM)       |          | - Dynamic Properties  |  | - Nested Property Aggs|
+| - Transactional SMS & Fan-Out    |          | - Streams / Zero-ETL -+->| - N-Level Facet Trees |
 +----------------------------------+          +-----------------------+  +-----------------------+
 ```
 
-## 2. Catalog Taxonomy (Categories, Sub-Categories, Brands) & Dual-Tier Filtration Engine
+## 2. Dynamic Product Properties, Unlimited N-Level Taxonomy, Brands & Dual-Tier Filtration Engine
 
-### 2.1 Hierarchical Categories, Sub-Categories & Brands
-* **Categories & Sub-Categories (`PK = TENANT#<tid>`, `SK = CATEGORY#<cat_id>`)**:
-  * Supports unlimited nesting depth via `parent_category_id` (`ROOT` for top-level categories, or a parent `cat_id` for sub-categories and leaf sub-categories) and a materialized `ancestors_path: ["cat_electronics", "cat_computers", "cat_gaming_laptops"]`.
-  * Each category defines `filter_schema_attributes[]` (e.g., `["ram_gb", "storage_ssd", "gpu"]` for Gaming Laptops vs. `["size", "color", "material"]` for Apparel) so the SDUI filter sidebar automatically adapts to the active category or sub-category.
-* **Brands (`PK = TENANT#<tid>`, `SK = BRAND#<brand_id>`)**:
-  * Stores multilingual names (`names_i18n`), brand story (`descriptions_i18n`), localized SEO slugs (`SLUG#<locale>#<slug>`), brand logo S3 URL, `is_verified`, and `featured_category_ids[]`.
+### 2.1 Unlimited N-Level Category Hierarchy (`TAXONOMY_NODE#<node_id>`)
+* **Arbitrary Nesting Depth (`Level 0 .. Level N`)**: Merchants can create any number of category levels (`Electronics -> Computers -> Laptops -> Gaming Laptops -> RTX 40-Series -> 16-Inch RTX 40-Series`) without schema restrictions.
+* **Materialized Ancestor Path & Property Inheritance**:
+  * Every node stores `parent_node_id`, `depth_level` (`0..N`), `ancestors_path: ["node_l0", "node_l1", ..., "node_lk"]`, and `attached_property_ids[]`.
+  * Child nodes automatically inherit all `attached_property_ids[]` from their ancestors while adding specialized properties for deeper levels.
 
-### 2.2 Dual-Tier Filtration (`crates/search-elastic`)
-All search and catalog browsing endpoints (`GET /v1/search/products`) are backed by the `CatalogSearchProvider` trait, which implements two complementary engines:
+### 2.2 User-Customizable Product Properties (`PROPERTY_DEF#<prop_code>`)
+Merchants and vendors can define **any custom property** from the Admin Dashboard and attach it to a category node or directly to an individual product:
+* **Supported Property Data Types (`data_type`)**:
+  * `ENUM_SINGLE` & `ENUM_MULTI` (e.g., Material, OS, Fit, Connector Type)
+  * `COLOR_SWATCH` (hex color code + localized label + optional swatch texture URL)
+  * `NUMERIC_UNIT` (e.g., RAM in GB, Weight in kg, Refresh Rate in Hz, Screen Size in inches)
+  * `BOOLEAN` (e.g., Waterproof, Supports 5G, Backlit Keyboard)
+  * `TEXT_LOCALIZED` (free-form localized specification text)
+* **Variant Axis vs. Specification Flag (`is_variant_axis`)**:
+  * If `is_variant_axis = true` (e.g., `Color + Shoe Size` or `RAM + SSD Capacity`), the product builder generates distinct purchasable SKU variants for each combination with independent stock, price, barcode, and images.
+  * If `is_variant_axis = false`, the property is stored as a product specification and indexed for search/filtration.
+* **Customizable SDUI Filter Widgets (`filter_ui_widget`)**:
+  * Merchants choose how each filterable property appears in the storefront filter drawer: `COLOR_SWATCH_GRID`, `RANGE_SLIDER`, `CHECKBOX_LIST`, `PILL_TAGS`, or `TOGGLE_SWITCH`.
+
+### 2.3 First-Class Brands (`BRAND#<brand_id>`)
+* Stores multilingual names (`names_i18n`), brand story (`descriptions_i18n`), localized SEO slugs (`SLUG#<locale>#<slug>`), logo S3 URL, `is_verified`, and custom brand properties.
+
+### 2.4 Dual-Tier Filtration (`crates/search-elastic`)
+All search and catalog browsing endpoints (`GET /v1/search/products`) are backed by the `CatalogSearchProvider` trait:
 
 1. **Tier 1 — General Filtration Engine (`DynamoGeneralFilterProvider`)**:
-   * Executes directly against `SomeCommerceTable` Global Secondary Indexes (`GSI1` for Category/Sub-Category + Price, `GSI3` for Brand + Sub-Category + Price) combined with DynamoDB `FilterExpression` predicates (`product_type`, `in_stock`, `supports_cod`, `is_on_sale`, `min_rating`, `vendor_id`).
-   * Enables $0-idle-cost operation in the Standard Serverless edition and acts as an automatic circuit-breaker fallback if an Elasticsearch cluster is under maintenance.
+   * Executes directly against `SomeCommerceTable` Global Secondary Indexes (`GSI1` for N-Level Category Node + Price, `GSI3` for Brand + Category Node + Price) combined with DynamoDB `FilterExpression` predicates (`product_type`, `in_stock`, `supports_cod`, `is_on_sale`, `min_rating`, and dynamic `properties`).
 2. **Tier 2 — Elasticsearch / [Amazon OpenSearch Service](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/what-is.html) Faceted Search (`ElasticSearchProvider`)**:
    * **Real-Time Ingestion**: Kept in sync via [DynamoDB Zero-ETL OpenSearch Ingestion](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/OpenSearchIngestionForDynamoDB.html) or `fulfillment-worker` DynamoDB Streams (`/_bulk` API).
-   * **Multilingual Full-Text Analyzers**: Indexes `titles_i18n`, `descriptions_i18n`, `brand_names_i18n`, and `category_names_i18n` with language-specific analyzers (`arabic` normalizing Alef/Teh Marbuta/diacritics, `english`, `french`, `german`), `edge_ngram` instant autocomplete, and fuzzy typo tolerance.
-   * **Single-Query Faceted Aggregations ([Elasticsearch Aggregations](https://www.elastic.co/docs/explore-analyze/query-filter/aggregations))**:
-     * `category_tree_agg` (`terms` on `category_ancestors` and `sub_category_id`)
-     * `brand_agg` (`terms` on `brand_id` using `post_filter` for disjunctive multi-brand selection)
-     * `attributes_nested_agg` ([Nested Aggregation](https://www.elastic.co/docs/reference/aggregations/search-aggregations-bucket-nested-aggregation) on `attributes.code` and `attributes.value` for dynamic variant/spec counts)
-     * `price_stats_agg` & `general_flags_agg` (`in_stock`, `supports_cod`, `is_digital`, `rating_buckets`, `b2b_moq_ranges`).
+   * **Single-Query Faceted Aggregations ([Elasticsearch Aggregations](https://www.elastic.co/docs/explore-analyze/query-filter/aggregations) & [Nested Aggregations](https://www.elastic.co/docs/reference/aggregations/search-aggregations-bucket-nested-aggregation))**:
+     * `taxonomy_children_agg` (`terms` on `taxonomy_ancestors` to return child sub-category counts at any depth `0..N`)
+     * `brand_agg` (`terms` on `brand_id` with `post_filter` for disjunctive multi-brand selection)
+     * `dynamic_properties_nested_agg` ([Nested Aggregation](https://www.elastic.co/docs/reference/aggregations/search-aggregations-bucket-nested-aggregation) on `properties` computing `terms` counts for enum/swatch properties and `stats`/`min`/`max` for numeric range sliders)
+     * `price_stats_agg` & `general_flags_agg` (`in_stock`, `supports_cod`, `is_digital`, `rating_buckets`).
 
-## 3. Authentication & Authorization with Amazon Cognito
-
-All identity, authentication, and authorization flows are powered by **[Amazon Cognito User Pools](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools.html)** paired with a Rust **[Pre-Token Generation Lambda Trigger](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-pre-token-generation.html)**:
-
-* **Cognito User Pool Groups (`cognito:groups`)**: `SUPER_ADMIN`, `STORE_ADMIN`, `VENDOR`, `B2B_ORG_ADMIN`, `B2B_BUYER`, and `B2C_CUSTOMER`.
-* **Pre-Token Claims**: Injects `custom:tenant_id`, `custom:persona` (`B2C` | `B2B`), `custom:preferred_locale`, `custom:b2b_org_id`, `custom:price_list_id`, and `custom:vendor_id`.
-
-## 4. Omnichannel Notifications & Pub/Sub Fan-Out with Amazon SNS
-
-**[Amazon Simple Notification Service (Amazon SNS)](https://docs.aws.amazon.com/sns/latest/dg/welcome.html)** powers all localized customer, vendor, and admin notifications through `crates/notify-sns` ([Mobile Push](https://docs.aws.amazon.com/sns/latest/dg/sns-mobile-application-as-subscriber.html) for iOS APNs & Android FCM, transactional SMS, and event fan-out topics).
-
-## 5. DynamoDB Single-Table Schema (`SomeCommerceTable`)
+## 3. DynamoDB Single-Table Schema (`SomeCommerceTable`)
 
 | Entity | `PK` | `SK` | `GSI1PK` / `GSI1SK` | `GSI2PK` / `GSI2SK` | `GSI3PK` / `GSI3SK` | Key Attributes |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Tenant Metadata** | `TENANT#<tid>` | `METADATA` | `DOMAIN#<host>` / `METADATA` | — | — | `store_name_i18n{}`, `default_locale`, `search_mode` (`ELASTIC`\|`DYNAMO`) |
-| **Category / Sub-Cat** | `TENANT#<tid>` | `CATEGORY#<cid>` | `PARENT_CAT#<pid>` / `SORT#<n>#<cid>` | `SLUG#<loc>#<slug>` / `CATEGORY#<cid>` | — | `names_i18n{}`, `ancestors_path[]`, `depth`, `filter_schema_attributes[]` |
-| **Brand Entity** | `TENANT#<tid>` | `BRAND#<bid>` | `TENANT#<tid>` / `BRAND_NAME#<name>` | `SLUG#<loc>#<slug>` / `BRAND#<bid>` | — | `names_i18n{}`, `logo_url`, `is_verified`, `featured_categories[]` |
-| **Product Item** | `TENANT#<tid>` | `PRODUCT#<pid>` | `CAT#<sub_cid>` / `PRICE#<cents>` | `SLUG#<loc>#<slug>` / `PRODUCT#<pid>` | `BRAND#<bid>` / `CAT#<sub_cid>#PRICE#<cents>` | `type`, `category_id`, `sub_category_id`, `category_ancestors[]`, `brand_id`, `attributes[]`, `stock_qty` |
+| **N-Level Category Node** | `TENANT#<tid>` | `TAXONOMY_NODE#<nid>` | `PARENT_NODE#<pid>` / `SORT#<n>#<nid>` | `SLUG#<loc>#<slug>` / `TAXONOMY_NODE#<nid>` | — | `names_i18n{}`, `ancestors_path[]`, `depth_level`, `attached_property_ids[]` |
+| **Property Definition** | `TENANT#<tid>` | `PROPERTY_DEF#<code >` | `TENANT#<tid>` / `PROP_TYPE#<type>` | — | — | `names_i18n{}`, `data_type`, `is_variant_axis`, `is_filterable`, `filter_ui_widget`, `unit_i18n{}` |
+| **Brand Entity** | `TENANT#<tid>` | `BRAND#<bid>` | `TENANT#<tid>` / `BRAND_NAME#<name>` | `SLUG#<loc>#<slug>` / `BRAND#<bid>` | — | `names_i18n{}`, `logo_url`, `is_verified`, `featured_node_ids[]` |
+| **Product Item** | `TENANT#<tid>` | `PRODUCT#<pid>` | `NODE#<leaf_nid>` / `PRICE#<cents>` | `SLUG#<loc>#<slug>` / `PRODUCT#<pid>` | `BRAND#<bid>` / `NODE#<leaf_nid>#PRICE#<cents>` | `type`, `taxonomy_node_id`, `taxonomy_ancestors[]`, `brand_id`, `properties[]`, `variants[]`, `stock_qty` |
 | **Gateway / Search Vault** | `TENANT#<tid>` | `GW_VAULT#<type>#<id>` | `TENANT#<tid>` / `GW_ENABLED#<bool>` | — | — | `kms_ciphertext_blob` (Paymob, Stripe, BTCPay, Bosta, Aramex, DHL, Shippo, Elasticsearch) |
 | **Localized Fee Rule** | `TENANT#<tid>` | `LOCALE_FEES#<iso>#<zone>` | `TENANT#<tid>` / `FEE_PRIORITY#<n>` | — | — | `zone_names_i18n{}`, `base_fee_cents`, `per_kg_cents`, `cod_deposit_rule`, `tax_vat_pct` |
 | **Localized SDUI Layout** | `TENANT#<tid>` | `SDUI#<route>#<persona>#<loc>` | `SDUI_VER#<ver>` / `UPDATED#<ts>` | — | — | `direction` (`rtl`\|`ltr`), `theme_tokens`, `components_json` |
