@@ -4,7 +4,7 @@ Each vertical slice is a **4-week milestone (two 2-week sprints)** funded via [G
 
 Every user story below includes its **Cognito Persona/Roles**, **Multilingual & RTL/LTR Requirements**, **Target Rust Lambda Binary & API Contract**, **DynamoDB / Elasticsearch Access Pattern**, and **Given/When/Then Acceptance Criteria & Edge Cases**.
 
-## Slice 1 (`v1.0` — Weeks 1–4): Core B2C Storefront, Cognito Auth, Unlimited N-Level Categories, Dynamic Product Properties, Elasticsearch + General Filtration, Paymob/Stripe, Bosta & Split COD
+## Slice 1 (`v1.0` — Weeks 1–4): Core B2C Storefront, Amazon Cognito Auth, Unlimited N-Level Categories, Dynamic Product Properties, Elasticsearch + General Filtration, Paymob/Stripe, Bosta & Split COD
 
 ### US-1.1: Amazon Cognito OIDC/PKCE Authentication, Phone OTP & Pre-Token Persona/Locale Injection
 * **Actors & Cognito Roles**: `ANONYMOUS`, `B2C_CUSTOMER`, `STORE_ADMIN`
@@ -29,25 +29,6 @@ Every user story below includes its **Cognito Persona/Roles**, **Multilingual & 
   * *As a* store admin or vendor,
   * *I want* to create an **unlimited N-level category hierarchy** (`Level 0 -> Level 1 -> Level 2 -> ... -> Level N`, e.g., `Electronics -> Computers -> Laptops -> Gaming Laptops -> RTX 40-Series`), manage **Brands** (`BRAND#<brand_id>`), and define **fully customizable Product Properties** (`PROPERTY_DEF#<prop_id>` such as `Color`, `Size`, `RAM`, `Fabric`, `Voltage`, `Author`, or any custom property on a category or directly on an individual product) with configurable data types (`ENUM_SINGLE`, `ENUM_MULTI`, `COLOR_SWATCH`, `NUMERIC_UNIT`, `BOOLEAN`, `TEXT_LOCALIZED`), variant-axis flags (`is_variant_axis`), and filter UI widgets (`CHECKBOX_LIST`, `COLOR_SWATCH_GRID`, `RANGE_SLIDER`, `PILL_TAGS`, `TOGGLE_SWITCH`),
   * *So that* I can sell any type of physical or digital product with zero hardcoded schema limits, inherit properties automatically down N-level category trees, and override or add custom properties per product as I wish.
-* **Multilingual & Localization Behavior**:
-  * Every N-level category node (`TAXONOMY_NODE#<node_id>`), Brand (`BRAND#<brand_id>`), and Property Definition (`PROPERTY_DEF#<prop_id>`) stores localized maps (`names_i18n`, `descriptions_i18n`, `unit_labels_i18n` like `{"ar": "جيجابايت", "en": "GB"}`, and `allowed_values_i18n`).
-  * Materialized `ancestors_path` (`["cat_l0", "cat_l1", "cat_l2", "cat_l3"]`) and `depth_level` (`0..N`) allow instant breadcrumb resolution and property inheritance across arbitrary nesting depths.
-* **Target Lambda & API Contract**:
-  * `admin-vendor-api`:
-    * `POST /v1/admin/taxonomy/nodes` & `PUT /v1/admin/taxonomy/nodes/{node_id}` (creates/moves category nodes at any depth `0..N` and attaches `inherited_property_ids[]`)
-    * `POST /v1/admin/properties` & `PUT /v1/admin/properties/{prop_id}` (creates custom reusable property definitions, data types, units, and SDUI filter widget types)
-    * `POST /v1/admin/brands` & `PUT /v1/admin/brands/{brand_id}`
-    * `POST /v1/admin/products` & `PUT /v1/admin/products/{product_id}` (accepts `taxonomy_node_id`, `brand_id`, `variant_axes_properties[]`, and arbitrary `custom_properties: [{ prop_code, value, unit, is_filterable, filter_widget_override }]`)
-  * `storefront-sdui-api`:
-    * `GET /v1/catalog/taxonomy/tree?root_id=ROOT&max_depth=10&locale=ar-EG`
-    * `GET /v1/catalog/brands?taxonomy_node_id=cat_l3&locale=ar-EG`
-* **DynamoDB Single-Table Access Pattern**:
-  * Taxonomy node: `PK = TENANT#<tid>`, `SK = TAXONOMY_NODE#<node_id>`, `GSI1PK = PARENT_NODE#<parent_id>`, `GSI1SK = SORT#<order>#<node_id>`, `GSI2PK = SLUG#<locale>#<slug>`.
-  * Property definition: `PK = TENANT#<tid>`, `SK = PROPERTY_DEF#<prop_code>`.
-  * Product item: `PK = TENANT#<tid>`, `SK = PRODUCT#<pid>`, `GSI1PK = NODE#<leaf_node_id>`, `GSI1SK = PRICE#<cents>`, `GSI3PK = BRAND#<brand_id>`, `GSI3SK = NODE#<leaf_node_id>#PRICE#<cents>`.
-* **Acceptance Criteria (Given / When / Then)**:
-  1. **Given** a store admin creating a 5-level category tree (`Fashion -> Men -> Footwear -> Athletic Shoes -> Running Shoes`) and attaching `Brand`, `Shoe Size (EU/US)`, `Color Swatch`, and `Cushioning Level` properties, **When** a merchant creates a product in `Running Shoes` and also adds a custom product-specific property `Waterproof Membrane = Gore-Tex` directly on the product, **Then** the product inherits all ancestor properties, generates SKU variants across `Shoe Size x Color Swatch`, and exposes `Waterproof Membrane` as a custom specification and filterable facet.
-  2. **Given** a merchant reorganizing a sub-category from depth 2 to depth 4 in the Admin Dashboard, **When** `PUT /v1/admin/taxonomy/nodes/{node_id}` executes, **Then** `ancestors_path[]` updates for the subtree and `fulfillment-worker` re-indexes affected products in Elasticsearch asynchronously without downtime.
 
 ### US-1.4: Dual-Tier Product Filtration — General DynamoDB Filtration & Elasticsearch Dynamic Property/Taxonomy Faceted Search (`crates/search-elastic`)
 * **Actors & Cognito Roles**: `ANONYMOUS`, `B2C_CUSTOMER`, `B2B_BUYER`, `STORE_ADMIN`, `fulfillment-worker`
@@ -55,23 +36,6 @@ Every user story below includes its **Cognito Persona/Roles**, **Multilingual & 
   * *As a* shopper on Web, iOS, or Android,
   * *I want* to filter and search products using both **General Filtration** (any N-level Category/Sub-Category node, Brand, Price Range, In-Stock Only, On-Sale, Product Type `PHYSICAL`/`DIGITAL`, COD Eligibility, Minimum Rating, Sort Order) and **Advanced [Elasticsearch](https://www.elastic.co/docs/explore-analyze/query-filter/aggregations) / [Amazon OpenSearch](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/what-is.html) Dynamic Property Filtration** (multilingual full-text search with Arabic/English stemming and typo tolerance, plus [Nested Aggregations](https://www.elastic.co/docs/reference/aggregations/search-aggregations-bucket-nested-aggregation) over arbitrary merchant-defined `properties[]`—whether enum strings, color swatches, booleans, or numeric ranges),
   * *So that* the SDUI `SearchFacetFilterBlock` automatically renders the exact filter widgets (`COLOR_SWATCH_GRID`, `RANGE_SLIDER`, `CHECKBOX_LIST`, `TOGGLE_SWITCH`) configured by the merchant with live product counts.
-* **Target Lambda & API Contract**:
-  * `storefront-sdui-api`:
-    * `GET /v1/search/products?q=لابتوب&taxonomy_node_id=cat_computers&brand_ids=brand_asus,brand_lenovo&price_min=20000&price_max=60000&in_stock=true&supports_cod=true&props[color]=black,silver&props_range[ram_gb]=16..64&props_bool[backlit_kb]=true&sort=price_asc&locale=ar-EG`
-  * `fulfillment-worker`: Consumes DynamoDB Streams (`PRODUCT#*`, `TAXONOMY_NODE#*`, `BRAND#*`, `PROPERTY_DEF#*`) and bulk-indexes documents into Elasticsearch (`POST /_bulk`) within `<1s`.
-* **Elasticsearch Nested Property Mapping & Aggregation Pattern**:
-  * Every product document in Elasticsearch indexes `taxonomy_ancestors` (`keyword[]` containing all N-level category IDs from root to leaf), `brand_id` (`keyword`), general scalar fields (`price_cents`, `in_stock`, `supports_cod`, `rating`), and a `nested` array `properties`:
-    ```json
-    "properties": [
-      { "code": "color", "type": "COLOR_SWATCH", "widget": "COLOR_SWATCH_GRID", "str_val": "black", "hex": "#000000", "label_i18n": {"ar": "أسود", "en": "Black"} },
-      { "code": "ram_gb", "type": "NUMERIC_UNIT", "widget": "RANGE_SLIDER", "num_val": 16.0, "unit": "GB", "label_i18n": {"ar": "16 جيجابايت", "en": "16 GB"} }
-    ]
-    ```
-  * A single `_search` request computes `taxonomy_children_agg` (next-level sub-categories under the active node), `brand_agg` (with `post_filter`), `general_flags_agg`, and `dynamic_properties_nested_agg` (grouping by `properties.code` and computing both `terms` buckets for enums/swatches and `stats`/`percentiles` for numeric range sliders!).
-* **Acceptance Criteria (Given / When / Then)**:
-  1. **Given** a merchant who creates a brand-new custom property `refresh_rate_hz` (`NUMERIC_UNIT`, widget `RANGE_SLIDER`) and `panel_type` (`ENUM_SINGLE`, widget `PILL_TAGS`) on a level-4 category `Gaming Monitors`, **When** a shopper navigates to `Gaming Monitors`, **Then** Elasticsearch aggregates `properties` dynamically and the Universal Expo `SearchFacetFilterBlock` renders a `Hz` range slider and `IPS / OLED / VA` pill tags with live product counts—requiring zero frontend or backend code changes.
-  2. **Given** a shopper filtering on a level-1 parent category (`cat_electronics`), **When** the query filters on `taxonomy_ancestors = "cat_electronics"`, **Then** products from all deeper levels (level 2, level 3, level 4, level N) are matched and the `taxonomy_children_agg` facet returns the immediate child sub-categories (`depth = current_depth + 1`) for progressive drill-down.
-  3. **Given** a startup deployment running in `search_mode = "DYNAMO"`, **When** a shopper applies General Filtration (Category node, Brand, Price range, In-Stock, COD eligibility) plus property filters, **Then** `DynamoGeneralFilterProvider` queries `GSI1`/`GSI3` and evaluates dynamic property predicates via `FilterExpression` so filtering works at $0 idle cost.
 
 ### US-1.5: Localized Governorate/Zone Fee Matrix & KMS-Encrypted Vault (Paymob, Stripe, Bosta & Elasticsearch)
 * **Actors & Cognito Roles**: `STORE_ADMIN`, `checkout-webhooks-api`
@@ -85,33 +49,45 @@ Every user story below includes its **Cognito Persona/Roles**, **Multilingual & 
   * *As a* merchant offering Cash on Delivery via [Bosta](https://docs.bosta.co/),
   * *I want* to require a configurable **Upfront COD Deposit** (`SHIPPING_FEE_ONLY`, `PERCENTAGE`, or `FIXED_AMOUNT`) paid online via [Paymob](https://developers.paymob.com/paymob-docs) or [Stripe](https://docs.stripe.com/api) before dispatching the order, and automatically book the remaining balance (`total - deposit`) as `collectionAmount` on Bosta with multilingual [Amazon SNS](https://docs.aws.amazon.com/sns/latest/dg/welcome.html) SMS and Mobile Push notifications.
 
-## Slice 2 (`v2.0` — Weeks 5–8): Digital Products, Cryptographic Licensing Engine & Multilingual Digital Tax
+## Slice 2 (`v2.0` — Weeks 5–8): Digital Products & 6-Mode Non-Heartbeat Cryptographic Licensing Engine
 
 ### US-2.1: Multilingual Digital Catalog, Custom Digital Properties, Buyer-Country VAT & S3 Presigned Delivery
 * **Actors & Cognito Roles**: `STORE_ADMIN`, `B2C_CUSTOMER`
 * **User Story Narrative**:
   * *As a* digital creator selling software, plugins, or e-books globally,
-  * *I want* to attach custom digital properties (`OS Platform`, `Architecture`, `File Format`, `Engine Version`, `License Duration`) to my digital products for faceted filtering in Elasticsearch/DynamoDB, omit physical shipping fees at checkout, apply buyer-country digital VAT automatically, and deliver files via expiring 15-minute S3 presigned URLs.
+  * *I want* to attach custom digital properties (`OS Platform`, `Architecture`, `File Format`, `Engine Version`, `License Verification Mode`) to my digital products for faceted filtering in Elasticsearch/DynamoDB, omit physical shipping fees at checkout, apply buyer-country digital VAT automatically, and deliver files via expiring 15-minute S3 presigned URLs.
 
-### US-2.2: Asymmetric Ed25519 Offline & Online License Minting (`AWS KMS`) + Hybrid Physical-Digital Bundle Unlock
-* **Actors & Cognito Roles**: `B2C_CUSTOMER`, `fulfillment-worker`
+### US-2.2: Offline Ed25519 Signed Certificates (`Mode 1`), AES-256-GCM Content Key Unsealing (`Mode 4`) & Release-Timestamp Gating (`Mode 5`)
+* **Actors & Cognito Roles**: `B2C_CUSTOMER`, `STORE_ADMIN`, `fulfillment-worker`
 * **User Story Narrative**:
-  * *As a* buyer of a software application or a physical hardware + software bundle,
-  * *I want* `fulfillment-worker` to mint a unique license key and an offline-verifiable `.lic` certificate signed by an [AWS KMS](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html) asymmetric **Ed25519** key—immediately upon digital checkout or automatically when [Bosta](https://docs.bosta.co/) confirms physical delivery of my hardware bundle—and notify me in my preferred language via [Amazon SNS](https://docs.aws.amazon.com/sns/latest/dg/welcome.html).
+  * *As a* digital creator or software vendor who wants **$0 ongoing Lambda/DynamoDB polling costs** and full offline usability,
+  * *I want* `fulfillment-worker` to mint an offline-verifiable `.lic` certificate signed by an [AWS KMS](https://docs.aws.amazon.com/kms/latest/APIReference/API_Sign.html) asymmetric **[Ed25519 (RFC 8032)](https://www.rfc-editor.org/info/rfc8032/)** private key (`Mode 1`), optionally wrap an **AES-256-GCM Content Encryption Key (CEK)** to the buyer's X25519 device public key so encrypted pro modules/assets cannot be unlocked by binary patching (`Mode 4`), and embed an `updates_entitled_until` timestamp so the client app locally verifies `release_published_at <= updates_entitled_until` without ever calling home during daily usage (`Mode 5`).
+* **Target Lambda & API Contract**:
+  * `fulfillment-worker`: Invokes `kms:Sign` (`SigningAlgorithm::Ed25519Sha512`) over canonical JSON `{ license_key, tenant_id, product_id, customer_sub, verification_mode, updates_entitled_until, issued_at, expires_at, entitlements[] }`.
+  * `storefront-sdui-api`: `POST /v1/licenses/unseal-cek` (one-time X25519 key exchange returning the wrapped AES-256-GCM Content Encryption Key for `Mode 4`), `POST /v1/licenses/download-release/{version}` (verifies `release.published_at <= license.updates_entitled_until` for `Mode 5`).
+* **Acceptance Criteria (Given / When / Then)**:
+  1. **Given** a buyer with a `Mode 1` + `Mode 5` `.lic` certificate whose `updates_entitled_until` is `2027-06-01`, **When** they run software release `v2.1.0` (published `2027-03-15`) completely offline on an air-gapped laptop, **Then** the embedded 32-byte Ed25519 public key verifies the `.lic` signature and release timestamp locally in `<1ms` with zero network requests.
+  2. **Given** an encrypted AI model or VST plugin protected by `Mode 4` (AES-256-GCM CEK), **When** an attacker patches out boolean checks in the client binary without possessing a valid KMS-issued X25519-wrapped CEK, **Then** the encrypted asset payload remains mathematically undecryptable.
 
-### US-2.3: Hardware Fingerprint Activation, Sub-10ms Heartbeat Verification & Automatic Refund/RTO Revocation
-* **Actors & Cognito Roles**: `B2C_CUSTOMER`, Client Software SDK, `storefront-sdui-api`, `checkout-webhooks-api`
+### US-2.3: Air-Gapped Challenge-Response / Mobile QR Hardware Activation (`Mode 2`) & CloudFront Edge-Cached Revocation Lists (`Mode 3`)
+* **Actors & Cognito Roles**: `B2C_CUSTOMER`, `B2B_BUYER`, Client Software SDK, `storefront-sdui-api`, `checkout-webhooks-api`, `fulfillment-worker`
 * **User Story Narrative**:
-  * *As a* software vendor,
-  * *I want* client applications to bind hardware fingerprints (`machine_id`), perform sub-10ms online heartbeat checks, allow customers to deactivate old machines from a localized SDUI vault, and automatically revoke licenses if a payment refund/chargeback or physical bundle return occurs.
+  * *As a* software vendor protecting against both offline machine cloning and payment refunds/chargebacks **without periodic online heartbeating**,
+  * *I want* offline target machines to generate a hardware-fingerprint challenge QR code (or `.req` file) that the buyer scans once using the `some-commerce` [Expo](https://docs.expo.dev/) mobile app to receive a hardware-locked `.cert` file (`Mode 2`), and I want `fulfillment-worker` to publish a compact, Ed25519-signed **Certificate Revocation List / Bloom Filter (`revoked.crl.bin` — [RFC 5280](https://www.rfc-editor.org/info/rfc5280/))** to [Amazon S3](https://docs.aws.amazon.com/AmazonS3/latest/userguide/HostingWebsiteOnS3Setup.html) + [Amazon CloudFront](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html) whenever a Stripe/Paymob refund or [Bosta](https://docs.bosta.co/) return occurs (`Mode 3`).
+* **Target Lambda & API Contract**:
+  * `storefront-sdui-api`: `POST /v1/licenses/challenge-activate` (accepts `{ license_key, machine_fingerprint_sha256, challenge_nonce }`, enforces `size(active_machines) < max_activations` in DynamoDB, and returns an AWS KMS Ed25519-signed `.cert` bound to `machine_fingerprint_sha256` + `challenge_nonce`).
+  * CloudFront Static Edge Endpoint: `GET /crl/{tenant_id}/revoked.crl.bin` (served directly from S3 via CloudFront OAC with `Cache-Control: public, max-age=3600`—zero Lambda or DynamoDB invocations).
+* **Acceptance Criteria (Given / When / Then)**:
+  1. **Given** an air-gapped industrial PC displaying a `Mode 2` activation QR code containing its hardware fingerprint and nonce, **When** the buyer scans the QR code inside `CustomerLicenseVaultBlock` on their Expo mobile app, **Then** `/v1/licenses/challenge-activate` registers the seat in DynamoDB and displays a response QR code / downloadable `.cert` that permanently activates that exact PC offline.
+  2. **Given** a Stripe/Paymob refund webhook or Bosta `Returned to Business` webhook for an order, **When** `checkout-webhooks-api` revokes the license in DynamoDB, **Then** `fulfillment-worker` updates the signed `revoked.crl.bin` Bloom filter in S3 and dispatches an [Amazon SNS](https://docs.aws.amazon.com/sns/latest/dg/welcome.html) silent push notification (`Mode 6`), revoking the license across online clients without requiring heartbeat polling.
 
-## Slice 3 (`v3.0` — Weeks 9–12): B2B Wholesale, Cross-Border Express ([Aramex](https://www.aramex.com/eg/en/developers-solution-center/aramex.com-platform) & [DHL Express](https://developer.dhl.com/)), RFQ & Floating Seat Licenses
+## Slice 3 (`v3.0` — Weeks 9–12): B2B Wholesale, Cross-Border Express ([Aramex](https://www.aramex.com/eg/en/developers-solution-center/aramex.com-platform) & [DHL Express](https://developer.dhl.com/)), RFQ & B2B On-Premise License Proxy
 
 ### US-3.1: Cognito B2B Organization Onboarding, B2B Custom Property/MOQ Filtration & Wholesale SDUI Switching
 * **Actors & Cognito Roles**: `B2B_ORG_ADMIN`, `B2B_BUYER`, `STORE_ADMIN`
 * **User Story Narrative**:
   * *As a* wholesale company buyer (`cognito:groups = ["B2B_BUYER"]`),
-  * *I want* the storefront SDUI engine and Elasticsearch search endpoint to filter products by B2B Minimum Order Quantity (`moq_max`), contracted B2B tier price ranges, bulk case-pack properties, and authorized distributor brands (`b2b_authorized_brands`), rendering `B2BBulkVariantMatrix` (across dynamic variant axes like `Size x Color x PackSize`) and `TieredPriceTable` in my preferred language.
+  * *I want* the storefront SDUI engine and Elasticsearch search endpoint to filter products by B2B Minimum Order Quantity (`moq_max`), contracted B2B tier price ranges, bulk case-pack properties, and authorized distributor brands (`b2b_authorized_brands`), rendering `B2BBulkVariantMatrix` and `TieredPriceTable` in my preferred language.
 
 ### US-3.2: Cross-Border Shipping via Aramex & DHL Express with Landed Duties & Bilingual Commercial Invoices
 * **Actors & Cognito Roles**: `B2B_BUYER`, `B2C_CUSTOMER`, `STORE_ADMIN`, `fulfillment-worker`
@@ -125,11 +101,11 @@ Every user story below includes its **Cognito Persona/Roles**, **Multilingual & 
   * *As a* wholesale buyer,
   * *I want* to submit an RFQ from my cart, negotiate custom unit prices, shipping incoterms (`EXW`, `FOB`, `DDP`), and milestone payment terms (e.g., `30% Upfront Deposit` via Paymob/Stripe, `70% Balance` via COD or Net-30) with localized [Amazon SNS](https://docs.aws.amazon.com/sns/latest/dg/welcome.html) notifications and automated [AWS Lambda Durable Functions](https://aws.plainenglish.io/aws-lambda-updates-in-2025-2e664f4070d2) Net-30 payment reminders.
 
-### US-3.4: B2B Organization Multi-Seat & Concurrent Floating Digital Licenses
+### US-3.4: B2B On-Premise LAN License Proxy (`Mode 6`) & Organization Multi-Seat Management
 * **Actors & Cognito Roles**: `B2B_ORG_ADMIN`, `B2B_BUYER`
 * **User Story Narrative**:
-  * *As an* enterprise software buyer (`B2B_ORG_ADMIN`),
-  * *I want* to purchase a multi-seat organization license pool where I can assign named seats to employees or enable concurrent floating lease tokens (auto-releasing after 4 hours without a heartbeat) from a localized SDUI license portal.
+  * *As an* enterprise software buyer (`B2B_ORG_ADMIN`) whose corporate firewall blocks individual workstations from calling external cloud APIs,
+  * *I want* to download a single KMS-signed master organization certificate (`50 seats`) and run the lightweight open-source `some-commerce-license-proxy` container on our internal LAN (`Mode 6`), or assign named employee seats via Cognito SSO from a localized SDUI license portal.
 
 ## Slice 4 (`v4.0` — Weeks 13–16): Multi-Vendor Marketplace, Global Aggregators ([Shippo](https://docs.goshippo.com/) & [EasyPost](https://docs.easypost.com/)), Split Escrow & Crypto
 
