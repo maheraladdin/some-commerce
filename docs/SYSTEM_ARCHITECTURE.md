@@ -12,83 +12,72 @@
                      +---------+-------------------+---------------------+
                                |                   |
           +--------------------+                   +--------------------+
-          | /* (Static Web Assets)                                      | /v1/* (API, SDUI & Webhooks)
+          | /* (Static Web Assets)                                      | /v1/* (API, SDUI, Search & Hooks)
           v                                                             v
 +----------------------------------+          +--------------------------------------------------+
 | Private Amazon S3 Bucket (OAC)   |          | 5-Binary Rust Cargo Lambda Workspace (Axum)      |
-| - npx expo export --platform web |          | 1. storefront-sdui-api  (Public/Auth Read+Cart)  |
+| - npx expo export --platform web |          | 1. storefront-sdui-api  (SDUI, Search & Filter)  |
 | - Pre-rendered .html/.css/.js    |          | 2. checkout-webhooks-api(KMS Payment/Ship Hooks) |
 +----------------------------------+          | 3. admin-vendor-api     (Cognito RBAC + KMS)     |
-                                              | 4. fulfillment-worker   (Streams -> Bosta/KMS)   |
+                                              | 4. fulfillment-worker   (Streams -> ES + Bosta)  |
 +----------------------------------+          | 5. durable-orchestrator (Net-30 / Escrow Timers) |
-| Amazon Cognito User Pool         |          +------------------------+-------------------------+
-| - OIDC / PKCE Auth (Web & Mobile)|                                   |
-| - Pre-Token Lambda Trigger       |                                   v
-| - RBAC Groups & Custom Claims    |          +--------------------------------------------------+
-+----------------------------------+          | Amazon DynamoDB (SomeCommerceTable) + AWS KMS    |
-                                              | - Single-Table Design (PK/SK + GSI1-GSI3)        |
-+----------------------------------+          | - KMS Customer Managed Keys (Vault + Ed25519)    |
-| Amazon SNS Notification Engine   | <--------+ - DynamoDB Streams + EventBridge Pipes           |
-| - Mobile Push (APNs / FCM)       |          +--------------------------------------------------+
-| - Transactional SMS & Fan-Out    |
-+----------------------------------+
+| Amazon Cognito User Pool         |          +-----------+--------------------+-----------------+
+| - OIDC / PKCE Auth (Web & Mobile)|                      |                    |
+| - Pre-Token Lambda Trigger       |                      v                    v
++----------------------------------+          +-----------------------+  +-----------------------+
+                                              | Amazon DynamoDB       |  | Elasticsearch /       |
++----------------------------------+          | (SomeCommerceTable)   |  | Amazon OpenSearch     |
+| Amazon SNS Notification Engine   | <--------+ - Single-Table Design |  | - Multilingual Stemmer|
+| - Mobile Push (APNs / FCM)       |          | - General Filtration  |  | - Nested Facet Aggs   |
+| - Transactional SMS & Fan-Out    |          | - Streams / Zero-ETL -+->| - Category/Brand Trees|
++----------------------------------+          +-----------------------+  +-----------------------+
 ```
 
-## 2. Authentication & Authorization with Amazon Cognito
+## 2. Catalog Taxonomy (Categories, Sub-Categories, Brands) & Dual-Tier Filtration Engine
+
+### 2.1 Hierarchical Categories, Sub-Categories & Brands
+* **Categories & Sub-Categories (`PK = TENANT#<tid>`, `SK = CATEGORY#<cat_id>`)**:
+  * Supports unlimited nesting depth via `parent_category_id` (`ROOT` for top-level categories, or a parent `cat_id` for sub-categories and leaf sub-categories) and a materialized `ancestors_path: ["cat_electronics", "cat_computers", "cat_gaming_laptops"]`.
+  * Each category defines `filter_schema_attributes[]` (e.g., `["ram_gb", "storage_ssd", "gpu"]` for Gaming Laptops vs. `["size", "color", "material"]` for Apparel) so the SDUI filter sidebar automatically adapts to the active category or sub-category.
+* **Brands (`PK = TENANT#<tid>`, `SK = BRAND#<brand_id>`)**:
+  * Stores multilingual names (`names_i18n`), brand story (`descriptions_i18n`), localized SEO slugs (`SLUG#<locale>#<slug>`), brand logo S3 URL, `is_verified`, and `featured_category_ids[]`.
+
+### 2.2 Dual-Tier Filtration (`crates/search-elastic`)
+All search and catalog browsing endpoints (`GET /v1/search/products`) are backed by the `CatalogSearchProvider` trait, which implements two complementary engines:
+
+1. **Tier 1 — General Filtration Engine (`DynamoGeneralFilterProvider`)**:
+   * Executes directly against `SomeCommerceTable` Global Secondary Indexes (`GSI1` for Category/Sub-Category + Price, `GSI3` for Brand + Sub-Category + Price) combined with DynamoDB `FilterExpression` predicates (`product_type`, `in_stock`, `supports_cod`, `is_on_sale`, `min_rating`, `vendor_id`).
+   * Enables $0-idle-cost operation in the Standard Serverless edition and acts as an automatic circuit-breaker fallback if an Elasticsearch cluster is under maintenance.
+2. **Tier 2 — Elasticsearch / [Amazon OpenSearch Service](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/what-is.html) Faceted Search (`ElasticSearchProvider`)**:
+   * **Real-Time Ingestion**: Kept in sync via [DynamoDB Zero-ETL OpenSearch Ingestion](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/OpenSearchIngestionForDynamoDB.html) or `fulfillment-worker` DynamoDB Streams (`/_bulk` API).
+   * **Multilingual Full-Text Analyzers**: Indexes `titles_i18n`, `descriptions_i18n`, `brand_names_i18n`, and `category_names_i18n` with language-specific analyzers (`arabic` normalizing Alef/Teh Marbuta/diacritics, `english`, `french`, `german`), `edge_ngram` instant autocomplete, and fuzzy typo tolerance.
+   * **Single-Query Faceted Aggregations ([Elasticsearch Aggregations](https://www.elastic.co/docs/explore-analyze/query-filter/aggregations))**:
+     * `category_tree_agg` (`terms` on `category_ancestors` and `sub_category_id`)
+     * `brand_agg` (`terms` on `brand_id` using `post_filter` for disjunctive multi-brand selection)
+     * `attributes_nested_agg` ([Nested Aggregation](https://www.elastic.co/docs/reference/aggregations/search-aggregations-bucket-nested-aggregation) on `attributes.code` and `attributes.value` for dynamic variant/spec counts)
+     * `price_stats_agg` & `general_flags_agg` (`in_stock`, `supports_cod`, `is_digital`, `rating_buckets`, `b2b_moq_ranges`).
+
+## 3. Authentication & Authorization with Amazon Cognito
 
 All identity, authentication, and authorization flows are powered by **[Amazon Cognito User Pools](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools.html)** paired with a Rust **[Pre-Token Generation Lambda Trigger](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-pre-token-generation.html)**:
 
-### 2.1 Authentication Flows Across Web & Mobile
-* **Universal Expo Integration**: Uses OAuth 2.0 Authorization Code Grant with **PKCE** via `expo-auth-session`. On iOS and Android, refresh and access tokens are stored in hardware-backed `expo-secure-store`; on static Web, tokens are managed via secure session storage and silent refresh.
-* **Supported Sign-In Methods**: Email/Password, Phone SMS/WhatsApp OTP (crucial for Egypt/MENA mobile shoppers), Passkeys (WebAuthn), and federated social/enterprise OIDC/SAML identity providers.
+* **Cognito User Pool Groups (`cognito:groups`)**: `SUPER_ADMIN`, `STORE_ADMIN`, `VENDOR`, `B2B_ORG_ADMIN`, `B2B_BUYER`, and `B2C_CUSTOMER`.
+* **Pre-Token Claims**: Injects `custom:tenant_id`, `custom:persona` (`B2C` | `B2B`), `custom:preferred_locale`, `custom:b2b_org_id`, `custom:price_list_id`, and `custom:vendor_id`.
 
-### 2.2 Role-Based & Attribute-Based Authorization (RBAC + ABAC)
-1. **Cognito User Pool Groups (`cognito:groups`)**:
-   * `SUPER_ADMIN`: Platform-wide configuration, AWS Marketplace entitlement inspection, and multi-tenant provisioning.
-   * `STORE_ADMIN`: Full access to `/v1/admin/*` for their tenant—configuring KMS payment/shipping keys, localized fee matrices, SDUI layouts, and B2B quotes.
-   * `VENDOR`: Scoped access to `/v1/vendor/*` in Slice 4—restricted strictly to products, Bosta/Shippo shipments, and escrow ledgers matching their `custom:vendor_id`.
-   * `B2B_ORG_ADMIN` & `B2B_BUYER`: Wholesale accounts in Slice 3—unlocking B2B SDUI components, volume tier price lists, RFQ submission, and multi-seat license administration.
-   * `B2C_CUSTOMER`: Authenticated retail shoppers accessing order history, saved addresses, and the SDUI `CustomerLicenseVaultBlock`.
-2. **Pre-Token Generation Lambda Trigger (`custom:*` JWT Claims)**:
-   * Before Cognito issues an ID or Access JWT, it invokes a lightweight Rust trigger that queries `SomeCommerceTable` and injects session claims (`custom:tenant_id`, `custom:persona`, `custom:b2b_org_id`, `custom:price_list_id`, `custom:vendor_id`).
-3. **Zero-Lookup Axum Tower Middleware (`crates/auth-cognito`)**:
-   * Every HTTP Rust Lambda caches Cognito's JSON Web Key Set (`/.well-known/jwks.json`) in memory (`Arc<RwLock<JwksCache>>`), validating RS256 JWT signatures in microseconds so `storefront-sdui-api` immediately resolves B2C vs. B2B SDUI layouts and wholesale pricing without an extra database round-trip.
+## 4. Omnichannel Notifications & Pub/Sub Fan-Out with Amazon SNS
 
-## 3. Omnichannel Notifications & Pub/Sub Fan-Out with Amazon SNS
-
-**[Amazon Simple Notification Service (Amazon SNS)](https://docs.aws.amazon.com/sns/latest/dg/welcome.html)** powers all customer, vendor, and admin notifications through `crates/notify-sns`:
-
-1. **Native Mobile Push Notifications ([SNS Mobile Push](https://docs.aws.amazon.com/sns/latest/dg/sns-mobile-application-as-subscriber.html))**:
-   * The Universal [Expo](https://docs.expo.dev/) app registers device push tokens with Amazon SNS Platform Applications (Apple APNs for iOS and Firebase FCM for Android), sending real-time push alerts when an order is confirmed, when a [Bosta](https://docs.bosta.co/)/[Aramex](https://www.aramex.com/eg/en/developers-solution-center/aramex.com-platform) courier is out for delivery, or when a B2B RFQ quote is approved.
-2. **Transactional SMS Alerts (Egypt/MENA & Global)**:
-   * Sends localized Arabic (`ar`) and English (`en`) SMS alerts for Upfront COD Deposit payment links, Bosta/Aramex tracking links, and delivery OTP codes.
-3. **Topic Fan-Out (`OrderEvents`, `ShipmentEvents`, `LicenseEvents`)**:
-   * `fulfillment-worker` and `durable-orchestrator` publish structured JSON events to SNS Topics with message attributes (`event_type`, `tenant_id`, `vendor_id`), allowing merchants and enterprise buyers to attach custom HTTPS webhooks, SQS queues, or email alerts.
-
-## 4. The 5-Binary Rust Cargo Workspace Architecture
-
-Using [Cargo Lambda](https://www.cargo-lambda.info/), the repository is organized as a single Rust workspace that compiles **5 specialized Lambda binaries**:
-
-* `bins/storefront-sdui-api`: High-throughput SDUI, catalog, cart, and `/v1/licenses/verify` heartbeat.
-* `bins/checkout-webhooks-api`: Checkout intents, Split COD, payment/carrier webhooks, and SNS event publishing.
-* `bins/admin-vendor-api`: Cognito-protected admin & vendor dashboard APIs + KMS secret encryption.
-* `bins/fulfillment-worker`: DynamoDB Stream consumer (Carrier AWB booking, Ed25519 KMS license minting, and SNS push/SMS dispatch).
-* `bins/durable-orchestrator`: [AWS Lambda Durable Functions](https://aws.plainenglish.io/aws-lambda-updates-in-2025-2e664f4070d2) for long-running timers (COD deposit expiry, B2B Net-30 reminders, and delivery-gated vendor escrow payouts).
+**[Amazon Simple Notification Service (Amazon SNS)](https://docs.aws.amazon.com/sns/latest/dg/welcome.html)** powers all localized customer, vendor, and admin notifications through `crates/notify-sns` ([Mobile Push](https://docs.aws.amazon.com/sns/latest/dg/sns-mobile-application-as-subscriber.html) for iOS APNs & Android FCM, transactional SMS, and event fan-out topics).
 
 ## 5. DynamoDB Single-Table Schema (`SomeCommerceTable`)
 
-All entities reside in one [Amazon DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/data-modeling-foundations.html) table with `PK` (Partition Key), `SK` (Sort Key), and three Global Secondary Indexes (`GSI1`–`GSI3`):
-
-| Entity | `PK` | `SK` | `GSI1PK` | `GSI1SK` | Key Attributes |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Tenant Metadata** | `TENANT#<tid>` | `METADATA` | `DOMAIN#<host>` | `METADATA` | `store_name`, `default_currency`, `cognito_pool_id`, `sns_topic_arn` |
-| **User & Push Endpoints** | `TENANT#<tid>` | `USER#<sub_id>` | `EMAIL#<email>` | `TENANT#<tid>` | `cognito_groups[]`, `persona`, `b2b_org_id`, `sns_endpoint_arns[]` |
-| **Payment Gateway Secret** | `TENANT#<tid>` | `PAYMENT_GW#<id>` | `TENANT#<tid>` | `GW_ENABLED#<bool>` | `kms_ciphertext_blob`, `currencies[]`, `webhook_secret_hash` |
-| **Shipping Carrier Secret** | `TENANT#<tid>` | `SHIPPING_GW#<id>` | `TENANT#<tid>` | `CARRIER_ENABLED#<bool>` | `kms_ciphertext_blob`, `pickup_location_id`, `countries[]` |
-| **Localized Fee & COD Rule** | `TENANT#<tid>` | `LOCALE_FEES#<iso>#<zone>` | `TENANT#<tid>` | `FEE_PRIORITY#<n>` | `base_fee_cents`, `per_kg_cents`, `cod_deposit_rule`, `tax_vat_pct` |
-| **Localized SDUI Layout** | `TENANT#<tid>` | `SDUI#<route>#<persona>#<loc>` | `SDUI_VER#<ver>` | `UPDATED#<ts>` | `direction` (`rtl`\|`ltr`), `theme_tokens`, `components_json` |
-| **Product Item** | `TENANT#<tid>` | `PRODUCT#<pid>` | `CAT#<cid>` | `PRICE#<cents>` | `type` (`PHYSICAL`\|`DIGITAL`), `b2c_price`, `b2b_tiers[]`, `vendor_id` |
-| **Order & Split COD** | `TENANT#<tid>` | `ORDER#<oid>` | `CUST#<sub_id>` | `CREATED#<ts>` | `order_status`, `total_cents`, `deposit_paid_cents`, `cod_collection_cents` |
-| **Shipment & Tracking** | `TENANT#<tid>` | `SHIPMENT#<oid>#<vid>` | `TRACKING#<awb>` | `CARRIER#<id>` | `carrier_status`, `awb_pdf_url`, `pickup_id`, `cod_collected_bool` |
-| **Digital License** | `LICENSE#<key>` | `METADATA` | `CUST#<sub_id>` | `PRODUCT#<pid>` | `ed25519_sig`, `max_seats`, `active_fingerprints[]`, `status` |
-| **B2B Org & RFQ Quote** | `TENANT#<tid>` | `B2B_ORG#<org_id>` | `B2B_REP#<sub_id>` | `STATUS#<st>` | `tax_id`, `credit_limit_cents`, `cod_deposit_pct`, `price_list_id` |
+| Entity | `PK` | `SK` | `GSI1PK` / `GSI1SK` | `GSI2PK` / `GSI2SK` | `GSI3PK` / `GSI3SK` | Key Attributes |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Tenant Metadata** | `TENANT#<tid>` | `METADATA` | `DOMAIN#<host>` / `METADATA` | — | — | `store_name_i18n{}`, `default_locale`, `search_mode` (`ELASTIC`\|`DYNAMO`) |
+| **Category / Sub-Cat** | `TENANT#<tid>` | `CATEGORY#<cid>` | `PARENT_CAT#<pid>` / `SORT#<n>#<cid>` | `SLUG#<loc>#<slug>` / `CATEGORY#<cid>` | — | `names_i18n{}`, `ancestors_path[]`, `depth`, `filter_schema_attributes[]` |
+| **Brand Entity** | `TENANT#<tid>` | `BRAND#<bid>` | `TENANT#<tid>` / `BRAND_NAME#<name>` | `SLUG#<loc>#<slug>` / `BRAND#<bid>` | — | `names_i18n{}`, `logo_url`, `is_verified`, `featured_categories[]` |
+| **Product Item** | `TENANT#<tid>` | `PRODUCT#<pid>` | `CAT#<sub_cid>` / `PRICE#<cents>` | `SLUG#<loc>#<slug>` / `PRODUCT#<pid>` | `BRAND#<bid>` / `CAT#<sub_cid>#PRICE#<cents>` | `type`, `category_id`, `sub_category_id`, `category_ancestors[]`, `brand_id`, `attributes[]`, `stock_qty` |
+| **Gateway / Search Vault** | `TENANT#<tid>` | `GW_VAULT#<type>#<id>` | `TENANT#<tid>` / `GW_ENABLED#<bool>` | — | — | `kms_ciphertext_blob` (Paymob, Stripe, BTCPay, Bosta, Aramex, DHL, Shippo, Elasticsearch) |
+| **Localized Fee Rule** | `TENANT#<tid>` | `LOCALE_FEES#<iso>#<zone>` | `TENANT#<tid>` / `FEE_PRIORITY#<n>` | — | — | `zone_names_i18n{}`, `base_fee_cents`, `per_kg_cents`, `cod_deposit_rule`, `tax_vat_pct` |
+| **Localized SDUI Layout** | `TENANT#<tid>` | `SDUI#<route>#<persona>#<loc>` | `SDUI_VER#<ver>` / `UPDATED#<ts>` | — | — | `direction` (`rtl`\|`ltr`), `theme_tokens`, `components_json` |
+| **Order & Split COD** | `TENANT#<tid>` | `ORDER#<oid>` | `CUST#<sub_id>` / `CREATED#<ts>` | `STATUS#<st>` / `CREATED#<ts>` | — | `order_locale`, `total_cents`, `deposit_paid_cents`, `cod_collection_cents` |
+| **Digital License** | `LICENSE#<key>` | `METADATA` | `CUST#<sub_id>` / `PRODUCT#<pid>` | `ORDER#<oid>` / `LICENSE#<key>` | — | `ed25519_sig`, `max_seats`, `active_fingerprints[]`, `status` |
