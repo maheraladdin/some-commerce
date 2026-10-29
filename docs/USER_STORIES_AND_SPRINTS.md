@@ -4,7 +4,7 @@ Each vertical slice is a **4-week milestone (two 2-week sprints)** funded via [G
 
 Every user story below includes its **Cognito Persona/Roles**, **Multilingual & RTL/LTR Requirements**, **Target Rust Lambda Binary & API Contract**, **DynamoDB / Elasticsearch Access Pattern**, and **Given/When/Then Acceptance Criteria & Edge Cases**.
 
-## Slice 1 (`v1.0` — Weeks 1–4): Core B2C Storefront, Amazon Cognito Auth, Unlimited N-Level Categories, Dynamic Product Properties, Elasticsearch + General Filtration, Paymob/Stripe, Bosta & Split COD
+## Slice 1 (`v1.0` — Weeks 1–4): Core B2C Storefront, Amazon Cognito Auth, Unlimited N-Level Categories, Dynamic Product Properties, Elasticsearch + General Filtration, Customer & Admin WebMCP Tools, Paymob/Stripe, Bosta & Split COD
 
 ### US-1.1: Amazon Cognito OIDC/PKCE Authentication, Phone OTP & Pre-Token Persona/Locale Injection
 * **Actors & Cognito Roles**: `ANONYMOUS`, `B2C_CUSTOMER`, `STORE_ADMIN`
@@ -34,20 +34,52 @@ Every user story below includes its **Cognito Persona/Roles**, **Multilingual & 
 * **Actors & Cognito Roles**: `ANONYMOUS`, `B2C_CUSTOMER`, `B2B_BUYER`, `STORE_ADMIN`, `fulfillment-worker`
 * **User Story Narrative**:
   * *As a* shopper on Web, iOS, or Android,
-  * *I want* to filter and search products using both **General Filtration** (any N-level Category/Sub-Category node, Brand, Price Range, In-Stock Only, On-Sale, Product Type `PHYSICAL`/`DIGITAL`, COD Eligibility, Minimum Rating, Sort Order) and **Advanced [Elasticsearch](https://www.elastic.co/docs/explore-analyze/query-filter/aggregations) / [Amazon OpenSearch](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/what-is.html) Dynamic Property Filtration** (multilingual full-text search with Arabic/English stemming and typo tolerance, plus [Nested Aggregations](https://www.elastic.co/docs/reference/aggregations/search-aggregations-bucket-nested-aggregation) over arbitrary merchant-defined `properties[]`—whether enum strings, color swatches, booleans, or numeric ranges),
+  * *I want* to filter and search products using both **General Filtration** (any N-level Category/Sub-Category node, Brand, Price Range, In-Stock Only, On-Sale, Product Type `PHYSICAL`/`DIGITAL`, COD Eligibility, Minimum Rating, Sort Order) and **Advanced [Elasticsearch](https://www.elastic.co/docs/explore-analyze/query-filter/aggregations) / [Amazon OpenSearch](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/what-is.html) Dynamic Property Filtration** (multilingual full-text search with Arabic/English stemming and typo tolerance, plus [Nested Aggregations](https://www.elastic.co/docs/reference/aggregations/search-aggregations-bucket-nested-aggregation) over arbitrary merchant-defined `properties[]`),
   * *So that* the SDUI `SearchFacetFilterBlock` automatically renders the exact filter widgets (`COLOR_SWATCH_GRID`, `RANGE_SLIDER`, `CHECKBOX_LIST`, `TOGGLE_SWITCH`) configured by the merchant with live product counts.
 
-### US-1.5: Localized Governorate/Zone Fee Matrix & KMS-Encrypted Vault (Paymob, Stripe, Bosta & Elasticsearch)
+### US-1.5: Localized Governorate/Zone Fee Matrix & KMS-Encrypted Vault (Paymob, Stripe, Bosta, Elasticsearch & AI Providers)
 * **Actors & Cognito Roles**: `STORE_ADMIN`, `checkout-webhooks-api`
 * **User Story Narrative**:
   * *As a* store admin,
-  * *I want* to store encrypted API credentials for [Paymob](https://developers.paymob.com/paymob-docs), [Stripe](https://docs.stripe.com/api), [Bosta](https://docs.bosta.co/), and external [Elasticsearch](https://www.elastic.co/) clusters in the dashboard alongside a **Localized Fee & Tax Matrix** (`LOCALE_FEES#<country>#<zone>`) with multilingual zone names (e.g., `"الدقهلية - المنصورة"` / `"Dakahlia - Mansoura"`), weight brackets, VAT %, and COD surcharges.
+  * *I want* to store encrypted API credentials for [Paymob](https://developers.paymob.com/paymob-docs), [Stripe](https://docs.stripe.com/api), [Bosta](https://docs.bosta.co/), external [Elasticsearch](https://www.elastic.co/) clusters, and AI/LLM providers in the dashboard alongside a **Localized Fee & Tax Matrix** (`LOCALE_FEES#<country>#<zone>`) with multilingual zone names (e.g., `"الدقهلية - المنصورة"` / `"Dakahlia - Mansoura"`), weight brackets, VAT %, and COD surcharges.
 
 ### US-1.6: Anti-RTO Upfront Deposit + Split Cash on Delivery (`DEPOSIT_COD`), Bosta AWB Dispatch & Multilingual SNS Alerts
 * **Actors & Cognito Roles**: `B2C_CUSTOMER`, `STORE_ADMIN`, `checkout-webhooks-api`, `fulfillment-worker`, `durable-orchestrator`
 * **User Story Narrative**:
   * *As a* merchant offering Cash on Delivery via [Bosta](https://docs.bosta.co/),
   * *I want* to require a configurable **Upfront COD Deposit** (`SHIPPING_FEE_ONLY`, `PERCENTAGE`, or `FIXED_AMOUNT`) paid online via [Paymob](https://developers.paymob.com/paymob-docs) or [Stripe](https://docs.stripe.com/api) before dispatching the order, and automatically book the remaining balance (`total - deposit`) as `collectionAmount` on Bosta with multilingual [Amazon SNS](https://docs.aws.amazon.com/sns/latest/dg/welcome.html) SMS and Mobile Push notifications.
+
+### US-1.7: Customer WebMCP (`navigator.modelContext`) & Conversational Shopping, Recommendation & Account Assistant
+* **Actors & Cognito Roles**: `ANONYMOUS`, `B2C_CUSTOMER`, `B2B_BUYER`, In-Browser AI Agent ([WebMCP](https://webmachinelearning.github.io/webmcp/))
+* **User Story Narrative**:
+  * *As a* customer browsing on Web (via a WebMCP-enabled browser agent or the built-in store assistant) or on iOS/Android,
+  * *I want* structured [WebMCP (`navigator.modelContext`)](https://developer.chrome.com/docs/ai/webmcp) and backend [MCP](https://modelcontextprotocol.io/specification/2026-07-28) tools (`search_and_filter_catalog`, `recommend_and_compare_products`, `prepare_cart_and_quote_cod`, and `update_customer_account_details`) that understand natural language in my active language (`ar-EG`, `en-US`, etc.) to search and filter products across N-level categories and dynamic properties, recommend and compare the best products for my budget/needs, and help me add or update my account profile and delivery addresses,
+  * *So that* I have an intelligent third search and personal shopping tool alongside standard search and faceted filtration.
+* **Multilingual & Localization Behavior**:
+  * Understands conversational queries in Arabic, English, French, German, etc. (e.g., *"رشحلي أفضل لابتوب للهندسة والجيمينج تحت 45 ألف جنيه وضيف عنواني في المنصورة حي الجامعة"*), maps colloquial property names (`"رامات 16"` -> `props_range[ram_gb]=16..`), and returns localized product comparison cards (`ProductComparisonTableBlock`).
+* **Target Lambda & API Contract**:
+  * Client Browser API: `navigator.modelContext.registerTool(...)` registering `search_and_filter_catalog`, `recommend_and_compare_products`, `prepare_cart_and_quote_cod`, and `update_customer_account_details`.
+  * `storefront-sdui-api`: `POST /v1/mcp/customer` (executes MCP tool calls and [Amazon Bedrock Converse API](https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use.html) orchestration for mobile/web in-app chat).
+* **DynamoDB & Elasticsearch Access Pattern**:
+  * Invokes `CatalogSearchProvider::search_products` (`crates/search-elastic`) to retrieve real-time grounded inventory, prices, and dynamic `properties[]`—never hallucinating out-of-stock products or fake prices.
+  * Account updates (`update_customer_account_details`) write to `PK = TENANT#<tid>, SK = USER#<cognito_sub>` **only** after the user approves a pre-filled confirmation card (`confirm_mutation: true`).
+* **Acceptance Criteria (Given / When / Then)**:
+  1. **Given** a shopper asking via WebMCP or `AiShoppingAssistantDrawerBlock`: *"Compare the top 3 gaming laptops with 16GB+ RAM and RTX 4060 under 50,000 EGP and tell me which one has the best screen"*, **When** `search_and_filter_catalog` and `recommend_and_compare_products` execute, **Then** the assistant queries Elasticsearch for in-stock matches, updates the live `SearchFacetFilterBlock` on screen, and renders a localized `ProductComparisonTableBlock` comparing `screen_refresh_hz`, `ram_gb`, `weight`, and `Split COD deposit`.
+  2. **Given** an authenticated customer asking the assistant: *"Add my delivery address: Mansoura, Dakahlia, El-Gomhoria Street next to University Gate, phone 01012345678"*, **When** `update_customer_account_details` parses the structured fields (`governorate = "EG-DK"`, `city = "Mansoura"`, `street = "El-Gomhoria St"`, `landmark = "University Gate"`), **Then** the UI presents a pre-filled confirmation card and, upon user click, saves the address to `USER#<cognito_sub>` in DynamoDB.
+
+### US-1.8: Admin WebMCP (`navigator.modelContext`) & AI Copilot for SDUI Styling, Store Configuration & Product Creation
+* **Actors & Cognito Roles**: `STORE_ADMIN`, `VENDOR` (strictly guarded by `RequireStoreAdmin` / `RequireVendor` Cognito RBAC)
+* **User Story Narrative**:
+  * *As a* store administrator or vendor in the Admin Dashboard,
+  * *I want* privileged WebMCP (`navigator.modelContext`) and backend MCP tools (`admin_style_and_generate_sdui`, `admin_configure_store_and_fees`, and `admin_create_and_translate_product`) that help me style and generate localized SDUI layouts and themes, configure N-level categories, custom product properties, and regional shipping/COD fees, and create/translate multi-variant products from raw notes or specs,
+  * *So that* I can design, configure, and populate my store in minutes while every AI-generated change is validated against strict Rust schemas and previewed before publishing.
+* **Target Lambda & API Contract**:
+  * Client Browser API (registered only on `/admin/*` and `/vendor/*` routes when authenticated): `navigator.modelContext.registerTool(...)` for `admin_style_and_generate_sdui`, `admin_configure_store_and_fees`, and `admin_create_and_translate_product`.
+  * `admin-vendor-api`: `POST /v1/mcp/admin` (enforces `cognito:groups` RBAC, validates generated JSON against `crates/sdui-schema` and `crates/core-domain`, writes `DRAFT` previews, and logs an immutable `AUDIT#<timestamp>` record in DynamoDB).
+* **Acceptance Criteria (Given / When / Then)**:
+  1. **Given** a `STORE_ADMIN` prompting via Admin WebMCP: *"Restyle the home page for our White Friday campaign with a dark-navy & gold theme, a countdown hero banner in Arabic and English, and a featured ASUS/Lenovo brand pill bar"*, **When** `admin_style_and_generate_sdui` runs, **Then** it generates schema-validated `SDUI#/home#B2C#ar-EG` (`direction: "rtl"`) and `SDUI#/home#B2C#en-US` (`direction: "ltr"`) draft JSON trees, renders a live side-by-side preview in the Admin Dashboard, and publishes to S3/CloudFront upon admin approval.
+  2. **Given** a `STORE_ADMIN` prompting: *"Add a new property 'Screen Panel Type' (IPS, OLED, Mini-LED) as pill tags, attach it to Gaming Laptops, and set Dakahlia shipping to 65 EGP with shipping-fee-only COD deposit"*, **When** `admin_configure_store_and_fees` executes, **Then** it creates `PROPERTY_DEF#panel_type`, attaches it to `TAXONOMY_NODE#cat_gaming_laptops`, and updates `LOCALE_FEES#EG#DAKAHLIA` after admin confirmation.
+  3. **Given** a `STORE_ADMIN` or `VENDOR` pasting raw English specs for a new product and prompting: *"Create this product in Arabic and English under Gaming Laptops with 16GB/32GB RAM variants and Black/Silver color swatches"*, **When** `admin_create_and_translate_product` executes, **Then** it populates `titles_i18n`, `descriptions_i18n`, `seo_slugs_i18n`, `properties[]`, and 4 Cartesian SKU variants (`2 RAM x 2 Colors`), saves the product to DynamoDB, and indexes it into Elasticsearch.
 
 ## Slice 2 (`v2.0` — Weeks 5–8): Digital Products & 6-Mode Non-Heartbeat Cryptographic Licensing Engine
 
@@ -62,24 +94,12 @@ Every user story below includes its **Cognito Persona/Roles**, **Multilingual & 
 * **User Story Narrative**:
   * *As a* digital creator or software vendor who wants **$0 ongoing Lambda/DynamoDB polling costs** and full offline usability,
   * *I want* `fulfillment-worker` to mint an offline-verifiable `.lic` certificate signed by an [AWS KMS](https://docs.aws.amazon.com/kms/latest/APIReference/API_Sign.html) asymmetric **[Ed25519 (RFC 8032)](https://www.rfc-editor.org/info/rfc8032/)** private key (`Mode 1`), optionally wrap an **AES-256-GCM Content Encryption Key (CEK)** to the buyer's X25519 device public key so encrypted pro modules/assets cannot be unlocked by binary patching (`Mode 4`), and embed an `updates_entitled_until` timestamp so the client app locally verifies `release_published_at <= updates_entitled_until` without ever calling home during daily usage (`Mode 5`).
-* **Target Lambda & API Contract**:
-  * `fulfillment-worker`: Invokes `kms:Sign` (`SigningAlgorithm::Ed25519Sha512`) over canonical JSON `{ license_key, tenant_id, product_id, customer_sub, verification_mode, updates_entitled_until, issued_at, expires_at, entitlements[] }`.
-  * `storefront-sdui-api`: `POST /v1/licenses/unseal-cek` (one-time X25519 key exchange returning the wrapped AES-256-GCM Content Encryption Key for `Mode 4`), `POST /v1/licenses/download-release/{version}` (verifies `release.published_at <= license.updates_entitled_until` for `Mode 5`).
-* **Acceptance Criteria (Given / When / Then)**:
-  1. **Given** a buyer with a `Mode 1` + `Mode 5` `.lic` certificate whose `updates_entitled_until` is `2027-06-01`, **When** they run software release `v2.1.0` (published `2027-03-15`) completely offline on an air-gapped laptop, **Then** the embedded 32-byte Ed25519 public key verifies the `.lic` signature and release timestamp locally in `<1ms` with zero network requests.
-  2. **Given** an encrypted AI model or VST plugin protected by `Mode 4` (AES-256-GCM CEK), **When** an attacker patches out boolean checks in the client binary without possessing a valid KMS-issued X25519-wrapped CEK, **Then** the encrypted asset payload remains mathematically undecryptable.
 
 ### US-2.3: Air-Gapped Challenge-Response / Mobile QR Hardware Activation (`Mode 2`) & CloudFront Edge-Cached Revocation Lists (`Mode 3`)
 * **Actors & Cognito Roles**: `B2C_CUSTOMER`, `B2B_BUYER`, Client Software SDK, `storefront-sdui-api`, `checkout-webhooks-api`, `fulfillment-worker`
 * **User Story Narrative**:
   * *As a* software vendor protecting against both offline machine cloning and payment refunds/chargebacks **without periodic online heartbeating**,
   * *I want* offline target machines to generate a hardware-fingerprint challenge QR code (or `.req` file) that the buyer scans once using the `some-commerce` [Expo](https://docs.expo.dev/) mobile app to receive a hardware-locked `.cert` file (`Mode 2`), and I want `fulfillment-worker` to publish a compact, Ed25519-signed **Certificate Revocation List / Bloom Filter (`revoked.crl.bin` — [RFC 5280](https://www.rfc-editor.org/info/rfc5280/))** to [Amazon S3](https://docs.aws.amazon.com/AmazonS3/latest/userguide/HostingWebsiteOnS3Setup.html) + [Amazon CloudFront](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html) whenever a Stripe/Paymob refund or [Bosta](https://docs.bosta.co/) return occurs (`Mode 3`).
-* **Target Lambda & API Contract**:
-  * `storefront-sdui-api`: `POST /v1/licenses/challenge-activate` (accepts `{ license_key, machine_fingerprint_sha256, challenge_nonce }`, enforces `size(active_machines) < max_activations` in DynamoDB, and returns an AWS KMS Ed25519-signed `.cert` bound to `machine_fingerprint_sha256` + `challenge_nonce`).
-  * CloudFront Static Edge Endpoint: `GET /crl/{tenant_id}/revoked.crl.bin` (served directly from S3 via CloudFront OAC with `Cache-Control: public, max-age=3600`—zero Lambda or DynamoDB invocations).
-* **Acceptance Criteria (Given / When / Then)**:
-  1. **Given** an air-gapped industrial PC displaying a `Mode 2` activation QR code containing its hardware fingerprint and nonce, **When** the buyer scans the QR code inside `CustomerLicenseVaultBlock` on their Expo mobile app, **Then** `/v1/licenses/challenge-activate` registers the seat in DynamoDB and displays a response QR code / downloadable `.cert` that permanently activates that exact PC offline.
-  2. **Given** a Stripe/Paymob refund webhook or Bosta `Returned to Business` webhook for an order, **When** `checkout-webhooks-api` revokes the license in DynamoDB, **Then** `fulfillment-worker` updates the signed `revoked.crl.bin` Bloom filter in S3 and dispatches an [Amazon SNS](https://docs.aws.amazon.com/sns/latest/dg/welcome.html) silent push notification (`Mode 6`), revoking the license across online clients without requiring heartbeat polling.
 
 ## Slice 3 (`v3.0` — Weeks 9–12): B2B Wholesale, Cross-Border Express ([Aramex](https://www.aramex.com/eg/en/developers-solution-center/aramex.com-platform) & [DHL Express](https://developer.dhl.com/)), RFQ & B2B On-Premise License Proxy
 
@@ -87,7 +107,7 @@ Every user story below includes its **Cognito Persona/Roles**, **Multilingual & 
 * **Actors & Cognito Roles**: `B2B_ORG_ADMIN`, `B2B_BUYER`, `STORE_ADMIN`
 * **User Story Narrative**:
   * *As a* wholesale company buyer (`cognito:groups = ["B2B_BUYER"]`),
-  * *I want* the storefront SDUI engine and Elasticsearch search endpoint to filter products by B2B Minimum Order Quantity (`moq_max`), contracted B2B tier price ranges, bulk case-pack properties, and authorized distributor brands (`b2b_authorized_brands`), rendering `B2BBulkVariantMatrix` and `TieredPriceTable` in my preferred language.
+  * *I want* the storefront SDUI engine, WebMCP shopping assistant, and Elasticsearch search endpoint to filter products by B2B Minimum Order Quantity (`moq_max`), contracted B2B tier price ranges, bulk case-pack properties, and authorized distributor brands (`b2b_authorized_brands`), rendering `B2BBulkVariantMatrix` and `TieredPriceTable` in my preferred language.
 
 ### US-3.2: Cross-Border Shipping via Aramex & DHL Express with Landed Duties & Bilingual Commercial Invoices
 * **Actors & Cognito Roles**: `B2B_BUYER`, `B2C_CUSTOMER`, `STORE_ADMIN`, `fulfillment-worker`
@@ -99,7 +119,7 @@ Every user story below includes its **Cognito Persona/Roles**, **Multilingual & 
 * **Actors & Cognito Roles**: `B2B_BUYER`, `STORE_ADMIN`, `durable-orchestrator`
 * **User Story Narrative**:
   * *As a* wholesale buyer,
-  * *I want* to submit an RFQ from my cart, negotiate custom unit prices, shipping incoterms (`EXW`, `FOB`, `DDP`), and milestone payment terms (e.g., `30% Upfront Deposit` via Paymob/Stripe, `70% Balance` via COD or Net-30) with localized [Amazon SNS](https://docs.aws.amazon.com/sns/latest/dg/welcome.html) notifications and automated [AWS Lambda Durable Functions](https://aws.plainenglish.io/aws-lambda-updates-in-2025-2e664f4070d2) Net-30 payment reminders.
+  * *I want* to submit an RFQ from my cart (or via the WebMCP B2B assistant), negotiate custom unit prices, shipping incoterms (`EXW`, `FOB`, `DDP`), and milestone payment terms (e.g., `30% Upfront Deposit` via Paymob/Stripe, `70% Balance` via COD or Net-30) with localized [Amazon SNS](https://docs.aws.amazon.com/sns/latest/dg/welcome.html) notifications and automated [AWS Lambda Durable Functions](https://aws.plainenglish.io/aws-lambda-updates-in-2025-2e664f4070d2) Net-30 payment reminders.
 
 ### US-3.4: B2B On-Premise LAN License Proxy (`Mode 6`) & Organization Multi-Seat Management
 * **Actors & Cognito Roles**: `B2B_ORG_ADMIN`, `B2B_BUYER`
@@ -119,7 +139,7 @@ Every user story below includes its **Cognito Persona/Roles**, **Multilingual & 
 * **Actors & Cognito Roles**: `B2C_CUSTOMER`, `VENDOR`, `fulfillment-worker`
 * **User Story Narrative**:
   * *As a* marketplace vendor and shopper,
-  * *I want* vendors to propose or attach custom product properties to their listings, shoppers to filter by **Vendor**, **Brand**, **N-Level Category**, and **Dynamic Properties** in Elasticsearch, and multi-vendor checkouts to atomically split into `SUBORDER#<parent_id>#<vendor_id>` with proportional COD deposit allocation and per-vendor carrier pickup dispatch.
+  * *I want* vendors to use the Admin/Vendor WebMCP assistant to attach custom product properties and translate their listings, shoppers to filter by **Vendor**, **Brand**, **N-Level Category**, and **Dynamic Properties** in Elasticsearch, and multi-vendor checkouts to atomically split into `SUBORDER#<parent_id>#<vendor_id>` with proportional COD deposit allocation and per-vendor carrier pickup dispatch.
 
 ### US-4.3: Pluggable Crypto Checkout ([BTCPay Server](https://docs.btcpayserver.org/API/Greenfield/v1/)) & Delivery-Gated Vendor Escrow Ledger
 * **Actors & Cognito Roles**: `VENDOR`, `STORE_ADMIN`, `durable-orchestrator`
@@ -147,13 +167,13 @@ Every user story below includes its **Cognito Persona/Roles**, **Multilingual & 
   * *As the* creator of `some-commerce`,
   * *I want* commercial AWS Marketplace deployments to verify entitlements and report usage via the AWS Marketplace Metering API, and I want my public roadmap to automatically update slice funding progress when a [GitHub Sponsors](https://docs.github.com/en/sponsors) webhook fires.
 
-## Slice 6 (`v6.0` — Weeks 21–24): Visual Multilingual SDUI Studio, Dynamic Property/Taxonomy Studio & White-Label Mobile Pipeline
+## Slice 6 (`v6.0` — Weeks 21–24): Visual Multilingual SDUI Studio, WebMCP Styling Copilot, Dynamic Property/Taxonomy Studio & White-Label Mobile Pipeline
 
-### US-6.1: Visual Drag-and-Drop Multilingual SDUI Studio & Side-by-Side RTL/LTR Previewer (`"use dom"`)
+### US-6.1: Visual Drag-and-Drop Multilingual SDUI Studio & Side-by-Side RTL/LTR Previewer with WebMCP Styling Copilot (`"use dom"`)
 * **Actors & Cognito Roles**: `STORE_ADMIN`
 * **User Story Narrative**:
   * *As a* non-technical merchant,
-  * *I want* a drag-and-drop visual SDUI studio inside the static Expo Admin Dashboard (built with [Expo DOM Components](https://docs.expo.dev/guides/dom-components/)) where I can arrange storefront blocks, edit side-by-side translations (`ar-EG` RTL vs. `en-US` LTR), preview across Web, iOS, and Android viewports, and publish new schema versions with automatic CloudFront cache invalidation and 1-click rollback.
+  * *I want* a drag-and-drop visual SDUI studio inside the static Expo Admin Dashboard (built with [Expo DOM Components](https://docs.expo.dev/guides/dom-components/)) paired with the `admin_style_and_generate_sdui` WebMCP Copilot where I can either drag blocks manually or ask the AI to restyle/translate pages (`ar-EG` RTL vs. `en-US` LTR), preview across Web, iOS, and Android viewports, and publish with automatic CloudFront cache invalidation and 1-click rollback.
 
 ### US-6.2: Visual N-Level Category Tree Manager, Dynamic Property Designer & Regional Fee Matrix
 * **Actors & Cognito Roles**: `STORE_ADMIN`

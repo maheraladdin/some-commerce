@@ -1,4 +1,4 @@
-# Server-Driven UI (SDUI), Dynamic Product Properties, N-Level Taxonomy & Multilingual Localization Specification
+# Server-Driven UI (SDUI), WebMCP Tools, Dynamic Product Properties, N-Level Taxonomy & Multilingual Specification
 
 ## 1. End-to-End Multilingual Architecture (`crates/i18n-engine` + `expo-localization`)
 
@@ -11,113 +11,159 @@ To make `some-commerce` work seamlessly across MENA (`ar-EG`, `ar-SA`, `ar-AE`),
 3. **Unlimited N-Level Taxonomy, Brands & User-Defined Product Properties**:
    * Every N-level category node (`TAXONOMY_NODE#<node_id>`), Brand (`BRAND#<brand_id>`), Property Definition (`PROPERTY_DEF#<prop_code>`), and Product (`PRODUCT#<pid>`) stores localized maps (`names_i18n`, `titles_i18n`, `unit_labels_i18n`, `seo_slugs_i18n`).
 
-## 2. User-Customizable Product Properties & Unlimited N-Level Categorization
+## 2. WebMCP (`navigator.modelContext`) & Backend MCP Tool Specifications
 
-Merchants are never locked into fixed product columns or a rigid 2-level category tree:
+On static Expo Web, `some-commerce` registers structured tools via the **[W3C WebMCP (`navigator.modelContext`)](https://webmachinelearning.github.io/webmcp/)** API ([Chrome WebMCP](https://developer.chrome.com/docs/ai/webmcp)), while exposing the exact same tool schemas on `POST /v1/mcp/customer` and `POST /v1/mcp/admin` (powered by [Amazon Bedrock Converse API Tool Use](https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use.html)) for mobile and in-app chat users.
 
-### 2.1 Unlimited N-Level Category Hierarchy (`TAXONOMY_NODE#<node_id>`)
-* **Arbitrary Depth (`Level 0 .. Level N`)**: Any category node can have a `parent_node_id` (`ROOT` or another `node_id`) and stores its materialized `ancestors_path: ["node_l0", "node_l1", "node_l2", ..., "node_ln"]` plus `depth_level`.
-* **Property Inheritance + Ad-Hoc Overrides**:
-  * A category node at depth `k` automatically inherits all `attached_property_ids[]` from its ancestor nodes (`0 .. k-1`) and can attach additional properties specific to depth `k`.
-  * When editing any individual product, the merchant can also add **ad-hoc product-level properties** (`custom_properties[]`) on the fly without pre-attaching them to a category.
+### 2.1 Customer WebMCP Registration (`StorefrontWebMcpBridge.ts`)
 
-### 2.2 Dynamic Property Engine (`PROPERTY_DEF#<prop_code>`)
-Merchants can create any property (e.g., `color`, `size`, `ram_gb`, `shoe_width`, `wattage`, `license_os`, `fabric_blend`) and customize:
-* **`data_type`**: `ENUM_SINGLE` | `ENUM_MULTI` | `COLOR_SWATCH` | `NUMERIC_UNIT` | `BOOLEAN` | `TEXT_LOCALIZED`
-* **`is_variant_axis`**: When `true`, combinations of variant-axis properties (`Color x Size` or `RAM x Storage`) generate distinct purchasable SKUs with independent price, stock, weight, and image galleries. When `false`, the property is stored as a product specification.
-* **`is_filterable_facet` & `filter_ui_widget`**: Controls whether the property is aggregated in [Elasticsearch Nested Aggregations](https://www.elastic.co/docs/reference/aggregations/search-aggregations-bucket-nested-aggregation) / DynamoDB General Filtration and which SDUI widget renders it (`COLOR_SWATCH_GRID`, `RANGE_SLIDER`, `CHECKBOX_LIST`, `PILL_TAGS`, or `TOGGLE_SWITCH`).
-
-## 3. Dynamic SDUI Search, N-Level Category Tree, Brand & Custom Property Filter Schema
-
-```json
-{
-  "schema_version": "1.0",
-  "route": "/categories/cat_rtx40_gaming_laptops",
-  "locale": "ar-EG",
-  "direction": "rtl",
-  "persona": "B2C",
-  "blocks": [
-    {
-      "id": "n_level_breadcrumbs",
-      "type": "CategoryBreadcrumbBlock",
-      "props": {
-        "trail": [
-          { "id": "cat_l0_electronics", "depth": 0, "label": "إلكترونيات" },
-          { "id": "cat_l1_computers", "depth": 1, "label": "كمبيوتر ولابتوب" },
-          { "id": "cat_l2_laptops", "depth": 2, "label": "لابتوب" },
-          { "id": "cat_l3_gaming", "depth": 3, "label": "لابتوب للألعاب" },
-          { "id": "cat_l4_rtx40", "depth": 4, "label": "سلسلة RTX 40" }
-        ]
+```typescript
+if (typeof navigator !== "undefined" && "modelContext" in navigator) {
+  // 1. Conversational Search & Dynamic Property Filtration
+  navigator.modelContext.registerTool({
+    name: "search_and_filter_catalog",
+    description: "Search products across N-level categories, brands, and dynamic properties, and update the storefront filter UI.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        query: { type: "string", description: "Keywords in user language (Arabic, English, etc.)" },
+        taxonomy_node_id: { type: "string", description: "Category or sub-category node ID" },
+        brand_ids: { type: "array", items: { type: "string" } },
+        price_min: { type: "number" },
+        price_max: { type: "number" },
+        supports_cod: { type: "boolean" },
+        in_stock_only: { type: "boolean", default: true },
+        dynamic_properties: {
+          type: "object",
+          description: "Key-value map of custom product properties (e.g. {'ram_gb': '16', 'color': 'black'})"
+        }
       }
     },
-    {
-      "id": "brand_carousel",
-      "type": "BrandPillSelectorBlock",
-      "props": {
-        "selected_brand_ids": ["brand_asus"],
-        "brands": [
-          { "id": "brand_asus", "name": "أسوس (ASUS)", "logo_url": "https://.../asus.svg", "doc_count": 28 },
-          { "id": "brand_lenovo", "name": "لينوفو (Lenovo)", "logo_url": "https://.../lenovo.svg", "doc_count": 19 }
-        ]
+    execute: async (args) => storefrontMcpClient.searchAndUpdateUi(args)
+  });
+
+  // 2. Product Recommendation & Side-by-Side Comparison
+  navigator.modelContext.registerTool({
+    name: "recommend_and_compare_products",
+    description: "Compare candidate products against customer budget, use case, and custom properties, rendering a comparison table.",
+    inputSchema: {
+      type: "object",
+      required: ["use_case"],
+      properties: {
+        use_case: { type: "string", description: "Customer goal (e.g. 'gaming and 3D rendering under 45,000 EGP')" },
+        candidate_product_ids: { type: "array", items: { type: "string" } },
+        highlight_properties: { type: "array", items: { type: "string" } }
       }
     },
-    {
-      "id": "facet_filter_sidebar",
-      "type": "SearchFacetFilterBlock",
-      "props": {
-        "search_endpoint": "/v1/search/products",
-        "general_filters": {
-          "in_stock_only": { "label": "متوفر في المخزن فقط", "active": true, "doc_count": 46 },
-          "supports_cod": { "label": "متاح الدفع عند الاستلام (بوسطة)", "active": false, "doc_count": 42 },
-          "on_sale_only": { "label": "عروض وخصومات", "active": false, "doc_count": 15 }
-        },
-        "price_range_facet": {
-          "currency": "EGP",
-          "min_available": 22000,
-          "max_available": 95000,
-          "selected_min": 25000,
-          "selected_max": 65000
-        },
-        "child_taxonomy_facets": [
-          { "id": "cat_l5_rtx4060", "depth": 5, "label": "لابتوب RTX 4060", "doc_count": 18 },
-          { "id": "cat_l5_rtx4070", "depth": 5, "label": "لابتوب RTX 4070", "doc_count": 10 }
-        ],
-        "dynamic_property_facets": [
-          {
-            "prop_code": "color",
-            "label": "اللون",
-            "data_type": "COLOR_SWATCH",
-            "filter_ui_widget": "COLOR_SWATCH_GRID",
-            "buckets": [
-              { "value": "black", "label": "أسود", "hex": "#111827", "doc_count": 30, "selected": true },
-              { "value": "silver", "label": "فضي", "hex": "#E5E7EB", "doc_count": 16, "selected": false }
-            ]
-          },
-          {
-            "prop_code": "ram_gb",
-            "label": "حجم الذاكرة (RAM)",
-            "data_type": "NUMERIC_UNIT",
-            "filter_ui_widget": "PILL_TAGS",
-            "unit_label": "جيجابايت",
-            "buckets": [
-              { "value": "16", "label": "16 جيجابايت", "doc_count": 21, "selected": true },
-              { "value": "32", "label": "32 جيجابايت", "doc_count": 7, "selected": false }
-            ]
-          },
-          {
-            "prop_code": "screen_refresh_hz",
-            "label": "معدل تحديث الشاشة",
-            "data_type": "NUMERIC_UNIT",
-            "filter_ui_widget": "RANGE_SLIDER",
-            "unit_label": "Hz",
-            "min_available": 60,
-            "max_available": 240,
-            "selected_min": 144,
-            "selected_max": 240
+    execute: async (args) => storefrontMcpClient.recommendAndCompare(args)
+  });
+
+  // 3. Customer Account & Address Profile Assistant
+  navigator.modelContext.registerTool({
+    name: "update_customer_account_details",
+    description: "Add or update the authenticated customer's profile preferences or delivery address (requires user confirmation).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        preferred_locale: { type: "string", enum: ["ar-EG", "ar-SA", "en-US", "fr-FR", "de-DE"] },
+        full_name: { type: "string" },
+        shipping_address: {
+          type: "object",
+          properties: {
+            country_code: { type: "string" },
+            governorate_or_state: { type: "string" },
+            city_district: { type: "string" },
+            street_address: { type: "string" },
+            landmark: { type: "string" },
+            phone_e164: { type: "string" }
           }
-        ]
+        }
       }
-    }
-  ]
+    },
+    execute: async (args) => storefrontMcpClient.promptAndSaveAccountDetails(args)
+  });
 }
 ```
+
+### 2.2 Admin WebMCP Registration (`AdminWebMcpBridge.ts` — `STORE_ADMIN` / `VENDOR` Only)
+
+```typescript
+if (typeof navigator !== "undefined" && "modelContext" in navigator && isAuthenticatedAdmin) {
+  // 1. SDUI Styling, Theme Token & Layout Generator
+  navigator.modelContext.registerTool({
+    name: "admin_style_and_generate_sdui",
+    description: "Generate or restyle localized SDUI page layouts and theme tokens (colors, RTL/LTR blocks, fonts) with live draft preview.",
+    inputSchema: {
+      type: "object",
+      required: ["route", "locale", "styling_instruction"],
+      properties: {
+        route: { type: "string", examples: ["/home", "/categories/cat_gaming_laptops"] },
+        persona: { type: "string", enum: ["B2C", "B2B"], default: "B2C" },
+        locale: { type: "string", examples: ["ar-EG", "en-US"] },
+        styling_instruction: { type: "string" },
+        theme_tokens_override: {
+          type: "object",
+          properties: {
+            primary_color: { type: "string" },
+            background_color: { type: "string" },
+            font_family: { type: "string" }
+          }
+        }
+      }
+    },
+    execute: async (args) => adminMcpClient.generateSduiDraftPreview(args)
+  });
+
+  // 2. Store Configuration, N-Level Taxonomy, Custom Property & Fee Rules Assistant
+  navigator.modelContext.registerTool({
+    name: "admin_configure_store_and_fees",
+    description: "Create or update N-level category nodes, custom product properties (and filter widgets), or regional shipping/COD deposit rules.",
+    inputSchema: {
+      type: "object",
+      required: ["action_type", "payload"],
+      properties: {
+        action_type: {
+          type: "string",
+          enum: ["UPSERT_TAXONOMY_NODE", "UPSERT_PROPERTY_DEF", "UPSERT_LOCALE_FEE_RULE", "UPSERT_BRAND"]
+        },
+        payload: { type: "object" }
+      }
+    },
+    execute: async (args) => adminMcpClient.configureStoreEntity(args)
+  });
+
+  // 3. Multilingual Product & Variant Builder
+  navigator.modelContext.registerTool({
+    name: "admin_create_and_translate_product",
+    description: "Create or update a physical or digital product with multilingual titles/descriptions, N-level category, brand, and custom properties.",
+    inputSchema: {
+      type: "object",
+      required: ["product_type", "taxonomy_node_id", "raw_specs_or_prompt"],
+      properties: {
+        product_type: { type: "string", enum: ["PHYSICAL", "DIGITAL", "HYBRID_BUNDLE"] },
+        taxonomy_node_id: { type: "string" },
+        brand_id: { type: "string" },
+        base_price_cents: { type: "integer" },
+        target_locales: { type: "array", items: { type: "string" }, default: ["ar-EG", "en-US"] },
+        raw_specs_or_prompt: { type: "string" }
+      }
+    },
+    execute: async (args) => adminMcpClient.draftAndIndexMultilingualProduct(args)
+  });
+}
+```
+
+## 3. Core Universal SDUI Component Registry
+
+| Component `type` | Persona Scope | Multilingual, Filtration & WebMCP Behavior |
+| :--- | :--- | :--- |
+| `AiShoppingAssistantDrawerBlock` | `B2C`, `B2B` | Embedded conversational shopping & account helper invoking Customer WebMCP / MCP tools (`search_and_filter_catalog`, `recommend_and_compare_products`, `update_customer_account_details`). |
+| `ProductComparisonTableBlock` | `B2C`, `B2B` | Side-by-side matrix comparing candidate products across price, Split COD deposit, and dynamic `properties[]`, rendered by `recommend_and_compare_products`. |
+| `CategoryTreeDrawerBlock` | `B2C`, `B2B` | Expandable N-level accordion of Categories and Sub-Categories (`0..N`) with RTL/LTR mirroring and live item counts. |
+| `CategoryBreadcrumbBlock` | `B2C`, `B2B` | Renders the materialized N-level `ancestors_path[]` trail with localized links. |
+| `BrandPillSelectorBlock` | `B2C`, `B2B` | Horizontal scannable bar of verified Brand logos and live Elasticsearch document counts (`brand_agg`). |
+| `SearchFacetFilterBlock` | `B2C`, `B2B` | Renders General Filters and dynamic `PROPERTY_DEF` widgets (`COLOR_SWATCH_GRID`, `RANGE_SLIDER`, `CHECKBOX_LIST`, `PILL_TAGS`, `TOGGLE_SWITCH`). |
+| `B2BBulkVariantMatrix` | `B2B` | Renders localized variant option names (`اللون`/`المقاس` vs. `Color`/`Size`) and volume-tier discount tables. |
+| `LocalizedAddressFormBlock` | `B2C`, `B2B` | Dynamically switches between `Governorate/District/Landmark` (Egypt/MENA) and `State/Province + Postal Code` (US/EU/UK); pre-fillable via `update_customer_account_details`. |
+| `CodDepositSummaryCard` | `B2C`, `B2B` | Formats `Pay Now Deposit` vs. `Pay on Delivery Balance` in the shopper's active language and currency. |
+| `CustomerLicenseVaultBlock` | `B2C`, `B2B` | Displays localized download instructions, Ed25519 `.lic` certificates, air-gapped QR scanner (`Mode 2`), and B2B seat controls. |
