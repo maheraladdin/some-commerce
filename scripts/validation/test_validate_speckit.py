@@ -76,6 +76,21 @@ class TestValidateSpecKit(unittest.TestCase):
             errors = validate_speckit.validate_story_speckit_links(tmp_path)
             self.assertTrue(any("Missing Spec Kit specification reference" in e for e in errors))
 
+    def test_missing_10_pr_layers_in_template_caught(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            template_file = tmp_path / "user-story-template.md"
+            template_file.write_text(
+                "# US-[X.Y.Z]: Sample\n"
+                "## 4. Granular Implementation Tasks\n"
+                "### Phase 1: Only basic tasks\n"
+                "AC-US-X.Y.Z-LAW\n"
+                "G0 G1 G2 G3 G-Review G-Borrow G-UI G-Law G4\n",
+                encoding="utf-8"
+            )
+            errors = validate_speckit.validate_user_story_template(template_file)
+            self.assertTrue(any("User story template missing 10-PR vertical slice layer 'PR 1'" in e for e in errors))
+
 
 if __name__ == "__main__":
     unittest.main()

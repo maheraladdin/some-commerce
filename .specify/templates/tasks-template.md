@@ -26,19 +26,40 @@ Complete this section for implementation, testing, review, remediation and leade
 - [ ] Read/acknowledge the canonical record before work; log each action intent and result/failure, link artifacts and update the snapshot before next-role acknowledgment. Missing history blocks promotion.
 - [ ] Planning-only tasks name approved upstream direction and draft outputs; implementation tasks require approved master/role plans. Parent completion reconciles all expected child outputs and integrated evidence before upward PM/CTO return.
 
-## Phase 1: Core Domain Logic, Types & Constants
+## The 10-PR Vertical Slicing Framework (Aligned with 10-Pillar System Architecture)
+
+```
+[PR 1: Kernel Core] ──> [PR 2: DB Schema] ──> [PR 3: Repositories] ──> [PR 4: L2 Redis] ──> [PR 5: L1 Moka]
+                                                                                                 │
+[PR 10: Platform UI] <── [PR 9: Headless Hooks] <── [PR 8: WatermelonDB] <── [PR 7: TanStack Query] <── [PR 6: ETag & Axum]
+```
+
+| PR # | Pillar | Architectural Layer | Primary Targets & Crates | Deliverables & Definition of Done | Accountable Role |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **PR 1** | **Pillar 1** | **Microkernel Domain Logic & Plugin Ports** | `crates/kernel-core`, `crates/plugins-*` | Pure vendor-agnostic Rust domain rules, trait definitions, value objects, and property unit tests. | `junior-backend-engineer` / `senior-backend-engineer` |
+| **PR 2** | **Pillar 2** | **Polyglot Database Schema Definitions** | `crates/db-schema`, `packages/watermelon-db` | DynamoDB keys (`PK = TENANT#<id>`, `SK`, GSIs), OpenSearch nested mappings, WatermelonDB schemas. | `junior-backend-engineer` / `senior-backend-engineer` |
+| **PR 3** | **Pillar 3** | **Repository Adapters & Infrastructure Connectors** | `crates/db-dynamo`, `crates/search-elastic`, `crates/notify-sns`, `crates/kms-vault` | DynamoDB CRUD, KMS envelope encryption, OpenSearch query integration, and SNS notifications. | `junior-backend-engineer` / `senior-backend-engineer` |
+| **PR 4** | **Pillar 4** | **Distributed L2 Cache & Invalidation Engine** | `crates/cache-tier` | ElastiCache Redis connection pool, pipelined data/etag caching, and pub/sub eviction channels. | `junior-backend-engineer` / `senior-backend-engineer` |
+| **PR 5** | **Pillar 5** | **In-Process L1 Moka Cache & Request Coalescing** | `crates/cache-tier` | In-memory Moka cache (sub-50µs lookups) and `try_get_with` request coalescing against thundering herds. | `junior-backend-engineer` / `senior-backend-engineer` |
+| **PR 6** | **Pillar 6** | **HTTP ETag Protocol & Pure Axum Handlers** | `bins/*`, `backend/src/features/.../services/` | RFC 9110 BLAKE3 ETag generator, 304 conditional request middleware, Cognito JWT extractors. | `junior-backend-engineer` / `senior-backend-engineer` |
+| **PR 7** | **Pillar 7** | **Frontend Server-State Caching (TanStack Query)** | `packages/query-client`, `apps/storefront/.../services/` | TanStack Query hooks, `fetchWithEtag` client interceptor resolving 304 from local cache. | `junior-client-engineer` / `senior-client-engineer` |
+| **PR 8** | **Pillar 8** | **Client-First Local Database (WatermelonDB Sync)** | `packages/watermelon-db`, `apps/storefront/.../services/` | WatermelonDB reactive models, SQLite/IndexedDB adapters, and delta sync against `/v1/sync`. | `junior-client-engineer` / `senior-client-engineer` |
+| **PR 9** | **Pillar 9** | **Headless Custom Hooks & Logic Abstraction** | `packages/domain-hooks`, `apps/storefront/.../logic/` | Headless custom React hooks isolating state machines, domain math, and validation with zero UI markup. | `junior-client-engineer` / `senior-client-engineer` |
+| **PR 10** | **Pillar 10** | **Platform-Adaptive UI Design & Native Modules** | `apps/storefront/.../designs/`, `packages/ui-primitives` | Native presentation using `@expo/ui` primitives (+ native modules) for iOS/Android, semantic HTML5 + Tailwind CSS for Web; Arabic RTL parity. | `ui-ux-designer` (presentation) / `client-engineer` (wiring) |
+
+## Phase 1: Core Domain Logic, Types & Constants (PR 1–2)
 - [ ] Task 1.1: Define strongly typed models in `behaviours/<name>/types/`
 - [ ] Task 1.2: Define routes, error keys, and limits in `behaviours/<name>/constants/`
 - [ ] Task 1.3: Implement pure domain logic & state machines in `behaviours/<name>/logic/`
 - [ ] Task 1.4: Write unit and property tests verifying domain invariants
 
-## Phase 2: Services & Infrastructure Adapters
+## Phase 2: Services & Infrastructure Adapters (PR 3–6)
 - [ ] Task 2.1: Implement API client / repository adapters in `behaviours/<name>/services/`
 - [ ] Task 2.2: Implement RFC 9110 ETag headers and caching integration
 - [ ] Task 2.3: Integrate WatermelonDB local-first persistence or server sync
 - [ ] Task 2.4: Write service integration and mock-free contract tests
 
-## Phase 3: Designs & Platform-Adaptive UI
+## Phase 3: Designs & Platform-Adaptive UI (PR 7–10)
 - [ ] Task 3.1: Build platform-adaptive UI screens / components in `behaviours/<name>/designs/`
 - [ ] Task 3.2: Connect Headless Hooks from `logic/` to UI components in `designs/`
 - [ ] Task 3.3: Implement RTL/LTR bidirectional styling and localized fonts

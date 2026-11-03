@@ -2,6 +2,7 @@
 
 > **Spec Kit Specification**: [Specification Lifecycle Active (.specify/)](../../../.specify/memory/constitution.md)  
 > **Behavior Blueprint**: `features/<feature>/modules/<module>/behaviours/<behaviour>/`  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: `security-audit` Level 2 Enforced  
 > **Quality Gates**: `(G0–G4 + G-Review + G-Borrow + G-UI + G-Law)`  
 
@@ -109,29 +110,59 @@ sequenceDiagram
 
 ## 4. Granular Implementation Tasks
 
-### Phase 1: Core Domain Logic, Types & Constants
+### 4.1 The 10-PR Vertical Slicing Implementation Plan
+
+Every user story is partitioned and executed across the standardized **10-PR vertical slice framework** directly matching the [10-Pillar System Architecture](../../SYSTEM_ARCHITECTURE.md):
+
+```
+[PR 1: Kernel Core] ──> [PR 2: DB Schema] ──> [PR 3: Repositories] ──> [PR 4: L2 Redis] ──> [PR 5: L1 Moka]
+                                                                                                 │
+[PR 10: Platform UI] <── [PR 9: Headless Hooks] <── [PR 8: WatermelonDB] <── [PR 7: TanStack Query] <── [PR 6: ETag & Axum]
+```
+
+| PR # | Pillar | Architectural Layer | Primary Scope & Files | Deliverables & Acceptance | Accountable Role |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **PR 1** | **Pillar 1** | **Microkernel Domain Logic & Plugin Ports** | `crates/kernel-core`, `crates/plugins-*` | Pure vendor-agnostic Rust domain rules, trait ports, value types, and zero external cloud dependencies. | `junior-backend-engineer` / `senior-backend-engineer` |
+| **PR 2** | **Pillar 2** | **Polyglot Database Schema Definitions** | `crates/db-schema`, `packages/watermelon-db` | Single-Table DynamoDB keys (`PK = TENANT#<id>`, `SK`, GSIs), OpenSearch nested mappings, and WatermelonDB schema models. | `junior-backend-engineer` / `senior-backend-engineer` |
+| **PR 3** | **Pillar 3** | **Repository Adapters & Infrastructure Connectors** | `crates/db-dynamo`, `crates/search-elastic`, `crates/notify-sns`, `crates/kms-vault` | DynamoDB CRUD/transact operations, KMS envelope encryption, OpenSearch query integration, and SNS dispatchers. | `junior-backend-engineer` / `senior-backend-engineer` |
+| **PR 4** | **Pillar 4** | **Distributed L2 Cache & Invalidation Engine** | `crates/cache-tier` | ElastiCache Redis connection pool, pipelined `data:{key}` / `etag:{key}` reads/writes, and pub/sub cache eviction channels. | `junior-backend-engineer` / `senior-backend-engineer` |
+| **PR 5** | **Pillar 5** | **In-Process L1 Moka Cache & Request Coalescing** | `crates/cache-tier` | In-memory `moka::future::Cache` (sub-50µs lock-free lookups) and `try_get_with` request coalescing against thundering herds. | `junior-backend-engineer` / `senior-backend-engineer` |
+| **PR 6** | **Pillar 6** | **HTTP ETag Protocol & Pure Axum Handlers** | `bins/*`, `backend/src/features/.../services/` | RFC 9110 BLAKE3 ETag generator (`W/"v{version}-{hash}"`), 304 conditional request middleware, JWT tenant extractors. | `junior-backend-engineer` / `senior-backend-engineer` |
+| **PR 7** | **Pillar 7** | **Frontend Server-State Caching (TanStack Query)** | `packages/query-client`, `apps/storefront/.../services/` | TanStack Query hooks, `fetchWithEtag` client interceptor resolving 304 Not Modified from local cache, optimistic updates. | `junior-client-engineer` / `senior-client-engineer` |
+| **PR 8** | **Pillar 8** | **Client-First Local Database (WatermelonDB Sync)** | `packages/watermelon-db`, `apps/storefront/.../services/` | WatermelonDB schema, reactive models, SQLite/IndexedDB adapters, and delta synchronization against `/v1/sync`. | `junior-client-engineer` / `senior-client-engineer` |
+| **PR 9** | **Pillar 9** | **Headless Custom Hooks & Logic Abstraction** | `packages/domain-hooks`, `apps/storefront/.../logic/` | Headless custom React hooks isolating state machines, domain arithmetic, and validation math with zero UI markup. | `junior-client-engineer` / `senior-client-engineer` |
+| **PR 10** | **Pillar 10** | **Platform-Adaptive UI Design & Native Modules** | `apps/storefront/.../designs/`, `packages/ui-primitives` | Native presentation using `@expo/ui` primitives (+ native modules) for iOS/Android, semantic HTML5 + Tailwind CSS for Web; Arabic RTL parity. | `ui-ux-designer` (presentation) / `client-engineer` (wiring) |
+
+### 4.2 Implementation Phase Breakdown
+
+#### Phase 1: Core Domain Logic, Types & Constants (PR 1–2)
 - [ ] **Task 1.1 (Types)**: Define strongly typed DTO interfaces and models in `types/`.
 - [ ] **Task 1.2 (Constants)**: Define endpoint paths, error codes, and configuration keys in `constants/`.
 - [ ] **Task 1.3 (Logic)**: Implement pure domain logic, state machines, and headless custom hooks in `logic/`.
 - [ ] **Task 1.4 (Unit Tests)**: Write unit and property-based tests verifying domain invariants and zero deep `.clone()`.
 
-### Phase 2: Services & Infrastructure Adapters
+#### Phase 2: Services & Infrastructure Adapters (PR 3–6)
 - [ ] **Task 2.1 (API / Gateway)**: Implement client adapters and backend handlers in `services/`.
 - [ ] **Task 2.2 (ETag & Cache)**: Integrate RFC 9110 ETag headers and caching layers.
 - [ ] **Task 2.3 (Storage & Sync)**: Implement DynamoDB storage operations and WatermelonDB delta sync.
 - [ ] **Task 2.4 (Integration Tests)**: Verify service contract tests and database writes.
 
-### Phase 3: Platform-Adaptive Designs & UI
+#### Phase 3: Platform-Adaptive Designs & UI (PR 7–10)
 - [ ] **Task 3.1 (UI Presentation)**: Build platform-adaptive screens and components in `designs/` (@expo/ui Mobile, Tailwind Web).
 - [ ] **Task 3.2 (Headless Hooks)**: Bind headless domain hooks from `logic/` into presentational components in `designs/`.
 - [ ] **Task 3.3 (i18n & RTL)**: Implement bidirectional Arabic RTL/LTR layout mirroring and localized font switching.
 - [ ] **Task 3.4 (Component Tests)**: Test empty, loading, offline, and error states across platforms.
 
-### Phase 4: Security Gateway Verification & Release Readiness
+#### Phase 4: Security Gateway Verification & Release Readiness (Gates G0–G4)
 - [ ] **Task 4.1 (Abuse Testing)**: Execute automated adversarial penetration tests against the threat matrix.
 - [ ] **Task 4.2 (Zero-Trust Audit)**: Verify strict tenant isolation (`PK = TENANT#<id>`) and IDOR prevention.
 - [ ] **Task 4.3 (SAST & Audit)**: Run static analysis, dependency audit, and secret scanning.
 - [ ] **Task 4.4 (Gate Sign-Off)**: Obtain independent security sign-off for the G2 Security Gateway.
+- [ ] **Task 4.5 (Code Review)**: Obtain G-Review senior peer approval across the 5 evaluation pillars.
+- [ ] **Task 4.6 (Rust Zero-Clone)**: Validate Gate R1 / G-Borrow zero deep `.clone()` discipline.
+- [ ] **Task 4.7 (Platform UI/UX)**: Validate Gate F1 / G-UI `@expo/ui` mobile and semantic HTML/Tailwind web presentation.
+- [ ] **Task 4.8 (Legal Compliance)**: Validate Gate L1 / G-Law statutory e-commerce compliance.
+- [ ] **Task 4.9 (Integrated Acceptance)**: Complete Gate G4 integrated sandbox validation.
 
 ---
 

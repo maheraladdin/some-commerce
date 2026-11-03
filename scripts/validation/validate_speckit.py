@@ -112,10 +112,36 @@ def validate_story_speckit_links(stories_dir: Path) -> List[str]:
     return errors
 
 
+def validate_user_story_template(template_path: Path) -> List[str]:
+    """Validates that .specify/templates/user-story-template.md contains the 10 PR layers and all quality gates."""
+    errors = []
+    if not template_path.exists():
+        return [f"Spec Kit Error: Missing user story template at {template_path}"]
+
+    content = template_path.read_text(encoding="utf-8")
+
+    # Verify 10 PR layers
+    for pr_num in range(1, 11):
+        if f"**PR {pr_num}**" not in content and f"PR {pr_num}:" not in content:
+            errors.append(f"Spec Kit Error: User story template missing 10-PR vertical slice layer 'PR {pr_num}'")
+
+    # Verify quality gates
+    for gate in EXPECTED_STORY_GATES:
+        if gate not in content:
+            errors.append(f"Spec Kit Error: User story template missing quality gate '{gate}'")
+
+    # Verify statutory legal scenario
+    if "AC-US-X.Y.Z-LAW" not in content:
+        errors.append("Spec Kit Error: User story template missing statutory legal scenario 'AC-US-X.Y.Z-LAW'")
+
+    return errors
+
+
 def run_speckit_validation(repo_root: Path) -> Tuple[int, List[str]]:
     """Runs all Spec Kit validation checks."""
     all_errors = []
     all_errors.extend(validate_speckit_config(repo_root / ".specify" / "config.json"))
+    all_errors.extend(validate_user_story_template(repo_root / ".specify" / "templates" / "user-story-template.md"))
     all_errors.extend(validate_story_speckit_links(repo_root / "docs" / "user-stories"))
     return len(all_errors), all_errors
 
