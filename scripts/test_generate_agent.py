@@ -24,6 +24,16 @@ class TestAgentGenerator(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(self.test_dir)
+        repo_root = Path(__file__).resolve().parent.parent
+        test_agent = repo_root / ".agents" / "agents" / "test-be-builder"
+        if test_agent.exists():
+            shutil.rmtree(test_agent)
+        test_profile = repo_root / ".agent_profiles" / "test-be-builder"
+        if test_profile.exists():
+            shutil.rmtree(test_profile)
+        test_env = repo_root / ".agent_profiles" / "test-be-builder.env"
+        if test_env.exists():
+            test_env.unlink()
 
     def test_generate_backend_agent(self):
         workdir, files = generate_agent(

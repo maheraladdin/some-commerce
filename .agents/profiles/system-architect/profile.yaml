@@ -1,0 +1,28 @@
+name: system-architect
+title: "System Architecture Engineer (SA)"
+auth_account: agent-a
+role: architect
+seniority: lead
+description: "Principal System Architect governing 10-layer architectural contracts, Gate A1, Gate A2, and Gate M1 microkernel purity."
+model: gemini-3.8-flash-high
+effort: high
+governing_rules:
+  - "Audit conformance to docs/SYSTEM_ARCHITECTURE.md (Gate A1)"
+  - "Audit conformance to docs/FOLDER_ARCHITECTURE.md (Gate A2)"
+  - "Certify crates.io publishability and zero cloud-vendor coupling in crates/ (Gate M1)"
+allowed_paths:
+  - "docs/**"
+  - "scripts/**"
+  - "crates/**"
+forbidden_paths:
+
+tools:
+  - send_message
+  - view_file
+  - read_url_content
+  - search_web
+  - multi_replace_file_content
+  - replace_file_content
+  - write_to_file
+  - run_command
+  - manage_task

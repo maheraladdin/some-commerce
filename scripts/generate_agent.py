@@ -104,6 +104,40 @@ PROFILES = {
             "Axum Decoupling Law: Axum feature handlers in backend/src/features/ must be pure Tower services and NEVER import lambda_http.",
         ],
     },
+    "junior-backend-engineer": {
+        "description": "Junior Backend Engineer: Implements domain math (PR 1), database schemas (PR 2), repositories (PR 3), and Axum handlers (PR 4).",
+        "default_role": "builder",
+        "allowed_paths": [
+            "crates/**",
+            "backend/src/features/**",
+            "backend/bins/**",
+        ],
+        "forbidden_paths": [
+            "apps/storefront/**",
+        ],
+        "rules": [
+            "Strict Rust Zero-Clone Law: never call .clone() on domain structs or payloads. Rely on borrowing (&T, &mut T) and lifetimes.",
+            "Mandatory Senior Review: cannot self-merge; must submit PRs to Senior Backend Engineer for Layer 2 approval.",
+            "Microkernel Logic Purity (Gate M1): zero cloud vendor SDKs or direct DB drivers in pure domain crates.",
+        ],
+    },
+    "senior-backend-engineer": {
+        "description": "Senior Backend Reviewer & Systems Architect: Layer 2 code review, Zero-Clone enforcement, and Gate M1 audit.",
+        "default_role": "reviewer",
+        "allowed_paths": [
+            "crates/**",
+            "backend/**",
+            "docs/validation/**",
+        ],
+        "forbidden_paths": [
+            "apps/storefront/**",
+        ],
+        "rules": [
+            "Enforce Zero-Clone invariant: reject any PR containing unauthorized .clone() calls.",
+            "Audit Microkernel purity: ensure no cloud SDKs or database drivers leaked into crates/.",
+            "Verify memory bounds, concurrency invariants, and proptest coverage before APPROVE.",
+        ],
+    },
     "client-engineer": {
         "description": "Client & Mobile Engineer: Universal Expo SDK 58 React Native, @expo/ui, Tailwind CSS, and WatermelonDB.",
         "default_role": "builder",
@@ -125,6 +159,41 @@ PROFILES = {
             "Offline-First Invariant: all catalog, cart, and account reads must query WatermelonDB local cache first before hitting remote endpoints.",
             "Platform Adaptation: use @expo/ui for native iOS/Android controls, Tailwind CSS for web, and dynamic SDUI renderers.",
             "Accessibility & RTL: full support for Arabic (ar-EG, RTL) and English (en-US, LTR), meeting WCAG 2.1 AA standards.",
+        ],
+    },
+    "junior-client-engineer": {
+        "description": "Junior Client Engineer: Implements Axios/WatermelonDB sync (PR 5), custom hooks (PR 6), and UI designs (PR 7).",
+        "default_role": "builder",
+        "allowed_paths": [
+            "apps/storefront/src/features/**",
+            "packages/**",
+        ],
+        "forbidden_paths": [
+            "crates/**",
+            "backend/**",
+        ],
+        "rules": [
+            "Locality of Behavior: Colocate services, logic, and designs strictly within behavior subdirectories.",
+            "No Cross-Behaviour Sibling Imports: Promote shared logic to _shared/ before reusing across behaviours.",
+            "Mandatory Senior Review: Submit PR 5, 6, 7 to Senior Client Engineer for Layer 2 approval.",
+        ],
+    },
+    "senior-client-engineer": {
+        "description": "Senior Client Reviewer: Audits frontend PRs for LoB hierarchy, offline-first sync consistency, and RTL styling.",
+        "default_role": "reviewer",
+        "allowed_paths": [
+            "apps/storefront/**",
+            "packages/**",
+            "docs/validation/**",
+        ],
+        "forbidden_paths": [
+            "crates/**",
+            "backend/**",
+        ],
+        "rules": [
+            "Audit Folder Architecture: Enforce Gate A2 rules and reject sibling cross-imports.",
+            "Audit UI & Accessibility: Ensure @expo/ui native controls, Tailwind web consistency, and RTL support.",
+            "Audit Offline Resilience: Ensure optimistic mutations update WatermelonDB SQLite cache properly.",
         ],
     },
     "ui-ux-designer": {
@@ -161,6 +230,41 @@ PROFILES = {
         "rules": [
             "Enforce Gate G1: verify >= 90% line and >= 85% branch coverage in affected packages.",
             "Execute realistic provider sandbox scenarios (Paymob, Stripe, Bosta, Aramex).",
+        ],
+    },
+    "junior-testing-qa-engineer": {
+        "description": "Junior QA Test Engineer: Authors property-based tests (proptest), repository integration suites, and RNTL tests.",
+        "default_role": "tester",
+        "allowed_paths": [
+            "backend/tests/**",
+            "apps/storefront/__tests__/**",
+            "docs/validation/**",
+        ],
+        "forbidden_paths": [
+            "backend/src/**",
+            "apps/storefront/src/**",
+        ],
+        "rules": [
+            "Write comprehensive proptest suites verifying mathematical invariants and error bounds.",
+            "Author React Native Testing Library tests asserting WCAG 2.1 AA accessibility roles.",
+            "Submit test suites to Senior Security QA Auditor for review.",
+        ],
+    },
+    "senior-security-qa-auditor": {
+        "description": "Senior Security QA Auditor: Performs fuzzing, multi-tenant breach audits, ASVS L2 verification, and Gate G2 sign-off.",
+        "default_role": "auditor",
+        "allowed_paths": [
+            "docs/validation/**",
+            "backend/tests/**",
+        ],
+        "forbidden_paths": [
+            "backend/src/**",
+            "apps/storefront/src/**",
+        ],
+        "rules": [
+            "Validate OWASP ASVS v4.0.3 Level 2 security controls across all endpoints.",
+            "Perform automated synthetic tenant-leak pentests across DynamoDB PK/SK boundaries.",
+            "Certify Gate G2 Security Audit sign-off prior to Tech Lead integration.",
         ],
     },
     "security-engineer": {
@@ -528,6 +632,112 @@ npm test
 """
     tasks_md_path = workdir / "tasks.md"
     tasks_md_path.write_text(tasks_md_content, encoding="utf-8")
+
+    # Native Antigravity CLI Agent registration in .agents/agents/<name>/agent.md
+    agents_dir = REPO_ROOT / ".agents" / "agents" / name
+    agents_dir.mkdir(parents=True, exist_ok=True)
+    agent_md_path = agents_dir / "agent.md"
+    tools_list = [
+        "send_message", "view_file", "read_url_content", "search_web",
+        "multi_replace_file_content", "replace_file_content", "write_to_file",
+        "run_command", "manage_task"
+    ]
+    agent_md_content = f"""---
+name: {name}
+description: Antigravity CLI agent instance '{name}' for sprint '{sprint}', profile '{profile}', story '{story_id}'.
+tools:
+""" + "\n".join(f"  - {t}" for t in tools_list) + f"""
+---
+
+# Agent Instance: {name}
+
+## Context & Assignment
+- **Profile**: `{profile}` (`{seniority}` / `{actual_role}`)
+- **Sprint**: `{sprint}`
+- **Story**: `{story_id}`
+- **Assigned PR**: `{pr_str}`
+- **Workdir**: `{workdir}`
+
+See detailed instructions and context in:
+`{workdir}/context.md`
+`{workdir}/tasks.md`
+"""
+    agent_md_path.write_text(agent_md_content, encoding="utf-8")
+
+    # Isolated agent profile home & env in .agent_profiles/<name>/
+    agent_profiles_dir = REPO_ROOT / ".agent_profiles"
+    agent_home = agent_profiles_dir / name
+    (agent_home / ".gemini" / "antigravity-cli").mkdir(parents=True, exist_ok=True)
+    (agent_home / ".gemini" / "antigravity-cli" / "settings.json").write_text('{"modelProvider": "gemini"}\n', encoding="utf-8")
+    env_path = agent_profiles_dir / f"{name}.env"
+    env_content = f"""# Environment configuration for Antigravity Agent: {name}
+MODEL="gemini-3.8-flash-high"
+EFFORT="high"
+GEMINI_API_KEY=""
+SPRINT="{sprint}"
+STORY="{story_id}"
+PR="{pr_num if pr_num else 'all'}"
+WORKDIR="{workdir}"
+"""
+    env_path.write_text(env_content, encoding="utf-8")
+
+    # One-click runner script in workdir: run.sh
+    run_sh_path = workdir / "run.sh"
+    run_sh_content = f"""#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${{BASH_SOURCE[0]}}")" && pwd)"
+REPO_ROOT="$(cd "${{SCRIPT_DIR}}/../../.." && pwd)"
+
+NAME="$(basename "${{SCRIPT_DIR}}")"
+AGENT_ENV="${{REPO_ROOT}}/.agent_profiles/${{NAME}}.env"
+
+if [[ -f "${{AGENT_ENV}}" ]]; then
+  # shellcheck disable=SC1090
+  source "${{AGENT_ENV}}"
+fi
+
+export HOME="${{REPO_ROOT}}/.agent_profiles/${{NAME}}"
+
+AGY_BIN="$(which agy 2>/dev/null || echo "/Users/maheraladdin/.local/bin/agy")"
+
+if [[ ! -x "${{AGY_BIN}}" ]]; then
+  echo "Error: Antigravity CLI binary 'agy' not found." >&2
+  exit 1
+fi
+
+MODEL="${{MODEL:-gemini-3.8-flash-high}}"
+EFFORT="${{EFFORT:-high}}"
+
+ARGS=()
+HAS_MODEL=false
+HAS_EFFORT=false
+
+for arg in "$@"; do
+  if [[ "${{arg}}" == "--model" ]]; then HAS_MODEL=true; fi
+  if [[ "${{arg}}" == "--effort" ]]; then HAS_EFFORT=true; fi
+  ARGS+=("${{arg}}")
+done
+
+if [[ "${{HAS_MODEL}}" == false ]]; then
+  ARGS+=(--model "${{MODEL}}")
+fi
+
+if [[ "${{HAS_EFFORT}}" == false ]]; then
+  ARGS+=(--effort "${{EFFORT}}")
+fi
+
+TARGET_DIR="${{SCRIPT_DIR}}"
+if [[ -d "${{SCRIPT_DIR}}/workspace" ]]; then
+  TARGET_DIR="${{SCRIPT_DIR}}/workspace"
+fi
+
+cd "${{TARGET_DIR}}"
+echo "Launching Antigravity CLI agent '${{NAME}}' in ${{TARGET_DIR}}..."
+exec "${{AGY_BIN}}" --agent "${{NAME}}" "${{ARGS[@]}}"
+"""
+    run_sh_path.write_text(run_sh_content, encoding="utf-8")
+    run_sh_path.chmod(0o755)
 
     # Optional Git Worktree creation
     if create_git_worktree:

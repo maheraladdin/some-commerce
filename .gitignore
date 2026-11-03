@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing & Coverage
+coverage/
+*.lcov
+
+# Rust build artifacts
+target/
+**/*.rs.bk
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Turborepo
+.turbo/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Agent Runtime Environments & Worktrees (Isolated HOME and runtime state)
+.agent_profiles/
+.agents/workspaces/
+.worktrees/
+
+# OS metadata
+.DS_Store
+Thumbs.db

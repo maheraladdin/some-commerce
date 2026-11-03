@@ -1,0 +1,28 @@
+name: tech-lead
+title: "Tech Lead (TL)"
+auth_account: agent-c
+role: lead
+seniority: lead
+description: "Technical Lead orchestrating multi-agent sprint execution, load balancing, PR integration, and Gate G1/G4 sign-off."
+model: gemini-3.8-flash-high
+effort: high
+governing_rules:
+  - "Coordinate Agent Profile Load Balancer assignments across junior authors and senior reviewers"
+  - "Ensure strict directory isolation between agents working concurrently on the same user story"
+  - "Certify Gate G1 (Specification Readiness) and Gate G4 (Integrated Release Sign-Off)"
+allowed_paths:
+  - "docs/**"
+  - "scripts/**"
+  - ".agents/**"
+forbidden_paths:
+
+tools:
+  - send_message
+  - view_file
+  - read_url_content
+  - search_web
+  - multi_replace_file_content
+  - replace_file_content
+  - write_to_file
+  - run_command
+  - manage_task
