@@ -9,9 +9,11 @@ Verifies:
 """
 
 import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import os
 import re
-from pathlib import Path
 from typing import List, Tuple
 
 FORBIDDEN_CRATE_DEPS = [
@@ -198,7 +200,7 @@ def run_microkernel_validation(base_dir: Path) -> Tuple[int, List[str]]:
 
 
 def main():
-    base_dir = Path(__file__).resolve().parent.parent
+    base_dir = Path(__file__).resolve().parents[2]
     print("Running Gate M1: Microkernel Logic Abstraction & Cloud Decoupling Audit...")
     error_count, errors = run_microkernel_validation(base_dir)
 

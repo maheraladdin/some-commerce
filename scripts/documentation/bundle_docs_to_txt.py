@@ -5,11 +5,14 @@ Consolidates all markdown documentation from the docs/ directory into a single,
 well-organized, searchable text file with a Table of Contents and document delimiters.
 
 Usage:
-    python3 scripts/bundle_docs_to_txt.py [--output docs/SOME_COMMERCE_FULL_DOCS.txt]
+    python3 scripts/documentation/bundle_docs_to_txt.py [--output docs/SOME_COMMERCE_FULL_DOCS.txt]
 """
 
-import os
 import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+import os
 import argparse
 from datetime import datetime
 

@@ -1,33 +1,35 @@
-name: Documentation & Quality Gates Validation
+name: Documentation and Tooling Validation
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
-  validate-specs-and-microkernel:
-    name: Spec Kit, Security Gateways & Microkernel Gate M1
+  docs-validation:
+    name: Documentation and tooling checks
     runs-on: ubuntu-latest
-
+    timeout-minutes: 10
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
-      - name: Validate Spec Kit Stories & Security Gateways
-        run: python3 scripts/validate_docs.py
-
-      - name: Run Documentation Negative Controls Test Suite
-        run: python3 scripts/test_validate_docs.py
-
-      - name: Run Gate M1: Microkernel Logic Abstraction Audit
-        run: python3 scripts/validate_microkernel.py
-
-      - name: Run Gate M1 Negative Controls Test Suite
-        run: python3 scripts/test_validate_microkernel.py
+      - name: Validate Spec Kit stories and sprint closeout requirements
+        run: python3 scripts/validation/validate_docs.py
+      - name: Run isolated tooling tests and negative controls
+        run: python3 -m unittest discover -s scripts -p 'test_*.py'
+      - name: Check microkernel structure
+        run: python3 scripts/validation/validate_microkernel.py
+      - name: Check system architecture structure
+        run: python3 scripts/validation/validate_system_architecture.py
+      - name: Check folder architecture structure
+        run: python3 scripts/validation/validate_folder_architecture.py

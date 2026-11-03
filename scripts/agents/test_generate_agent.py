@@ -9,31 +9,28 @@ Verifies:
 """
 
 import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import unittest
 import tempfile
 import shutil
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from generate_agent import generate_agent, PROFILES
+from scripts.agents.generate_agent import generate_agent, PROFILES
+from scripts.agents import generate_agent as generator_module
+from scripts.agents.test_support import make_repository_fixture
+from unittest.mock import patch
 
 
 class TestAgentGenerator(unittest.TestCase):
     def setUp(self):
-        self.test_dir = Path(tempfile.mkdtemp())
-
-    def tearDown(self):
-        shutil.rmtree(self.test_dir)
-        repo_root = Path(__file__).resolve().parent.parent
-        test_agent = repo_root / ".agents" / "agents" / "test-be-builder"
-        if test_agent.exists():
-            shutil.rmtree(test_agent)
-        test_profile = repo_root / ".agent_profiles" / "test-be-builder"
-        if test_profile.exists():
-            shutil.rmtree(test_profile)
-        test_env = repo_root / ".agent_profiles" / "test-be-builder.env"
-        if test_env.exists():
-            test_env.unlink()
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.test_dir = Path(self.temp.name)
+        make_repository_fixture(self.test_dir)
+        self.root_patch = patch.object(generator_module, "REPO_ROOT", self.test_dir)
+        self.root_patch.start()
+        self.addCleanup(self.root_patch.stop)
 
     def test_generate_backend_agent(self):
         workdir, files = generate_agent(

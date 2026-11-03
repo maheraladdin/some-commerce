@@ -13,15 +13,17 @@ Updates all 12 sprint markdown files with:
 
 import sys
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(REPO_ROOT / "scripts"))
-from agent_load_balancer import AgentProfileLoadBalancer, parse_sprint_stories, PR_SPECS
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+from scripts.agents.agent_load_balancer import AgentProfileLoadBalancer, parse_sprint_stories, PR_SPECS, COMPANY_PIPELINE
+from scripts.documentation.sprint_closeout import append_closeout
 
 SPRINT_FILES = sorted((REPO_ROOT / "docs" / "sprints").glob("sprint-*.md"))
 
 
-def build_sprint_agent_plan_markdown(sprint_id: str) -> str:
+def _build_execution_plan_markdown(sprint_id: str) -> str:
     """Builds the comprehensive multi-agent implementation plan for a sprint."""
     if sprint_id == "sprint-6.3":
         return f"""
@@ -144,12 +146,32 @@ Every story in this sprint is decomposed into the standardized 7 PRs with assign
 - [ ] **SG1 (Cross-Story Integration)**: End-to-end integration flows across all {plan['total_stories']} stories pass under concurrent load.
 - [ ] **SG2 (Security & Tenant Isolation)**: Synthetic multi-tenant penetration testing confirms 0 data leaks across sprint endpoints.
 - [ ] **SG3 (Architecture & Gate M1/A1/A2)**:
-  - Gate M1: `python3 scripts/validate_microkernel.py` passes (zero cloud SDKs in pure crates, zero-clone compliance).
-  - Gate A1: `python3 scripts/validate_system_architecture.py` passes (10-layer architectural contracts verified).
-  - Gate A2: `python3 scripts/validate_folder_architecture.py` passes (framework-scoped LoB folder layout verified).
+  - Gate M1: `python3 scripts/validation/validate_microkernel.py` passes (zero cloud SDKs in pure crates, zero-clone compliance).
+  - Gate A1: `python3 scripts/validation/validate_system_architecture.py` passes (10-layer architectural contracts verified).
+  - Gate A2: `python3 scripts/validation/validate_folder_architecture.py` passes (framework-scoped LoB folder layout verified).
 - [ ] **SG4 (Release Candidate & Operations)**: Staging smoke tests pass across mobile and web; p95 latency < 150ms; **Product Manager Acceptance (Layer 5)** and **CTO Agreement (Layer 6)** granted.
 """
     return md
+
+
+def build_sprint_agent_plan_markdown(sprint_id: str) -> str:
+    execution = _build_execution_plan_markdown(sprint_id)
+    first_heading_end = execution.index("\n", execution.index("## Multi-Agent"))
+    contract = "\n\n### Company planning → role execution → upward validation\n\n"
+    contract += "**Status: allocation proposal, not dispatch authorization.** Leadership planning precedes the junior roster; the L1–L6 ladder below is the upward review path. Approve P0–P4 and the company master-plan revision before implementation.\n\n"
+    contract += "| Stage | Accountable role | Required output |\n|:------|:-----------------|:----------------|\n"
+    contract += "\n".join(f"| {stage['phase']} | `{stage['owner']}` | {stage['output']} |" for stage in COMPANY_PIPELINE)
+    contract += "\n\nUse the [company plan template](../../.specify/templates/company-plan-template.md). Every task references its master-plan parent and canonical `docs/validation/story-records/US-<id>.md`; log each action/result and next-role receipt there. Collect all expected children, verify the exact assembled candidate and closeout suites, then return product acceptance and the full dossier to CTO. Missing children, action history or required checks block parent acceptance.\n"
+    return execution[:first_heading_end] + contract + execution[first_heading_end:]
+
+
+def compose_sprint_plan(content: str, sprint_id: str, plan_md: str) -> str:
+    """Replace generated sections, preserve authored prefix, and keep closeout last."""
+    for heading in ("## Multi-Agent Sprint Implementation Plan", "## Multi-Agent Hardening & Launch Orchestration Plan", "## End-of-Sprint Test Gate"):
+        content = content.split(heading, 1)[0].rstrip()
+    while content.endswith("\n---"):
+        content = content[:-4].rstrip()
+    return append_closeout(f"{content}\n\n{plan_md.strip()}\n", sprint_id)
 
 
 def main():
@@ -160,16 +182,8 @@ def main():
         sprint_id = sprint_file.stem
         content = sprint_file.read_text(encoding="utf-8")
 
-        # Strip any existing Multi-Agent section
-        if "## Multi-Agent Sprint Implementation Plan" in content:
-            content = content.split("## Multi-Agent Sprint Implementation Plan")[0].strip()
-        elif "## Multi-Agent Hardening & Launch Orchestration Plan" in content:
-            content = content.split("## Multi-Agent Hardening & Launch Orchestration Plan")[0].strip()
-
-        # Generate new plan
         plan_md = build_sprint_agent_plan_markdown(sprint_id)
-        new_content = f"{content.strip()}\n\n{plan_md.strip()}\n"
-
+        new_content = compose_sprint_plan(content, sprint_id, plan_md)
         sprint_file.write_text(new_content, encoding="utf-8")
         print(f"  - Updated: {sprint_file.name}")
         updated_count += 1

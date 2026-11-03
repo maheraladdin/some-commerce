@@ -3,9 +3,9 @@
 # agy_agent.sh - Antigravity CLI Launcher with 3 Google AI Pro Accounts
 #
 # Manages 3 authenticated Google AI Pro Account profiles:
-#   - Account A (agent-a): Systems, Microkernel, Schemas & Backend Track
-#   - Account B (agent-b): Universal Expo SDK 58, React Native & Client Track
-#   - Account C (agent-c): QA, Security, Release & Executive Governance Track
+#   - Account A (agent-a): All roles, shared quota pool
+#   - Account B (agent-b): All roles, shared quota pool
+#   - Account C (agent-c): All roles, shared quota pool
 #
 # All logical agents (Junior Authors, Senior Reviewers, PM, TL, CTO) execute
 # by inheriting authentication from one of these 3 accounts.
@@ -13,47 +13,52 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 AGENTS_DIR="${REPO_ROOT}/.agents/agents"
 AGENT_PROFILES_DIR="${REPO_ROOT}/.agent_profiles"
 WORKSPACES_DIR="${REPO_ROOT}/.agents/workspaces"
 
-AGY_BIN="$(which agy 2>/dev/null || echo "/Users/maheraladdin/.local/bin/agy")"
+AGY_BIN="${AGY_BIN:-$(command -v agy 2>/dev/null || echo "/Users/maheraladdin/.local/bin/agy")}"
 
 function show_help() {
   cat << EOF
-Usage: ./scripts/agy_agent.sh <a|b|c|agent-name> [agy_options...]
+Usage: ./scripts/agents/agy_agent.sh [--account auto|a|b|c] <a|b|c|agent-name> [agy_options...]
 
 1. Google AI Pro Account Sign-In / Interactive CLI:
-  ./scripts/agy_agent.sh a             # Interactive session for Account 1 (Backend Track)
-  ./scripts/agy_agent.sh b             # Interactive session for Account 2 (Client Track)
-  ./scripts/agy_agent.sh c             # Interactive session for Account 3 (QA/Leadership Track)
+  ./scripts/agents/agy_agent.sh a             # Interactive session for Account 1 (any role)
+  ./scripts/agents/agy_agent.sh b             # Interactive session for Account 2 (any role)
+  ./scripts/agents/agy_agent.sh c             # Interactive session for Account 3 (any role)
 
 2. Run Single Prompt on an Account:
-  ./scripts/agy_agent.sh a -p "Review microkernel domain logic"
-  ./scripts/agy_agent.sh b -p "Inspect WatermelonDB offline schema"
-  ./scripts/agy_agent.sh c -p "Run Gate G2 security compliance audit"
+  ./scripts/agents/agy_agent.sh a -p "Review microkernel domain logic"
+  ./scripts/agents/agy_agent.sh b -p "Inspect WatermelonDB offline schema"
+  ./scripts/agents/agy_agent.sh c -p "Run Gate G2 security compliance audit"
 
 3. Execute Any Specific Sprint Agent (Inherits Auth from Account A, B, or C):
-  ./scripts/agy_agent.sh sprint-1.1-junior-be-1
-  ./scripts/agy_agent.sh s11-us111-be-builder -p "Implement PR 1 domain logic"
-  ./scripts/agy_agent.sh sprint-1.1-tech-lead
+  ./scripts/agents/agy_agent.sh sprint-1.1-junior-be-1
+  ./scripts/agents/agy_agent.sh s11-us111-be-builder -p "Implement PR 1 domain logic"
+  ./scripts/agents/agy_agent.sh sprint-1.1-tech-lead
 
-4. Utilities:
-  ./scripts/agy_agent.sh --list        # List 3 Auth Accounts & all registered agents
-  ./scripts/agy_agent.sh --status      # Check authentication directory status
+4. All roles balance across all three accounts by default:
+  ./scripts/agents/agy_agent.sh senior-backend-engineer -p "Review the assigned candidate"
+  ./scripts/agents/agy_agent.sh --account b product-manager -p "Review assigned AC evidence"
+  python3 scripts/agents/agent_account_pool.py status
+  python3 scripts/agents/agent_account_pool.py configure agent-a --cooldown-seconds 3600
+  python3 scripts/agents/agent_account_pool.py configure agent-b --budget 100 --used 25
+
+Local estimated units balance usage; configure budgets/reset from actual provider evidence.
+Quota errors require reporting cooldown/usage, reconciliation, then a new launch; no automatic replay.
+
+5. Utilities:
+  ./scripts/agents/agy_agent.sh --list        # List 3 Auth Accounts & all registered agents
+  ./scripts/agents/agy_agent.sh --status      # Check authentication directory status
 EOF
   exit 0
 }
 
 if [[ $# -lt 1 || "$1" == "-h" || "$1" == "--help" ]]; then
   show_help
-fi
-
-if [[ ! -x "${AGY_BIN}" ]]; then
-  echo "Error: Antigravity CLI binary 'agy' not found at ${AGY_BIN}." >&2
-  exit 1
 fi
 
 function show_status() {
@@ -68,7 +73,7 @@ function show_status() {
     if [[ -d "${acc_dir}/.gemini" ]]; then
       echo "  Status:              INITIALIZED (Settings configured)"
     else
-      echo "  Status:              NOT INITIALIZED (Run './scripts/agy_agent.sh ${acc}' to sign in)"
+      echo "  Status:              NOT INITIALIZED (Run './scripts/agents/agy_agent.sh ${acc}' to sign in)"
     fi
   done
   echo "================================================================================"
@@ -85,6 +90,23 @@ if [[ "$1" == "--list" || "$1" == "list" ]]; then
   echo "Available Registered Agents in Antigravity CLI:"
   cd "${REPO_ROOT}"
   exec "${AGY_BIN}" agents
+fi
+
+REQUESTED_ACCOUNT="auto"
+if [[ "$1" == "--account" ]]; then
+  if [[ $# -lt 3 ]]; then echo "--account needs an account and agent name" >&2; exit 2; fi
+  REQUESTED_ACCOUNT="$2"
+  shift 2
+fi
+case "${REQUESTED_ACCOUNT}" in
+  a|b|c) REQUESTED_ACCOUNT="agent-${REQUESTED_ACCOUNT}" ;;
+  auto|agent-a|agent-b|agent-c) ;;
+  *) echo "Invalid account selection" >&2; exit 2 ;;
+esac
+
+if [[ ! -x "${AGY_BIN}" ]]; then
+  echo "Error: Antigravity CLI binary 'agy' not found at ${AGY_BIN}." >&2
+  exit 1
 fi
 
 INPUT="$1"
@@ -109,47 +131,33 @@ else
   AGENT_NAME="${INPUT}"
 fi
 
-# If it's a specific agent/role, determine which of the 3 accounts it belongs to
-if [[ -z "${AUTH_ACCOUNT}" ]]; then
-  # 1. Check if agent directory exists
-  if [[ ! -d "${AGENTS_DIR}/${AGENT_NAME}" ]]; then
-    echo "Error: Agent '${AGENT_NAME}' is not registered in ${AGENTS_DIR}." >&2
-    echo "Generate it using: ./scripts/make_agy_agent.sh -n ${AGENT_NAME} -p <profile>" >&2
-    echo "" >&2
-    echo "Available agents:" >&2
-    cd "${REPO_ROOT}" && "${AGY_BIN}" agents >&2
-    exit 1
-  fi
-
-  # 2. Check if .agent_profiles/<name>.env or .agents/profiles/<name>/profile.yaml specifies account
-  if [[ -f "${AGENT_PROFILES_DIR}/${AGENT_NAME}.env" ]]; then
-    AUTH_ACCOUNT=$(grep -E "^source.*agent-[abc]\.env" "${AGENT_PROFILES_DIR}/${AGENT_NAME}.env" 2>/dev/null | grep -o "agent-[abc]" || true)
-    if [[ -z "${AUTH_ACCOUNT}" ]]; then
-      AUTH_ACCOUNT=$(grep -E "^ACCOUNT=" "${AGENT_PROFILES_DIR}/${AGENT_NAME}.env" 2>/dev/null | cut -d'=' -f2 | tr -d '"' || true)
-    fi
-  fi
-
-  if [[ -z "${AUTH_ACCOUNT}" && -f "${REPO_ROOT}/.agents/profiles/${AGENT_NAME}/profile.yaml" ]]; then
-    AUTH_ACCOUNT=$(grep -E "^auth_account:" "${REPO_ROOT}/.agents/profiles/${AGENT_NAME}/profile.yaml" 2>/dev/null | awk '{print $2}' || true)
-  fi
-
-  # Fallback based on profile naming convention
-  if [[ -z "${AUTH_ACCOUNT}" ]]; then
-    if [[ "${AGENT_NAME}" =~ (be|backend|architect|devops) ]]; then
-      AUTH_ACCOUNT="agent-a"
-    elif [[ "${AGENT_NAME}" =~ (fe|client|mobile|ui|designer) ]]; then
-      AUTH_ACCOUNT="agent-b"
-    else
-      AUTH_ACCOUNT="agent-c"
-    fi
-  fi
+# Role names no longer select authentication accounts. Legacy account mappings
+# in role .env files are intentionally ignored; use --account for an explicit pin.
+if [[ -z "${AUTH_ACCOUNT}" && ! -d "${AGENTS_DIR}/${AGENT_NAME}" ]]; then
+  echo "Error: Agent '${AGENT_NAME}' is not registered in ${AGENTS_DIR}." >&2
+  exit 1
 fi
+if [[ -n "${AUTH_ACCOUNT}" ]]; then
+  if [[ "${REQUESTED_ACCOUNT}" != "auto" && "${REQUESTED_ACCOUNT}" != "${AUTH_ACCOUNT}" ]]; then
+    echo "Conflicting explicit account selections" >&2; exit 2
+  fi
+  REQUESTED_ACCOUNT="${AUTH_ACCOUNT}"
+  # Explicit account shortcuts support initial sign-in before setup.
+  mkdir -p "${AGENT_PROFILES_DIR}/${AUTH_ACCOUNT}"
+fi
+if [[ -z "${AGENT_POOL_RESERVATION:-}" ]]; then
+  exec python3 "${REPO_ROOT}/scripts/agents/agent_account_pool.py" run \
+    --role "${AGENT_NAME}" --account "${REQUESTED_ACCOUNT}" -- \
+    "${BASH_SOURCE[0]}" "${INPUT}" "$@"
+fi
+AUTH_ACCOUNT="${AGENT_POOL_ACCOUNT:-}"
+case "${AUTH_ACCOUNT}" in agent-a|agent-b|agent-c) ;; *) echo "Invalid reserved account" >&2; exit 2 ;; esac
 
 # Set isolated HOME to the physical Google AI Pro Account home
 PROFILE_HOME="${AGENT_PROFILES_DIR}/${AUTH_ACCOUNT}"
 mkdir -p "${PROFILE_HOME}/.gemini/antigravity-cli"
 
-export HOME="${PROFILE_HOME}"
+
 
 # Load custom environment config from account env
 MODEL="gemini-3.8-flash-high"
@@ -159,6 +167,15 @@ ENV_FILE="${AGENT_PROFILES_DIR}/${AUTH_ACCOUNT}.env"
 if [[ -f "${ENV_FILE}" ]]; then
   # shellcheck disable=SC1090
   source "${ENV_FILE}"
+fi
+
+# Preserve instance model/effort preferences without sourcing old account bindings.
+INSTANCE_ENV="${AGENT_PROFILES_DIR}/${AGENT_NAME}.env"
+if [[ "${AGENT_NAME}" != "${AUTH_ACCOUNT}" && -f "${INSTANCE_ENV}" ]]; then
+  INSTANCE_MODEL=$(sed -n 's/^MODEL="\([^"]*\)"$/\1/p' "${INSTANCE_ENV}")
+  INSTANCE_EFFORT=$(sed -n 's/^EFFORT="\([^"]*\)"$/\1/p' "${INSTANCE_ENV}")
+  if [[ -n "${INSTANCE_MODEL}" ]]; then MODEL="${INSTANCE_MODEL}"; fi
+  if [[ -n "${INSTANCE_EFFORT}" ]]; then EFFORT="${INSTANCE_EFFORT}"; fi
 fi
 
 SETTINGS_DIR="${PROFILE_HOME}/.gemini/antigravity-cli"
@@ -218,4 +235,4 @@ echo "  Model & Effort:     ${MODEL} (effort: ${EFFORT})"
 echo "================================================================================"
 
 cd "${TARGET_DIR}"
-exec "${AGY_BIN}" --agent "${AGENT_NAME}" "${ARGS[@]}"
+exec env HOME="${PROFILE_HOME}" "${AGY_BIN}" --agent "${AGENT_NAME}" "${ARGS[@]}"

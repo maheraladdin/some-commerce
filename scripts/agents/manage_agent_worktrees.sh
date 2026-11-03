@@ -10,7 +10,7 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 if [[ "${REPO_ROOT}" =~ /\.worktrees ]]; then
   REPO_ROOT="${REPO_ROOT%%/.worktrees*}"
 fi
@@ -42,7 +42,7 @@ ACCOUNTS=("agent-a" "agent-b" "agent-c")
 
 function show_help() {
   cat << EOF
-Usage: ./scripts/manage_agent_worktrees.sh <command> [args...]
+Usage: ./scripts/agents/manage_agent_worktrees.sh <command> [args...]
 
 Commands:
   status                          List all active worktrees, branches, and status
@@ -56,10 +56,10 @@ Commands:
   remove-all                      Remove all worktrees inside .worktrees/
 
 Examples:
-  ./scripts/manage_agent_worktrees.sh init-accounts
-  ./scripts/manage_agent_worktrees.sh init-roles
-  ./scripts/manage_agent_worktrees.sh switch junior-backend-engineer US-1.1.1
-  ./scripts/manage_agent_worktrees.sh status
+  ./scripts/agents/manage_agent_worktrees.sh init-accounts
+  ./scripts/agents/manage_agent_worktrees.sh init-roles
+  ./scripts/agents/manage_agent_worktrees.sh switch junior-backend-engineer US-1.1.1
+  ./scripts/agents/manage_agent_worktrees.sh status
 EOF
   exit 0
 }
@@ -149,7 +149,7 @@ function switch_story() {
 
   if [[ -z "${name}" || -z "${story}" ]]; then
     echo "Error: name and story required." >&2
-    echo "Example: ./scripts/manage_agent_worktrees.sh switch junior-backend-engineer US-1.1.1" >&2
+    echo "Example: ./scripts/agents/manage_agent_worktrees.sh switch junior-backend-engineer US-1.1.1" >&2
     exit 1
   fi
 

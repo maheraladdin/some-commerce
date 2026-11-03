@@ -9,14 +9,15 @@ Provides negative controls:
 """
 
 import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import unittest
 import tempfile
 import shutil
-from pathlib import Path
 
 # Add scripts directory to path
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from validate_microkernel import (
+from scripts.validation.validate_microkernel import (
     validate_crate_cargo_toml,
     validate_axum_feature_file,
     validate_rust_zero_clone,

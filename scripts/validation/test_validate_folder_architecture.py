@@ -9,13 +9,14 @@ Provides negative controls:
 """
 
 import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import unittest
 import tempfile
 import shutil
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from validate_folder_architecture import (
+from scripts.validation.validate_folder_architecture import (
     validate_framework_scoping,
     validate_behaviour_directory_structure,
     validate_no_sibling_cross_imports,

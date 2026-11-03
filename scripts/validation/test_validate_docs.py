@@ -4,10 +4,13 @@ Tests negative controls for validate_docs.py to ensure it properly catches missi
 invalid story titles, missing security gateways, or missing folder architecture references.
 """
 
-import unittest
 import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+import unittest
 from unittest.mock import patch, mock_open
-import validate_docs
+from scripts.validation import validate_docs
 
 class TestValidateDocsNegativeControls(unittest.TestCase):
 

@@ -14,16 +14,17 @@ Provides:
 - Automated generation of isolated agent workdirs and tailored contexts
 """
 
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import argparse
 import json
 import re
-import sys
-from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from generate_agent import generate_agent, find_user_story_file, PR_SPECS
+REPO_ROOT = Path(__file__).resolve().parents[2]
+from scripts.agents.generate_agent import generate_agent, find_user_story_file, PR_SPECS
 
 # Profile mapping for the 7 PR layers
 PR_PROFILE_ROUTING = {
@@ -35,6 +36,20 @@ PR_PROFILE_ROUTING = {
     6: "client-engineer",    # Headless Custom Hooks & Logic
     7: "client-engineer",    # Platform-Adaptive UI & SDUI Renderers
 }
+
+
+COMPANY_PIPELINE = [
+    {"phase": "P0", "owner": "chief-technology-officer", "output": "Authorized initiative charter, constraints and success criteria"},
+    {"phase": "P1", "owner": "product-manager", "output": "Spec Kit requirements, personas, scope and acceptance criteria"},
+    {"phase": "P2", "owner": "system-architect", "output": "Shared contracts and affected specialist role subplans"},
+    {"phase": "P3", "owner": "tech-lead", "output": "Reconciled master plan, child manifest, task DAG and review/test capacity"},
+    {"phase": "P4", "owner": "planning-control-owners-and-cto", "output": "Approved plan baseline and G0/SG0 inputs before implementation"},
+    {"phase": "EXECUTE", "owner": "assigned-role-contributors-and-seniors", "output": "Parallel approved tasks, independent branch reviews and bounded repairs"},
+    {"phase": "COLLECT", "owner": "tech-lead", "output": "Every expected child output and canonical story record reconciled on one candidate"},
+    {"phase": "VALIDATE", "owner": "qa-security-architecture", "output": "Integrated candidate plus E1-E5 sprint evidence and complete action history"},
+    {"phase": "ACCEPT", "owner": "product-manager", "output": "Original charter/AC-to-delivery acceptance dossier"},
+    {"phase": "RETURN", "owner": "chief-technology-officer", "output": "Final Accepted, Changes Required or Blocked decision"},
+]
 
 
 def parse_sprint_stories(sprint_id: str) -> List[Tuple[str, str, int]]:
@@ -109,6 +124,12 @@ class AgentProfileLoadBalancer:
 
         allocation_plan = {
             "sprint_id": self.sprint_id,
+            "allocation_status": "PROPOSAL_NOT_AUTHORIZATION",
+            "implementation_authorized": False,
+            "company_pipeline": COMPANY_PIPELINE,
+            "required_plan_template": ".specify/templates/company-plan-template.md",
+            "required_story_record_pattern": "docs/validation/story-records/US-<id>.md",
+            "planning_note": "P0-P4 approvals, exact task scopes and verified parent/record references must be established outside this allocation proposal before dispatch.",
             "total_stories": len(stories),
             "total_prs": len(stories) * 7,
             "governance_ladder": [
@@ -307,8 +328,10 @@ def main():
 
     print(f"\n========================================================")
     print(f"AGENT PROFILE LOAD BALANCER: {args.sprint.upper()}")
+    print("Status: ALLOCATION PROPOSAL; start with CTO charter and approved top-down planning before dispatch.")
     print(f"Stories: {plan['total_stories']} | 7-PR Vertical Slices: {plan['total_prs']}")
-    print(f"Governance: 6-Layer Validation (Junior -> Senior -> Arch/Sec -> TechLead -> PM -> CTO)")
+    print("Company cycle: " + " -> ".join(stage["phase"] + ":" + stage["owner"] for stage in COMPANY_PIPELINE))
+    print("Return validation: Junior -> Senior -> Arch/Sec -> TechLead integration -> PM -> CTO")
     print(f"========================================================\n")
 
     print(f"{'Worker ID':<24} | {'Profile':<20} | {'Seniority':<10} | {'Tasks':<6} | {'Reviews':<7} | {'Workdir'}")
@@ -338,5 +361,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
     main()

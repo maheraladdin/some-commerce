@@ -8,13 +8,14 @@ Provides negative controls:
 """
 
 import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import unittest
 import tempfile
 import shutil
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from validate_system_architecture import (
+from scripts.validation.validate_system_architecture import (
     validate_system_arch_doc,
     validate_axum_layer_decoupling,
     run_system_arch_validation,

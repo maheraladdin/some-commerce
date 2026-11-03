@@ -10,13 +10,15 @@ Verifies:
 6. Documentation Conformance: docs/FOLDER_ARCHITECTURE.md must exist and contain required layout blueprints.
 """
 
-import os
-import re
 import sys
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+import os
+import re
 from typing import List, Tuple
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 ALLOWED_CLIENT_BEHAVIOUR_DIRS = {"services", "designs", "logic", "types", "constants"}
 ALLOWED_BACKEND_BEHAVIOUR_DIRS = {"services", "logic", "types", "constants"}

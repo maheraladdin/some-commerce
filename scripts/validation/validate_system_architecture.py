@@ -14,11 +14,13 @@ Verifies:
 """
 
 import sys
-import re
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+import re
 from typing import List, Tuple
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 FORBIDDEN_MICROKERNEL_DEPS = [
     r"^aws-sdk-",

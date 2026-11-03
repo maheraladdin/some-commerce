@@ -8,9 +8,12 @@ Validates that:
 5. All references, sprint metadata, and validation gates are consistent.
 """
 
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import os
 import re
-import sys
 
 BASE_DIR = "docs/user-stories"
 TOTAL_EXPECTED_STORIES = 51
@@ -98,6 +101,8 @@ def validate_all_stories():
 def main():
     print("Validating Spec Kit documentation, folder architecture, and security gateways...")
     count, errors = validate_all_stories()
+    from scripts.documentation.sprint_closeout import check_all
+    errors.extend(check_all())
     if errors:
         print(f"\nVALIDATION FAILED with {len(errors)} error(s):")
         for err in errors:

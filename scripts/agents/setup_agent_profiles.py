@@ -4,12 +4,12 @@ setup_agent_profiles.py - Populates the 3 Google AI Pro Account profiles (.agent
 the master Agent Profiles catalog (.agents/profiles/), and native Antigravity CLI agents (.agents/agents/).
 """
 
-import os
-import shutil
 import sys
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
 PROFILES_DIR = REPO_ROOT / ".agents" / "profiles"
 AGENTS_DIR = REPO_ROOT / ".agents" / "agents"
 AGENT_PROFILES_DIR = REPO_ROOT / ".agent_profiles"
@@ -47,7 +47,6 @@ AUTH_ACCOUNTS = {
 
 COMPANY_ROLES = {
     "backend-engineer": {
-        "account": "agent-a",
         "title": "Backend & Systems Engineer",
         "description": "Systems, Microkernel & Axum API Engineer specializing in Rust 2024, zero-clone borrowing, and polyglot schemas.",
         "role": "builder",
@@ -68,7 +67,6 @@ COMPANY_ROLES = {
         "effort": "high"
     },
     "junior-backend-engineer": {
-        "account": "agent-a",
         "title": "Junior Backend Engineer",
         "description": "Junior Systems Engineer implementing domain math (PR 1), database schemas (PR 2), repositories (PR 3), and Axum handlers (PR 4).",
         "role": "builder",
@@ -89,7 +87,6 @@ COMPANY_ROLES = {
         "effort": "high"
     },
     "senior-backend-engineer": {
-        "account": "agent-a",
         "title": "Senior Backend Reviewer & Systems Architect",
         "description": "Senior Backend Reviewer responsible for Layer 2 peer code reviews, Zero-Clone compliance, and Gate M1 audit.",
         "role": "reviewer",
@@ -110,7 +107,6 @@ COMPANY_ROLES = {
         "effort": "high"
     },
     "client-engineer": {
-        "account": "agent-b",
         "title": "Client & Mobile/Web UI Engineer",
         "description": "Universal Expo SDK 58 React Native & Web UI Engineer specializing in Locality of Behavior, WatermelonDB, and @expo/ui.",
         "role": "builder",
@@ -132,7 +128,6 @@ COMPANY_ROLES = {
         "effort": "high"
     },
     "junior-client-engineer": {
-        "account": "agent-b",
         "title": "Junior Client Engineer",
         "description": "Junior Frontend Engineer implementing Axios/WatermelonDB sync (PR 5), domain hooks (PR 6), and UI screens (PR 7).",
         "role": "builder",
@@ -153,7 +148,6 @@ COMPANY_ROLES = {
         "effort": "high"
     },
     "senior-client-engineer": {
-        "account": "agent-b",
         "title": "Senior Client Reviewer & Mobile Architect",
         "description": "Senior Client Reviewer auditing frontend PRs for LoB hierarchy, offline-first sync consistency, and RTL styling.",
         "role": "reviewer",
@@ -174,7 +168,6 @@ COMPANY_ROLES = {
         "effort": "high"
     },
     "testing-qa-engineer": {
-        "account": "agent-c",
         "title": "QA & Security Verification Engineer",
         "description": "QA & Security Auditor enforcing OWASP ASVS v4.0.3 L2, tenant isolation pentesting, and quality gate sign-offs.",
         "role": "auditor",
@@ -195,7 +188,6 @@ COMPANY_ROLES = {
         "effort": "high"
     },
     "junior-testing-qa-engineer": {
-        "account": "agent-c",
         "title": "Junior QA Test Engineer",
         "description": "Junior QA Engineer authoring property-based tests (proptest), repository integration suites, and RNTL tests.",
         "role": "tester",
@@ -216,7 +208,6 @@ COMPANY_ROLES = {
         "effort": "high"
     },
     "senior-security-qa-auditor": {
-        "account": "agent-c",
         "title": "Senior Security QA Auditor",
         "description": "Senior Security Lead performing fuzzing, multi-tenant breach audits, ASVS L2 verification, and Gate G2 sign-off.",
         "role": "auditor",
@@ -237,7 +228,6 @@ COMPANY_ROLES = {
         "effort": "high"
     },
     "product-manager": {
-        "account": "agent-c",
         "title": "Product Manager (PM)",
         "description": "Product Lead governing Spec Kit requirements, Gherkin acceptance criteria [AC-US-*], and Layer 5 acceptance sign-off.",
         "role": "pm",
@@ -257,7 +247,6 @@ COMPANY_ROLES = {
         "effort": "high"
     },
     "tech-lead": {
-        "account": "agent-c",
         "title": "Tech Lead (TL)",
         "description": "Technical Lead orchestrating multi-agent sprint execution, load balancing, PR integration, and Gate G1/G4 sign-off.",
         "role": "lead",
@@ -278,7 +267,6 @@ COMPANY_ROLES = {
         "effort": "high"
     },
     "system-architect": {
-        "account": "agent-a",
         "title": "System Architecture Engineer (SA)",
         "description": "Principal System Architect governing 10-layer architectural contracts, Gate A1, Gate A2, and Gate M1 microkernel purity.",
         "role": "architect",
@@ -299,7 +287,6 @@ COMPANY_ROLES = {
         "effort": "high"
     },
     "ui-ux-designer": {
-        "account": "agent-b",
         "title": "UI/UX Design Systems Specialist",
         "description": "Design Systems Engineer governing Apple HIG, Tailwind tokens, @expo/ui styling, and bilingual accessibility.",
         "role": "designer",
@@ -320,7 +307,6 @@ COMPANY_ROLES = {
         "effort": "high"
     },
     "security-engineer": {
-        "account": "agent-c",
         "title": "Application Security Engineer",
         "description": "AppSec Specialist responsible for STRIDE threat models, KMS envelope encryption, Cognito JWT auth, and ASVS L2 audits.",
         "role": "security",
@@ -341,7 +327,6 @@ COMPANY_ROLES = {
         "effort": "high"
     },
     "devops-engineer": {
-        "account": "agent-a",
         "title": "DevOps & Cloud Infrastructure Engineer",
         "description": "Cloud Engineer managing Docker multi-stage builds, GitHub Actions workflows, multi-cloud decoupling, and CI automation.",
         "role": "devops",
@@ -362,7 +347,6 @@ COMPANY_ROLES = {
         "effort": "high"
     },
     "release-gatekeeper": {
-        "account": "agent-c",
         "title": "Release Gatekeeper",
         "description": "Release Gatekeeper certifying Quality Gates G0–G4 and Sprint Quality Gates SG0–SG4 prior to production deployment.",
         "role": "gatekeeper",
@@ -383,7 +367,6 @@ COMPANY_ROLES = {
         "effort": "high"
     },
     "chief-technology-officer": {
-        "account": "agent-c",
         "title": "Chief Technology Officer (CTO)",
         "description": "Executive Technical Officer providing Layer 6 Architectural Agreement and final SG4 Production Release Sign-Off.",
         "role": "cto",
@@ -404,6 +387,161 @@ COMPANY_ROLES = {
         "effort": "high"
     }
 }
+
+
+# Authentication is independent from job-title specialization.
+for account_data in AUTH_ACCOUNTS.values():
+    account_data["track"] = "All company roles; shared quota pool"
+    account_data["default_roles"] = list(COMPANY_ROLES)
+    account_data["description"] = account_data["account_label"] + ": eligible for every company role, selected by usage and quota availability."
+
+
+def role_catalog():
+    """Authored role details are the source for generated profiles and CLI prompts."""
+    import json
+    catalog = json.loads((PROFILES_DIR / "catalog.json").read_text(encoding="utf-8"))
+    if set(catalog["roles"]) != set(COMPANY_ROLES):
+        raise ValueError("Role catalog must cover every company role exactly once")
+    return catalog
+
+
+def render_role_profile(role_id, data, catalog):
+    import json
+    details = catalog["roles"][role_id]
+    common = catalog["common"]
+    # Retain model/tool/path settings, but role capabilities never select an account.
+    metadata = {"name": role_id, "title": data["title"], "auth_account": "auto",
+                "eligible_accounts": list(AUTH_ACCOUNTS), "role": data["role"],
+                "seniority": data["seniority"], "description": details["description"],
+                "model": data["model"], "effort": data["effort"],
+                "responsibilities": details["responsibilities"],
+                "required_inputs": details["required_inputs"],
+                "validation_focus": details["validation_focus"], "handoff": details["handoff"],
+                "decision_limits": details["decision_limits"],
+                "planning_duties": details["planning_duties"],
+                "collection_duties": details["collection_duties"],
+                "governing_rules": list(common.values()),
+                "allowed_paths": data["allowed_paths"], "forbidden_paths": data["forbidden_paths"],
+                "tools": data["tools"]}
+    # JSON scalars and arrays are valid YAML and avoid unsafe string interpolation.
+    profile_yaml = "\n".join(f"{key}: {json.dumps(value, ensure_ascii=False)}" for key, value in metadata.items()) + "\n"
+    # Keep role/seniority/account as plain scalars for existing shell consumers.
+    for key in ("name", "role", "seniority", "auth_account", "model", "effort"):
+        profile_yaml = profile_yaml.replace(f'{key}: {json.dumps(metadata[key])}\n', f'{key}: {metadata[key]}\n')
+    prompt = f"""# {data['title']} (`{role_id}`)
+
+## Role and job-title responsibilities
+
+{details['description']}
+
+Seniority: `{data['seniority']}`. Assignment mode: `{data['role']}`. Receive the role, job context and detailed task in that order. A profile is not a complete assignment.
+
+""" + "\n".join(f"- {item}." for item in details["responsibilities"]) + f"""
+
+## Required job context and Spec Kit inputs
+
+{common['spec_kit']}
+
+Implementation/review inputs: {details['required_inputs']}. Planning-only assignments use approved upstream direction and their bounded draft-output task as described below.
+
+{common['launch']}
+
+Read `.specify/memory/constitution.md` (including sections 8-11), `docs/QUALITY_GATES.md`, `docs/AGENT_PROFILES_AND_MULTI_AGENT_FRAMEWORK.md`, and `docs/COMPANY_ROLES_AND_AGENT_PROFILES.md` at approved revisions. Resolve conflicting requirements with the owner before dependent work.
+
+## Top-down company planning and upward collection
+
+{common['planning']}
+
+Planning duties: {details['planning_duties']}.
+
+Collection/return duties: {details['collection_duties']}.
+
+Use `.specify/templates/company-plan-template.md`; preserve the master-plan revision, parent node and expected-child manifest on every assignment. No implementation before approved planning/G0 inputs.
+
+## Canonical story record
+
+{common['story_record']}
+
+## Detailed task execution
+
+1. Verify task scope, pinned inputs, incoming dependency evidence and the independent reviewer assignment.
+2. Inspect existing implementations/contracts and name the canonical owner before adding code or abstractions.
+3. Perform only the assigned work; cover normal, denial, boundary, failure and recovery outcomes relevant to the role.
+4. Run the approved scoped checks and record actual assertions/results, including failures and limitations.
+5. Reconcile the canonical story record, log outcomes/artifacts and next-role acknowledgment, then submit the immutable candidate/evidence handoff and stop writing to its released lease.
+
+## Validation and evidence
+
+{details['validation_focus']}.
+
+{common['evidence']}
+
+G0 means readiness; G1 tests/coverage; G2 security; G3 architecture/maintainability; G4 integrated acceptance. Review per-package coverage, critical invariants and useful reuse under the applicable quality policy. Never treat a successful directory scan as completed application verification.
+
+## Continuous pipeline and remediation
+
+{details['handoff']}.
+
+{common['pipeline']}
+
+{common['independence']}
+
+Senior fixes use separate remediation tasks/leases, new candidate revisions and regression evidence. A non-contributing reviewer must validate them before progression through security/architecture, integration, PM and CTO. Do not stall the previous junior's next independent task or bypass a failed gate.
+
+## Account selection and authority boundaries
+
+{common['accounts']}
+
+`auth_account: auto`; all three accounts are eligible. Authentication accounts are quota resources, not reviewer identities or permission grants. Existing authentication remains account-local.
+
+{common['authority']}
+
+Role-specific limit: {details['decision_limits']}.
+
+Eligible path scope: {', '.join('`'+p+'`' for p in data['allowed_paths'])}. Task grants must narrow these paths. Explicit exclusions: {', '.join('`'+p+'`' for p in data['forbidden_paths']) or 'none additional; task and host restrictions still apply'}.
+
+## Handoff and escalation contract
+
+Include canonical story-record path/revision and action-event IDs, master-plan revision/parent node, assignment/attempt ID, contributor identities, spec/plan/tasks/policy revisions, candidate/base commits, changed paths, AC/TC/task mapping, check commands/environment/results, artifact digests, unresolved findings and the next required stage. Write only draft evidence; the trusted controller records final decisions.
+
+Stop dependent work on missing/stale inputs, denied scope, lost lease, exhausted quota/budget, failed required checks or unresolved requirement changes. Report the exact blocker, owner and next action. No production release, publication, external message or destructive operation follows solely from this job title.
+"""
+    role_dir = PROFILES_DIR / role_id
+    role_dir.mkdir(parents=True, exist_ok=True)
+    (role_dir / "profile.yaml").write_text(profile_yaml, encoding="utf-8")
+    (role_dir / "system_prompt.md").write_text(prompt, encoding="utf-8")
+    cli_dir = AGENTS_DIR / role_id
+    cli_dir.mkdir(parents=True, exist_ok=True)
+    frontmatter = f"---\nname: {role_id}\ndescription: {json.dumps(details['description'])}\ntools:\n"
+    frontmatter += "\n".join(f"  - {tool}" for tool in data["tools"]) + "\n---\n\n"
+    (cli_dir / "agent.md").write_text(frontmatter + prompt, encoding="utf-8")
+
+
+def render_account_agents():
+    import json
+    count = len(COMPANY_ROLES)
+    for account, data in AUTH_ACCOUNTS.items():
+        description = f"{data['account_label']}: shared authentication and quota resource eligible for all {count} company roles; no fixed engineering track."
+        tools = COMPANY_ROLES["backend-engineer"]["tools"]
+        text = f"---\nname: {account}\ndescription: {json.dumps(description)}\ntools:\n"
+        text += "\n".join(f"  - {tool}" for tool in tools)
+        text += f"\n---\n\n# {data['account_label']} (`{account}`)\n\n"
+        text += "This account can run every company role. It is an authentication/quota pool, not a backend, client, QA or leadership specialization.\n\n"
+        text += "## Role, context and detailed task\n\nBefore work, load the assigned `.agents/profiles/<role>/system_prompt.md`, then the approved job context and detailed task. Follow the top-down CTO charter → PM spec → architect/role subplans → tech-lead master plan before implementation. Collect results and integrated validation back through PM to CTO. Every action and handoff belongs in the canonical story record. Follow the Spec Kit constitution, spec/plan/tasks/Security Gateway chain and current validation gates. Without a role and approved task brief, request the missing assignment rather than inventing work.\n\n"
+        text += "## Quota and continuous delivery\n\nThe launcher balances recorded usage and active reservations across agent-a, agent-b and agent-c for all roles. Respect cooldowns, disabled pools and configured local budgets. Local usage is an estimate, not a provider quota reading. Do not bypass provider limits or automatically replay a partially completed task under another account. Junior submissions, senior validation/repairs and progression to CTO follow the same pipeline regardless of account selection.\n\n"
+        text += "## Approval and permission boundaries\n\nAn account change does not grant authority. Same-account reviewer names do not prove independent approval. Never approve your own repairs, alter final evidence or infer deployment permission from a CTO role. Tools and paths require an explicit scoped task grant.\n\n## Eligible roles\n\n"
+        text += "\n".join(f"- `{role}`" for role in COMPANY_ROLES) + "\n"
+        folder = AGENTS_DIR / account
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / "agent.md").write_text(text, encoding="utf-8")
+
+
+def refresh_descriptions():
+    catalog = role_catalog()
+    for role, data in COMPANY_ROLES.items():
+        render_role_profile(role, data, catalog)
+    render_account_agents()
+    print(f"Refreshed {len(COMPANY_ROLES)} role profiles and 3 shared account definitions; authentication files untouched.")
 
 
 def setup_all():
@@ -427,7 +565,7 @@ def setup_all():
         env_content = f"""# Authentication Profile for {data['account_label']}
 # ==============================================================================
 # To use an API key, set GEMINI_API_KEY below.
-# If left empty, running './scripts/agy_agent.sh {data['account_id']}' launches browser OAuth
+# If left empty, running './scripts/agents/agy_agent.sh {data['account_id']}' launches browser OAuth
 # sign-in to authenticate {data['account_label']}.
 GEMINI_API_KEY=""
 
@@ -437,7 +575,8 @@ ACCOUNT_ID="{data['account_id']}"
 ACCOUNT_LABEL="{data['account_label']}"
 TRACK="{data['track']}"
 """
-        env_file.write_text(env_content, encoding="utf-8")
+        if not env_file.exists():
+            env_file.write_text(env_content, encoding="utf-8")
 
         # Also register agent in .agents/agents/<agent-a, agent-b, agent-c> for agy CLI discovery
         agent_dir = AGENTS_DIR / account_key
@@ -474,85 +613,26 @@ You are authenticated using **{data['account_label']}**.
     print("STEP 2: Setting up Company Role Profiles & Mapping to the 3 Auth Accounts")
     print("================================================================================")
     for role_id, data in COMPANY_ROLES.items():
-        mapped_acc = data["account"]
         role_dir = PROFILES_DIR / role_id
         role_dir.mkdir(parents=True, exist_ok=True)
 
-        profile_yaml = f"""name: {role_id}
-title: "{data['title']}"
-auth_account: {mapped_acc}
-role: {data['role']}
-seniority: {data['seniority']}
-description: "{data['description']}"
-model: {data['model']}
-effort: {data['effort']}
-governing_rules:
-""" + "\n".join(f"  - \"{rule}\"" for rule in data['governing_rules']) + """
-allowed_paths:
-""" + "\n".join(f"  - \"{p}\"" for p in data['allowed_paths']) + """
-forbidden_paths:
-""" + "\n".join(f"  - \"{p}\"" for p in data['forbidden_paths']) + """
-tools:
-""" + "\n".join(f"  - {t}" for t in data['tools']) + "\n"
+        render_role_profile(role_id, data, role_catalog())
 
-        (role_dir / "profile.yaml").write_text(profile_yaml, encoding="utf-8")
-
-        system_prompt = f"""# {data['title']} (`{role_id}`) - System Instructions
-
-## 1. Authentication & Identity
-* **Operating Account**: `{mapped_acc}` ({AUTH_ACCOUNTS[mapped_acc]['account_label']})
-* **Identity**: You are the **{data['title']}** for `some-commerce`.
-{data['description']}
-
-## 2. Seniority & Validation Ladder Tier
-* **Seniority Tier**: `{data['seniority']}`
-* **Role Function**: `{data['role']}`
-
-## 3. Mandatory Governing Invariants
-""" + "\n".join(f"* **{rule.split(':')[0]}**: {rule.split(':')[1] if ':' in rule else rule}" for rule in data['governing_rules']) + """
-
-## 4. Allowed Working Boundaries
-* **Whitelisted Write Paths**:
-""" + "\n".join(f"  - `{p}`" for p in data['allowed_paths']) + """
-* **Blacklisted / Forbidden Paths**:
-""" + "\n".join(f"  - `{p}`" for p in data['forbidden_paths']) + """
-"""
-        (role_dir / "system_prompt.md").write_text(system_prompt, encoding="utf-8")
-
-        # Also register in .agents/agents/<role_id>/agent.md for agy CLI discovery
-        cli_agent_dir = AGENTS_DIR / role_id
-        cli_agent_dir.mkdir(parents=True, exist_ok=True)
-        agent_md = f"""---
-name: {role_id}
-description: "{data['description']}"
-tools:
-""" + "\n".join(f"  - {t}" for t in data['tools']) + f"""
----
-
-{system_prompt}
-"""
-        (cli_agent_dir / "agent.md").write_text(agent_md, encoding="utf-8")
-
-        # In .agent_profiles/<role_id>, symlink to the appropriate account home so NO repeated sign-ins!
-        role_profile_home = AGENT_PROFILES_DIR / role_id
-        if role_profile_home.exists():
-            if role_profile_home.is_symlink() or role_profile_home.is_dir():
-                shutil.rmtree(role_profile_home) if not role_profile_home.is_symlink() else role_profile_home.unlink()
-        
-        # Create relative symlink to agent-a, agent-b, or agent-c
-        role_profile_home.symlink_to(mapped_acc, target_is_directory=True)
-
-        # Create env file that sources the parent account env
         role_env_file = AGENT_PROFILES_DIR / f"{role_id}.env"
-        role_env_content = f"""# Inherits credentials from {mapped_acc}
-source "${{REPO_ROOT}}/.agent_profiles/{mapped_acc}.env"
-ROLE="{role_id}"
-"""
-        role_env_file.write_text(role_env_content, encoding="utf-8")
-        print(f"  [OK] {role_id} -> {mapped_acc} ({AUTH_ACCOUNTS[mapped_acc]['account_label']})")
+        if not role_env_file.exists():
+            role_env_file.write_text('ACCOUNT="auto"\nROLE="' + role_id + '"\n', encoding="utf-8")
+        print(f"  [OK] {role_id}: eligible on all three accounts")
 
+    render_account_agents()
     print("\nSUCCESS: Configured exactly 3 Google AI Pro Account authentication homes and mapped all roles.")
 
 
 if __name__ == "__main__":
-    setup_all()
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--profiles-only", action="store_true", help="Refresh role/account descriptions without touching authentication")
+    args = parser.parse_args()
+    if args.profiles_only:
+        refresh_descriptions()
+    else:
+        setup_all()

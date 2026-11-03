@@ -12,7 +12,7 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 PROFILES_DIR="${REPO_ROOT}/.agents/profiles"
 AGENTS_DIR="${REPO_ROOT}/.agents/agents"
@@ -35,7 +35,7 @@ API_KEY=""
 
 function show_help() {
   cat << EOF
-Usage: ./scripts/make_agy_agent.sh [OPTIONS]
+Usage: ./scripts/agents/make_agy_agent.sh [OPTIONS]
 
 Required Options:
   -n, --name <name>         Unique name for the agent (e.g. sprint-1.1-junior-be-1, s11-us111-be-builder)
@@ -59,13 +59,13 @@ Help:
 
 Examples:
   # Generate a Junior Backend Builder for Sprint 1.1, Story US-1.1.1, PR 1:
-  ./scripts/make_agy_agent.sh -n s11-us111-be-builder -p backend-engineer -s junior -r builder --sprint sprint-1.1 --story us-1.1.1 --pr 1
+  ./scripts/agents/make_agy_agent.sh -n s11-us111-be-builder -p backend-engineer -s junior -r builder --sprint sprint-1.1 --story us-1.1.1 --pr 1
 
   # Generate a Senior Backend Reviewer:
-  ./scripts/make_agy_agent.sh -n s11-sr-be-reviewer -p senior-backend-engineer --sprint sprint-1.1 --story us-1.1.1
+  ./scripts/agents/make_agy_agent.sh -n s11-sr-be-reviewer -p senior-backend-engineer --sprint sprint-1.1 --story us-1.1.1
 
   # Generate an agent with isolated Git worktree:
-  ./scripts/make_agy_agent.sh -n s11-fe-builder -p client-engineer --sprint sprint-1.1 --story us-1.1.1 --pr 5 --create-git-worktree
+  ./scripts/agents/make_agy_agent.sh -n s11-fe-builder -p client-engineer --sprint sprint-1.1 --story us-1.1.1 --pr 5 --create-git-worktree
 EOF
   exit 0
 }
@@ -230,7 +230,7 @@ if [[ "${CREATE_WORKTREE}" == true ]]; then
   GEN_ARGS+=("--create-git-worktree")
 fi
 
-python3 "${REPO_ROOT}/scripts/generate_agent.py" "${GEN_ARGS[@]}"
+python3 "${REPO_ROOT}/scripts/agents/generate_agent.py" "${GEN_ARGS[@]}"
 
 # 2. Setup native Antigravity CLI Agent in .agents/agents/<name>/agent.md
 AGENT_DIR="${AGENTS_DIR}/${NAME}"
@@ -296,60 +296,7 @@ else
 fi
 
 # 4. Create one-click runner script in workdir: run.sh
-cat << 'EOF' > "${WORKDIR}/run.sh"
-#!/usr/bin/env bash
-set -euo pipefail
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
-
-NAME="$(basename "${SCRIPT_DIR}")"
-AGENT_ENV="${REPO_ROOT}/.agent_profiles/${NAME}.env"
-
-if [[ -f "${AGENT_ENV}" ]]; then
-  # shellcheck disable=SC1090
-  source "${AGENT_ENV}"
-fi
-
-export HOME="${REPO_ROOT}/.agent_profiles/${NAME}"
-
-AGY_BIN="$(which agy 2>/dev/null || echo "/Users/maheraladdin/.local/bin/agy")"
-
-if [[ ! -x "${AGY_BIN}" ]]; then
-  echo "Error: Antigravity CLI binary 'agy' not found." >&2
-  exit 1
-fi
-
-MODEL="${MODEL:-gemini-3.8-flash-high}"
-EFFORT="${EFFORT:-high}"
-
-ARGS=()
-HAS_MODEL=false
-HAS_EFFORT=false
-
-for arg in "$@"; do
-  if [[ "${arg}" == "--model" ]]; then HAS_MODEL=true; fi
-  if [[ "${arg}" == "--effort" ]]; then HAS_EFFORT=true; fi
-  ARGS+=("${arg}")
-done
-
-if [[ "${HAS_MODEL}" == false ]]; then
-  ARGS+=(--model "${MODEL}")
-fi
-
-if [[ "${HAS_EFFORT}" == false ]]; then
-  ARGS+=(--effort "${EFFORT}")
-fi
-
-TARGET_DIR="${SCRIPT_DIR}"
-if [[ -d "${SCRIPT_DIR}/workspace" ]]; then
-  TARGET_DIR="${SCRIPT_DIR}/workspace"
-fi
-
-cd "${TARGET_DIR}"
-echo "Launching Antigravity CLI agent '${NAME}' in ${TARGET_DIR}..."
-exec "${AGY_BIN}" --agent "${NAME}" "${ARGS[@]}"
-EOF
+# generate_agent.py already emitted a runner through agy_agent.sh and its quota pool.
 chmod +x "${WORKDIR}/run.sh"
 
 echo ""
@@ -359,5 +306,5 @@ echo "  1. CLI Discovery:     agy agents | grep ${NAME}"
 echo "  2. Workdir Artifacts: ${WORKDIR}/ (agent.yaml, context.md, tasks.md, run.sh)"
 echo "  3. Profile Home:      ${AGENT_HOME}/"
 echo "  4. Direct Runner:     ${WORKDIR}/run.sh"
-echo "  5. Script Launcher:   ./scripts/agy_agent.sh ${NAME}"
+echo "  5. Script Launcher:   ./scripts/agents/agy_agent.sh ${NAME}"
 echo "================================================================================"

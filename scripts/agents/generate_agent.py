@@ -11,15 +11,18 @@ Supported Profiles:
 - qa-security-auditor: OWASP ASVS L2, Zero-Trust Multi-Tenancy, Gate M1 & Gatekeeper.
 """
 
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import argparse
+import json
 import os
 import re
 import subprocess
-import sys
-from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 PROFILES = {
     "chief-technology-officer": {
@@ -272,7 +275,7 @@ PROFILES = {
         "default_role": "security-auditor",
         "allowed_paths": [
             "docs/validation/**",
-            "scripts/ci/**",
+            "scripts/validation/**",
             "security/**",
         ],
         "forbidden_paths": [
@@ -290,7 +293,7 @@ PROFILES = {
         "default_role": "devops",
         "allowed_paths": [
             "infra/**",
-            "scripts/ci/**",
+            "scripts/validation/**",
             ".github/workflows/**",
             "Dockerfile*",
         ],
@@ -325,7 +328,7 @@ PROFILES = {
         "default_role": "auditor",
         "allowed_paths": [
             "docs/validation/**",
-            "scripts/ci/**",
+            "scripts/validation/**",
             "backend/tests/**",
             "apps/storefront/__tests__/**",
         ],
@@ -437,7 +440,15 @@ def generate_agent(
         raise FileNotFoundError(f"User story '{story_id}' not found in docs/user-stories/")
 
     story_data = extract_story_details(story_file)
-    profile_info = PROFILES[profile]
+    profile_info = dict(PROFILES[profile])
+    catalog = json.loads((REPO_ROOT / ".agents/profiles/catalog.json").read_text(encoding="utf-8"))
+    catalog_role = "testing-qa-engineer" if profile == "qa-security-auditor" else profile
+    details = catalog["roles"][catalog_role]
+    profile_info["description"] = details["description"]
+    profile_info["rules"] = list(catalog["common"].values()) + [details["decision_limits"]]
+    if "backend" in profile:
+        profile_info["rules"].append("Strict Rust Zero-Clone Law applies under the approved constitution; domain purity applies to kernel packages, not infrastructure adapters.")
+    role_prompt = (REPO_ROOT / ".agents/profiles" / catalog_role / "system_prompt.md").read_text(encoding="utf-8")
     actual_role = role or profile_info["default_role"]
 
     # Determine workdir
@@ -456,6 +467,8 @@ def generate_agent(
     agent_yaml_content = f"""name: "{name}"
 profile: "{profile}"
 role: "{actual_role}"
+auth_account: auto
+eligible_accounts: [agent-a, agent-b, agent-c]
 seniority: "{seniority}"
 sprint: "{sprint}"
 story_id: "{story_id}"
@@ -519,9 +532,9 @@ allowed_paths:
 - **Target Code Layers**: `{', '.join(pr_info['layers'])}`
 - **Deliverables**: {pr_info['summary']}
 - **Quality Gates Checklist**:
-  - G1 Coverage: $\ge 90\%$ line and $\ge 85\%$ branch coverage.
+  - G1 Coverage: $\\ge 90\\%$ line and $\\ge 85\\%$ branch coverage.
   - Zero critical/high vulnerabilities; strict tenant isolation.
-  - Passing Gate M1 microkernel purity and zero-clone checks (`python3 scripts/validate_microkernel.py`).
+  - Passing Gate M1 microkernel purity and zero-clone checks (`python3 scripts/validation/validate_microkernel.py`).
 """
 
     context_md_content += f"""
@@ -546,10 +559,10 @@ allowed_paths:
 Run these commands locally in your worktree before requesting gate sign-off:
 ```bash
 # 1. Microkernel purity and zero-clone borrowing check (Gate M1)
-python3 scripts/validate_microkernel.py
+python3 scripts/validation/validate_microkernel.py
 
 # 2. Spec Kit documentation & Security Gateway validation
-python3 scripts/validate_docs.py
+python3 scripts/validation/validate_docs.py
 
 # 3. Rust test suite (if operating on backend)
 cargo test --workspace
@@ -559,6 +572,7 @@ npm test
 ```
 """
     context_md_path = workdir / "context.md"
+    context_md_content = role_prompt + "\n\n" + context_md_content
     context_md_path.write_text(context_md_content, encoding="utf-8")
 
     # Build tasks.md
@@ -623,8 +637,8 @@ npm test
 
     tasks_md_content += """
 ## Phase 3: Quality Gates Verification
-- [ ] Run `python3 scripts/validate_microkernel.py` (Gate M1)
-- [ ] Run test suite and confirm $\ge 90\%$ line and $\ge 85\%$ branch coverage (Gate G1)
+- [ ] Run `python3 scripts/validation/validate_microkernel.py` (Gate M1)
+- [ ] Run test suite and confirm $\\ge 90\\%$ line and $\\ge 85\\%$ branch coverage (Gate G1)
 - [ ] Perform security threat review and verify zero critical/high findings (Gate G2)
 - [ ] Verify framework-scoped LoB folder hierarchy compliance (Gate G3)
 - [ ] Verify end-to-end acceptance in sandbox (Gate G4)
@@ -662,6 +676,7 @@ See detailed instructions and context in:
 `{workdir}/context.md`
 `{workdir}/tasks.md`
 """
+    agent_md_content += "\n\n" + role_prompt
     agent_md_path.write_text(agent_md_content, encoding="utf-8")
 
     # Isolated agent profile home & env in .agent_profiles/<name>/
@@ -683,59 +698,8 @@ WORKDIR="{workdir}"
 
     # One-click runner script in workdir: run.sh
     run_sh_path = workdir / "run.sh"
-    run_sh_content = f"""#!/usr/bin/env bash
-set -euo pipefail
-
-SCRIPT_DIR="$(cd "$(dirname "${{BASH_SOURCE[0]}}")" && pwd)"
-REPO_ROOT="$(cd "${{SCRIPT_DIR}}/../../.." && pwd)"
-
-NAME="$(basename "${{SCRIPT_DIR}}")"
-AGENT_ENV="${{REPO_ROOT}}/.agent_profiles/${{NAME}}.env"
-
-if [[ -f "${{AGENT_ENV}}" ]]; then
-  # shellcheck disable=SC1090
-  source "${{AGENT_ENV}}"
-fi
-
-export HOME="${{REPO_ROOT}}/.agent_profiles/${{NAME}}"
-
-AGY_BIN="$(which agy 2>/dev/null || echo "/Users/maheraladdin/.local/bin/agy")"
-
-if [[ ! -x "${{AGY_BIN}}" ]]; then
-  echo "Error: Antigravity CLI binary 'agy' not found." >&2
-  exit 1
-fi
-
-MODEL="${{MODEL:-gemini-3.8-flash-high}}"
-EFFORT="${{EFFORT:-high}}"
-
-ARGS=()
-HAS_MODEL=false
-HAS_EFFORT=false
-
-for arg in "$@"; do
-  if [[ "${{arg}}" == "--model" ]]; then HAS_MODEL=true; fi
-  if [[ "${{arg}}" == "--effort" ]]; then HAS_EFFORT=true; fi
-  ARGS+=("${{arg}}")
-done
-
-if [[ "${{HAS_MODEL}}" == false ]]; then
-  ARGS+=(--model "${{MODEL}}")
-fi
-
-if [[ "${{HAS_EFFORT}}" == false ]]; then
-  ARGS+=(--effort "${{EFFORT}}")
-fi
-
-TARGET_DIR="${{SCRIPT_DIR}}"
-if [[ -d "${{SCRIPT_DIR}}/workspace" ]]; then
-  TARGET_DIR="${{SCRIPT_DIR}}/workspace"
-fi
-
-cd "${{TARGET_DIR}}"
-echo "Launching Antigravity CLI agent '${{NAME}}' in ${{TARGET_DIR}}..."
-exec "${{AGY_BIN}}" --agent "${{NAME}}" "${{ARGS[@]}}"
-"""
+    import shlex
+    run_sh_content = "#!/usr/bin/env bash\nset -euo pipefail\nexec " + shlex.quote(str(REPO_ROOT / "scripts" / "agents" / "agy_agent.sh")) + " " + shlex.quote(name) + ' "$@"\n'
     run_sh_path.write_text(run_sh_content, encoding="utf-8")
     run_sh_path.chmod(0o755)
 

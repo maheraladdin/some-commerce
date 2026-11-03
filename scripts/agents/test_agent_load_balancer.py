@@ -9,16 +9,31 @@ Verifies:
 """
 
 import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import unittest
 import tempfile
 import shutil
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from agent_load_balancer import AgentProfileLoadBalancer, parse_sprint_stories
+from scripts.agents.agent_load_balancer import AgentProfileLoadBalancer, parse_sprint_stories
 
 
 class TestAgentProfileLoadBalancer(unittest.TestCase):
+    def test_company_cycle_starts_at_cto_and_returns_to_cto_without_authorizing_dispatch(self):
+        plan = AgentProfileLoadBalancer("sprint-1.1").balance_sprint()
+        self.assertEqual(plan["allocation_status"], "PROPOSAL_NOT_AUTHORIZATION")
+        self.assertIs(plan["implementation_authorized"], False)
+        stages = plan["company_pipeline"]
+        self.assertEqual(stages[0]["owner"], "chief-technology-officer")
+        self.assertEqual(stages[-1]["owner"], "chief-technology-officer")
+        ids = [row["phase"] for row in stages]
+        self.assertEqual(ids[:5], ["P0", "P1", "P2", "P3", "P4"])
+        self.assertLess(ids.index("P4"), ids.index("EXECUTE"))
+        self.assertLess(ids.index("COLLECT"), ids.index("VALIDATE"))
+        self.assertLess(ids.index("VALIDATE"), ids.index("RETURN"))
+        self.assertEqual(plan["required_story_record_pattern"], "docs/validation/story-records/US-<id>.md")
+
     def test_parse_sprint_stories(self):
         stories = parse_sprint_stories("sprint-1.1")
         self.assertGreater(len(stories), 0, "Expected at least 1 story in sprint-1.1")
