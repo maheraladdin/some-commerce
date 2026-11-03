@@ -36,7 +36,7 @@ While G0–G4 govern individual user stories, the **Sprint Quality Gates (SG0–
 - **Dependency & License Audit**: `cargo audit`, `npm audit`, and license compliance check (`deny.toml`) verifying zero high/critical CVEs and zero GPL/copyleft license contamination in client/backend bundles.
 
 ### SG3 — Architecture, Microkernel Boundary & Code Quality
-- **Mandatory Gate M1 Execution**: Automated execution of `scripts/validate_microkernel.py` verifying:
+- **Mandatory Gate M1 Execution**: Automated execution of `scripts/validation/validate_microkernel.py` verifying:
   1. Pure domain crates (`crates/some-*`) have zero references to cloud SDKs (`aws-sdk-*`, `azure_*`, `google-cloud-*`), zero direct DB drivers, and zero network runtimes.
   2. Axum API handlers in `backend/src/features/` have zero references to `lambda_http` or AWS Lambda runtime types, maintaining 100% portability.
   3. Rust zero-clone borrowing audit confirms zero deep `.clone()` calls on domain structs (permitting only `Arc::clone` / `Rc::clone`).
@@ -44,6 +44,7 @@ While G0–G4 govern individual user stories, the **Sprint Quality Gates (SG0–
 - **Complexity and Duplication**: Pinned duplicate-code detector verifying $< 3\%$ duplication on handwritten production code; cyclomatic complexity $\le 10$ across all new functions.
 
 ### SG4 — Sprint Release Candidate & Operational Readiness
+- **Mandatory sprint closeout**: Before SG4 and CTO review, every sprint completes benchmark, integration, fuzz and applicable Rust Loom tests on its exact candidate, with independent E1–E5 evidence under [SPRINT_TESTING.md](SPRINT_TESTING.md). Missing harnesses/results remain Pending; bounded exploration and scope-based N/A require explicit review.
 - **Staging Verification**: End-to-end verification in staging environment deploying AWS CDK stacks and verifying both mobile (Expo Go / TestFlight) and web storefront builds.
 - **Performance & Resource Budgets**: P95 API response times under simulated load meet defined thresholds (e.g. Catalog browse $< 80\text{ms}$, Checkout $< 200\text{ms}$).
 - **Rollback & Recovery Drill**: Dry-run rollback of database schema migration and cloud infrastructure stack without data corruption or service disruption.
@@ -56,7 +57,7 @@ Gate M1 is a dedicated, automated architectural gate verifying the microkernel f
 
 ```mermaid
 flowchart LR
-    subgraph "Gate M1 Verification Suite (scripts/validate_microkernel.py)"
+    subgraph "Gate M1 Verification Suite (scripts/validation/validate_microkernel.py)"
         M1_A["Check 1: Pure Logic Crate Isolation<br/>(crates/some-*)<br/>No aws-sdk, no lambda_http, no DB drivers"]
         M1_B["Check 2: Axum HTTP Decoupling<br/>(backend/src/features/*)<br/>No lambda_http imports in Axum routers"]
         M1_C["Check 3: Rust Zero-Clone Borrowing<br/>0 deep .clone() calls in domain logic<br/>Strict borrowing & Arc::clone only"]
@@ -104,7 +105,7 @@ flowchart LR
 - **Rule A1.1 (10-Layer Integrity)**: Asserts that every feature implementation respects the 10 core architectural layers specified in `docs/SYSTEM_ARCHITECTURE.md`.
 - **Rule A1.2 (Single-Table Key Standard)**: Validates that database entities implement `PK`, `SK`, and compound GSI index keys without table proliferation.
 - **Rule A1.3 (Polyglot Decoupling)**: Asserts strict operational boundaries between DynamoDB (OLTP), OpenSearch (facets/search), Redis/Moka (caching), and WatermelonDB (client offline sync).
-- **Enforcement Script**: `python3 scripts/validate_system_architecture.py`
+- **Enforcement Script**: `python3 scripts/validation/validate_system_architecture.py`
 
 ---
 
@@ -133,7 +134,7 @@ flowchart LR
 - **Rule A2.2 (4-Tier LoB Hierarchy)**: Validates that all behaviour code lives under `features/<feature>/modules/<module>/behaviours/<behaviour>/[services, designs, logic, types, constants]`.
 - **Rule A2.3 (Client vs Backend Directory Purity)**: The `designs/` directory is strictly reserved for the client application (`apps/storefront/`); it is prohibited in backend microservices.
 - **Rule A2.4 (No Direct Sibling Imports)**: Sibling behaviours within a module must not import directly from each other; shared contracts must be promoted to module `_shared/` or feature `_shared/`.
-- **Enforcement Script**: `python3 scripts/validate_folder_architecture.py`
+- **Enforcement Script**: `python3 scripts/validation/validate_folder_architecture.py`
 
 ---
 
@@ -152,6 +153,8 @@ flowchart LR
 Reviewers must be identified; “reviewed by agent” without an identity and evidence is insufficient. An implementation author cannot be the sole approver of G2 or G3. One qualified independent reviewer may cover multiple roles. Splitting work into several PRs does not defer tests, security, or architecture until the last PR. A partially implemented story stays In Progress and is inaccessible in production until G4 passes.
 
 ## G0 — Ready
+
+- Require approved top-down company/master-plan lineage, parent task node and the canonical story record with current acknowledged revision. Planning-only tasks can produce missing artifacts from approved upstream direction; draft plans cannot pass implementation G0. Record every story action and role transfer under constitution sections 10–11, and reconcile all expected child outputs before integrated acceptance.
 
 - Give every Gherkin scenario a stable `AC-<story>-NN` identifier before implementation. Preserve existing `TC-*` identifiers. Map each AC, existing TC, and story gate scenario to test name, path, level, expected assertion, and evidence. Table entries with no executable assertion are unimplemented requirements.
 - Record scope: API/routes, events, schemas, supported platforms, tenancy/roles, migrations, external providers, and dependencies. Link an ADR for new boundaries, incompatible contracts, consistency models, or shared business policies. Small changes can use a PR design note.
@@ -237,7 +240,7 @@ No critical/high security waiver, isolation waiver, or financial invariant waive
 
 ## CI enforcement contract
 
-The implemented `docs-validation` job runs `python3 scripts/validate_docs.py`. It checks documentation structure and cross-references only. It does not run application audits, validate evidence authenticity, or configure GitHub branch protection.
+The implemented `docs-validation` job runs `python3 scripts/validation/validate_docs.py`. It checks documentation structure and cross-references only. It does not run application audits, validate evidence authenticity, or configure GitHub branch protection.
 
 Before merging the first application implementation, add blocking CI checks named `story-tests`, `story-security`, `story-architecture`, and `story-acceptance`, backed by real commands for the affected packages. Configure branch protection/rulesets to require them and independent review. Conditional jobs must explicitly report reviewed N/A sub-checks; missing reports, skipped required tests, or `continue-on-error` cannot produce a successful gate. A final aggregator must fail when any required job fails, is cancelled, or is unexpectedly skipped.
 

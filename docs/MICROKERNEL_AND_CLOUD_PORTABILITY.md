@@ -315,7 +315,7 @@ In accordance with Section 3 of the Constitution:
 
 1. **Zero Deep Clones**:
    - Data structures, request payloads, domain entities, and intermediate vectors must **never call `.clone()`**.
-   - Violations are flagged automatically by CI Gate M1 (`scripts/validate_microkernel.py`).
+   - Violations are flagged automatically by CI Gate M1 (`scripts/validation/validate_microkernel.py`).
 2. **Borrowing First**:
    - Functions accept slices: `&str`, `&[u8]`, `&[Item]`.
    - Structures that hold reference data use explicit lifetimes: `struct ValidatedOrder<'a> { items: &'a [OrderItem], ... }`.
@@ -335,7 +335,7 @@ In accordance with Section 3 of the Constitution:
 
 ## 7. Gate M1: Automated Microkernel & Abstraction Verification
 
-CI enforces Gate M1 on every PR and sprint commit via `python3 scripts/validate_microkernel.py`:
+CI enforces Gate M1 on every PR and sprint commit via `python3 scripts/validation/validate_microkernel.py`:
 
 1. **Crate Purity Check**: Scans `Cargo.toml` of all crates in `crates/` to ensure zero references to `aws-sdk-*`, `lambda_http`, or cloud vendor libraries.
 2. **Axum Decoupling Check**: Scans `backend/src/features/` to verify that `lambda_http` or AWS Lambda runtime types are never imported into HTTP routing logic.

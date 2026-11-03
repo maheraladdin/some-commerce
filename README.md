@@ -29,6 +29,11 @@ The project is funded slice-by-slice through **[GitHub Sponsors](https://github.
 
 ## Documentation Index (`docs/`)
 
+* **[Company master-plan template](.specify/templates/company-plan-template.md)** — CTO direction, product/architecture planning, role decomposition, complete collection and validated return to leadership.
+* **[Canonical user story records](docs/validation/story-records/README.md)** — One action, evidence, decision and handoff history per story, using the [record template](docs/validation/STORY_RECORD_TEMPLATE.md).
+
+* **[Agent roles, shared accounts and quota balancing](.agents/agents/README.md)** — Detailed [role profiles](.agents/profiles/README.md), Spec Kit launch requirements, and usage-aware selection across agent-a, agent-b and agent-c for every role.
+
 * **[Project Constitution & Spec Kit Standard (.specify/)](.specify/memory/constitution.md)** — Core governing principles, Spec-Driven Development (SDD), zero-clone borrowing discipline in Rust, and non-negotiable security laws.
 * **[Master Behavior-Centric Folder Architecture (docs/FOLDER_ARCHITECTURE.md)](docs/FOLDER_ARCHITECTURE.md)** — Locality of Behavior (LoB) hierarchy: `features -> modules -> behaviours -> [services, designs, logic, types, constants]` with 4-tier scoping rules.
 * **[Documentation stress test and gap register](docs/DOCS_STRESS_TEST.md)** — Prioritized design/dependency gaps, owners and closure evidence.

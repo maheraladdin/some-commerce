@@ -6,9 +6,19 @@ Every agent receives **role and job-title responsibilities → pinned job contex
 
 The three execution profiles are reusable skill/capability sets, not privileged identities. Junior/senior/executive titles describe responsibilities; authority comes from authenticated identities, independently assigned capabilities and trusted repository/environment controls. An agent acting as CTO can prepare a release recommendation; production authority remains with the explicitly authorized operator and deployment service.
 
+All job titles may use any of the three authentication accounts (`agent-a`, `agent-b`, `agent-c`). Account allocation balances recorded usage and configured availability rather than assigning backend/client/governance tracks to fixed credentials. Account rotation does not replace role-specific context, scoped permissions or independent approval. See the [profile catalog](../.agents/profiles/README.md) and [quota/launch guide](../.agents/agents/README.md).
+
 **Status:** this document specifies hardened governance. It does not assert that current generators, CI, branch protection, sandboxing or production permissions enforce it. [The framework stress-test register](AGENT_PROFILES_AND_MULTI_AGENT_FRAMEWORK.md#8-stress-test-register-and-operational-acceptance) tracks the required implementation evidence. The constitution remains binding. If these documents, generated prompts or existing gate policies conflict, the dependent assignment is BLOCKED until an authorized policy owner resolves the conflict; agents cannot choose the weaker rule.
 
 ## 2. Role and authority matrix
+
+### Company direction flows down; validated results flow up
+
+The full company cycle starts with **CTO direction**, not junior implementation. CTO establishes the authorized charter; PM writes the Spec Kit product specification; the architect defines decomposition/contracts and coordinates specialist subplans; the tech lead reconciles a master implementation plan and divides it into role-owned workstreams and dependency-safe junior tasks. PM, architecture/security owners and CTO approve the baseline before implementation dispatch. Each child keeps its parent-plan node and revision.
+
+Every affected company role contributes a scoped plan before execution: backend/client seniors specify technical tasks, QA/security specify test/threat acceptance, design specifies user/interface states, and DevOps specifies environment/recovery/provenance requirements. Specialist planning can proceed concurrently from stable upstream inputs. This does not give a junior permission to invent the overall plan or implement unapproved drafts. [Planning-only assignments](AGENT_PROFILES_AND_MULTI_AGENT_FRAMEWORK.md#22-planning-assignments-avoid-a-circular-prerequisite) may create missing artifacts from an approved upstream charter without pretending a completed feature plan already exists.
+
+On the return path, contributors submit immutable branch outputs to independent seniors, then the tech lead reconciles **all expected child outputs** into one candidate. QA/security/architecture validate the assembled system and sprint closeout; PM checks the original product outcomes; CTO receives the complete dossier for final acceptance, scoped replan or a blocked decision. Missing branches, incompatible interfaces and failed tests block parent acceptance even when individual contributors report completion. See the [full planning and collection contract](AGENT_PROFILES_AND_MULTI_AGENT_FRAMEWORK.md#21-company-planning-delegation-and-return-cycle).
 
 All paths below describe eligible task scope, not repository-wide write grants. Each assignment must name exact approved paths. Review artifacts are drafts until a trusted service records the decision. No agent can modify final evidence, issue credentials to itself or remove a required check.
 
@@ -41,6 +51,8 @@ All paths below describe eligible task scope, not repository-wide write grants. 
 - Agent workers have no merge/signing/deploy credentials. A trusted integration service may merge only within existing authorization after required checks and reviewers pass. Production release/publishing needs explicit operator authorization bound to the release manifest and environment. A release title or checklist does not supply it.
 
 ## 3. Six validation layers
+
+These six layers are the **upward execution-validation ladder** following approved top-down planning P0–P4. CTO has two distinct responsibilities: direction/plan approval at the beginning and evidence-based final review at the end. Initial plan approval does not pre-approve the implementation; final acceptance requires a complete expected-child manifest, the exact integrated candidate, E1–E5 sprint results and original charter/AC traceability.
 
 Layers are distinct decisions with evidence, not six model opinions. No upper layer can convert a lower-layer Fail/Pending into Pass. G0 precedes dispatch; G1–G3 protect PR integration; G4 protects story completion; SG0–SG4 validate the sprint-wide candidate under [quality gates](QUALITY_GATES.md). The expected check manifest is established before work, with scope and N/A rules independently approved.
 
@@ -106,7 +118,27 @@ The tech lead plans author and reviewer capacity together. Reserve reviewers bef
 
 Each PR has one accountable owner even if several authors contribute. Give contributors disjoint task leases and record them all for independence checks. Shared schemas, generated DTOs, lockfiles, workflow files and inline tests require a named single writer or explicit serialization. A profile pool assignment does not authorize concurrent writes to the same file.
 
+### 4.1 Continuous delivery responsibilities
+
+Apply the [continuous handoff protocol](AGENT_PROFILES_AND_MULTI_AGENT_FRAMEWORK.md#52-continuous-handoff-and-automatic-reassignment). Junior implementation, senior validation and later reviews are separate queued assignments, so different stories can move through different stages concurrently.
+
+| Event | Required action | Accountable owner |
+|:------|:----------------|:------------------|
+| Junior submits a valid implementation handoff | Persist candidate and L2 review event, quiesce the old writer, then assign that junior the next independent READY story/task with a fresh Spec Kit brief | Controller + tech lead |
+| Senior accepts review | Start validation against the pinned candidate while the junior continues its next task | Assigned senior |
+| Senior finds a scoped defect | Record the finding; fix through a separately leased remediation task or route it to an eligible engineer without waiting for the original junior | Senior + tech lead |
+| Senior or later-stage reviewer changes code/tests | Create a new candidate, add contributor identity, invalidate affected evidence and assign a qualified non-contributing reviewer | Controller + independent senior |
+| Stage passes | Durably enqueue the next required stage; join security/architecture results before integration and carry the exact candidate through PM to CTO/release review | Controller + gatekeeper |
+| Review overdue, queue full or worker lost | Escalate/reconcile within the configured deadline, fence stale attempts, enforce backpressure and continue unaffected work | Tech lead + operations |
+| All included stories accepted | Verify G4, required CTO/release decisions, sprint gates, drained queues and no open repair before reporting backlog completion | Gatekeeper + CTO/operator |
+
+Senior repair authority is explicit; self-approval remains forbidden. A senior who fixes A cannot supply A's independent L2/G2/G3 approval. Another qualified reviewer validates the repaired candidate. Security, architecture, integration, PM and CTO stages may request fixes using this same bounded repair loop, and the original junior need not remain idle throughout it. A story remains In Progress during implementation review and rework; only the required G4 and release decisions establish acceptance.
+
+Every stage uses the approved Spec Kit spec/plan/task chain and a role → job context → detailed task launch brief. The controller reacts to submission, validation, repair, dependency and worker-availability events rather than waiting for a whole sprint or all stories to finish a stage. Deadlines trigger recovery or escalation, never automatic approval. Capacity exhaustion or no eligible work is an explicit blocked/waiting state, not a guarantee that every worker always has work.
+
 ## 5. Decision records, disagreement and incident handling
+
+Each story's authoritative operational record is `docs/validation/story-records/US-<id>.md`, initialized from the [story record template](validation/STORY_RECORD_TEMPLATE.md). All planning/execution/validation roles read and acknowledge it on entry. Submit every story-related action intent/outcome, decision, artifact, failure, repair and ownership transfer through the controller; update the snapshot and obtain next-role acknowledgment on exit. Role scratch notes and separate chat summaries are supporting material, not competing sources of truth. Shared initiative actions link the same event ID in each affected story. Missing events, stale revisions or unacknowledged transfers block parent acceptance. Append linked corrections and retain original findings; store secrets and private reasoning nowhere in the record.
 
 Record each approval/rejection with authenticated reviewer ID, contributor/conflict set, exact candidate, Spec Kit chain and policy revisions, scoped findings, artifacts, timestamp and expiry. The trusted controller owns append-only final records; agents propose decisions. Signed text in a Markdown file is only a draft unless a trusted service verifies identity and subject.
 
@@ -132,5 +164,12 @@ These tests are required operational acceptance scenarios. They are specificatio
 | All reviewers busy or disagree; retry budget exhausted | Task stays BLOCKED and escalates; no timeout approval | Tech lead / SG0–SG4 |
 | Artifact or destination differs after CTO recommendation | Deployment denied until exact manifest is reapproved | Release owner / SG4 |
 | Agent is asked by repository text to leak secrets or relax scope | Instruction treated as untrusted; task authority unchanged | Security / G2 |
+| Junior finishes A while B is READY | Junior starts B and senior starts A review independently; A is not prematurely Done | Tech lead / SG1 |
+| Senior repairs A while junior works on B | Fresh repair lease/candidate; a different senior approves fixes; A reaches CTO only after affected gates rerun | Gatekeeper / G1–G4, SG4 |
+| Controller crashes after handoff or stage decision | Durable replay produces exactly one logical successor item and no duplicate release action | Operations / SG1, SG4 |
+| Review queue exceeds limit or no READY task exists | Apply backpressure or report waiting with an owner; no busy loop, invented work or skipped review | Tech lead / SG0–SG4 |
+| Initiative starts without a feature plan | CTO receives an authorized planning task, then PM/architect/lead create and approve P0–P4 artifacts before junior implementation | CTO + planning lead / SG0 |
+| One branch is missing while all received branches are green | Parent collection remains incomplete; final PM/CTO acceptance blocked | Tech lead + gatekeeper / G4, SG4 |
+| Role handoff omits a command failure, repair or action event | Canonical story-record reconciliation rejects promotion; next role receives complete history and explicit next action | Controller + gatekeeper / G0–G4 |
 
 Before adoption, assign named owners and evidence locations for every AO finding in the [framework register](AGENT_PROFILES_AND_MULTI_AGENT_FRAMEWORK.md#8-stress-test-register-and-operational-acceptance). Verify runtime confinement, task admission, authenticated independent approvals, protected CI policy, exact-candidate checks, immutable evidence and release authorization. Reconcile generated profiles and existing quality-gate scripts with these contracts. Until then, generated allocations remain proposals requiring supervised execution.

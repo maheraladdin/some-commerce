@@ -46,7 +46,7 @@ flowchart LR
 
 ## Multi-Agent Sprint Delivery Framework & Profile Load Balancer
 
-The engineering delivery of `some-commerce` across all 12 sprints is orchestrated through a scalable multi-agent organization powered by the **Agent Profile Load Balancer** ([`scripts/agent_load_balancer.py`](../scripts/agent_load_balancer.py)) and detailed in [COMPANY_ROLES_AND_AGENT_PROFILES.md](../COMPANY_ROLES_AND_AGENT_PROFILES.md) and [AGENT_PROFILES_AND_MULTI_AGENT_FRAMEWORK.md](../AGENT_PROFILES_AND_MULTI_AGENT_FRAMEWORK.md).
+The engineering delivery of `some-commerce` across all 12 sprints is orchestrated through a scalable multi-agent organization powered by the **Agent Profile Load Balancer** ([`scripts/agents/agent_load_balancer.py`](../../scripts/agents/agent_load_balancer.py)) and detailed in [COMPANY_ROLES_AND_AGENT_PROFILES.md](../COMPANY_ROLES_AND_AGENT_PROFILES.md) and [AGENT_PROFILES_AND_MULTI_AGENT_FRAMEWORK.md](../AGENT_PROFILES_AND_MULTI_AGENT_FRAMEWORK.md).
 
 ```mermaid
 flowchart TD
@@ -54,7 +54,7 @@ flowchart TD
         STORIES["User Stories × 7 PR Slices<br/>(35–56 Discrete Tasks per Sprint)"]
     end
 
-    subgraph "Agent Profile Load Balancer (scripts/agent_load_balancer.py)"
+    subgraph "Agent Profile Load Balancer (scripts/agents/agent_load_balancer.py)"
         ROUTER["Skill & Layer Router<br/>• PR 1-4 ➔ backend-engineer<br/>• PR 5-7 ➔ client-engineer<br/>• Gates G0-G4 ➔ qa-security-auditor"]
         SCHEDULER["Least-Loaded Concurrency Scheduler<br/>• DAG Dependency Gating<br/>• Whitelisted Path Sandboxes"]
     end
@@ -131,6 +131,8 @@ flowchart LR
 
 
 ## Definition of Ready and Done
+
+Every sprint plan ends with its **End-of-Sprint Test Gate**: E1 benchmarks, E2 integration, E3 fuzz tests, E4 applicable Rust Loom concurrency models and E5 independent evidence review. These block SG4/CTO review until satisfied under the [closeout policy](../SPRINT_TESTING.md); use the [sprint evidence template](../validation/SPRINT_TEST_EVIDENCE_TEMPLATE.md). Approve scope, baselines, workloads and resource/model bounds at SG0. Documentation validation does not run these application tests.
 
 Every story, including P1/P2 work, requires [G0–G4 validation](../QUALITY_GATES.md) and its [evidence record](../validation/STORY_EVIDENCE_TEMPLATE.md). Security, architecture and tests are merge gates in every sprint. Sprint 6.3 repeats system-wide validation and cannot substitute for earlier checks.
 

@@ -32,9 +32,27 @@ Complete B2B wholesale with durable RFQ negotiation, net-terms invoicing (NET_30
 
 ---
 
----
-
 ## Multi-Agent Sprint Implementation Plan (6-Layer Governance)
+
+### Company planning → role execution → upward validation
+
+**Status: allocation proposal, not dispatch authorization.** Leadership planning precedes the junior roster; the L1–L6 ladder below is the upward review path. Approve P0–P4 and the company master-plan revision before implementation.
+
+| Stage | Accountable role | Required output |
+|:------|:-----------------|:----------------|
+| P0 | `chief-technology-officer` | Authorized initiative charter, constraints and success criteria |
+| P1 | `product-manager` | Spec Kit requirements, personas, scope and acceptance criteria |
+| P2 | `system-architect` | Shared contracts and affected specialist role subplans |
+| P3 | `tech-lead` | Reconciled master plan, child manifest, task DAG and review/test capacity |
+| P4 | `planning-control-owners-and-cto` | Approved plan baseline and G0/SG0 inputs before implementation |
+| EXECUTE | `assigned-role-contributors-and-seniors` | Parallel approved tasks, independent branch reviews and bounded repairs |
+| COLLECT | `tech-lead` | Every expected child output and canonical story record reconciled on one candidate |
+| VALIDATE | `qa-security-architecture` | Integrated candidate plus E1-E5 sprint evidence and complete action history |
+| ACCEPT | `product-manager` | Original charter/AC-to-delivery acceptance dossier |
+| RETURN | `chief-technology-officer` | Final Accepted, Changes Required or Blocked decision |
+
+Use the [company plan template](../../.specify/templates/company-plan-template.md). Every task references its master-plan parent and canonical `docs/validation/story-records/US-<id>.md`; log each action/result and next-role receipt there. Collect all expected children, verify the exact assembled candidate and closeout suites, then return product acceptance and the full dossier to CTO. Missing children, action history or required checks block parent acceptance.
+
 
 Engineering delivery for **SPRINT-3.2** is executed by autonomous agent instances organized into **Junior Implementer / Senior Reviewer pairs** and governed by the **6-Layer Validation Ladder** leading up to **Product Manager Acceptance** and **CTO Agreement**.
 
@@ -158,7 +176,19 @@ Every story in this sprint is decomposed into the standardized 7 PRs with assign
 - [ ] **SG1 (Cross-Story Integration)**: End-to-end integration flows across all 5 stories pass under concurrent load.
 - [ ] **SG2 (Security & Tenant Isolation)**: Synthetic multi-tenant penetration testing confirms 0 data leaks across sprint endpoints.
 - [ ] **SG3 (Architecture & Gate M1/A1/A2)**:
-  - Gate M1: `python3 scripts/validate_microkernel.py` passes (zero cloud SDKs in pure crates, zero-clone compliance).
-  - Gate A1: `python3 scripts/validate_system_architecture.py` passes (10-layer architectural contracts verified).
-  - Gate A2: `python3 scripts/validate_folder_architecture.py` passes (framework-scoped LoB folder layout verified).
+  - Gate M1: `python3 scripts/validation/validate_microkernel.py` passes (zero cloud SDKs in pure crates, zero-clone compliance).
+  - Gate A1: `python3 scripts/validation/validate_system_architecture.py` passes (10-layer architectural contracts verified).
+  - Gate A2: `python3 scripts/validation/validate_folder_architecture.py` passes (framework-scoped LoB folder layout verified).
 - [ ] **SG4 (Release Candidate & Operations)**: Staging smoke tests pass across mobile and web; p95 latency < 150ms; **Product Manager Acceptance (Layer 5)** and **CTO Agreement (Layer 6)** granted.
+
+## End-of-Sprint Test Gate
+
+**Status: Pending — required closeout evidence, not executed test results.** Run this suite at the end of sprint-3.2, on the exact integration/release candidate, before SG4 and CTO review. Earlier story checks remain mandatory. Follow the [sprint closeout policy](../SPRINT_TESTING.md) and attach the [evidence record](../validation/SPRINT_TEST_EVIDENCE_TEMPLATE.md).
+
+- [ ] **E1 — Benchmark tests:** RFQ transitions, credit checks, LAN seat checkout/release, aggregation quotes and paginated order history.
+- [ ] **E2 — Integration tests:** RFQ → counter-offer → PO approval → net-terms/reminders using controlled time; proxy lease/seat recovery and carrier fallback without duplicate booking.
+- [ ] **E3 — Fuzz tests:** RFQ/PO revisions, invoice/lease formats, seat commands, pagination cursors and malformed copilot tool payloads.
+- [ ] **E4 — Loom concurrency tests:** Rust final-seat checkout/release/expiry and workflow wake-up ownership; no double issue, negative seats or lost wake-up. Distributed credit/timer races remain integration tests.
+- [ ] **E5 — Independent closeout review:** QA lead records actual test/target/model counts, candidate and baseline commits, tool/environment versions, performance thresholds/results, corpus/reproducers, Loom bounds/completion and independent reviewer decisions. Missing targets, crashes, regressions, unexplored bounds or unreviewed N/A block acceptance; repairing the candidate invalidates affected results.
+
+At SG0, assign test authors and independent senior QA/security/architecture reviewers; approve workload, benchmark baseline/regression thresholds, fuzz time/memory/input budgets and Loom model bounds. Carry forward affected regression suites. E4 is mandatory for applicable changed or affected Rust shared-state synchronization; only the scope-based N/A procedure in the policy can exclude it, with architecture + QA approval and alternative concurrency evidence. A missing implementation/harness is Pending, never N/A or Pass. Keep this section last, including after sprint-plan regeneration.
