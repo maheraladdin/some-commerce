@@ -27,5 +27,15 @@ Scope: review specification gaps; add measurable test, security, architecture, r
   EXPECT: OK
   EVIDENCE: python3 scripts/test_validate_microkernel.py verified that forbidden cloud SDKs, misplaced lambda_http imports, and illegal .clone() calls are detected and rejected.
 
-- [x] D6: Sprint-level quality gates (SG0–SG4) and microkernel architecture enshrinement
-  EVIDENCE: Defined in docs/QUALITY_GATES.md, docs/sprints/README.md, docs/MICROKERNEL_AND_CLOUD_PORTABILITY.md, and .specify/memory/constitution.md.
+- [x] D6: Gate A1 system architecture conformance validation
+  CHECK: python3 scripts/validate_system_architecture.py
+  EXPECT: GATE A1 PASSED
+  EVIDENCE: python3 scripts/validate_system_architecture.py verified 10-layer architectural contracts, layer decoupling, and absence of root-level features.
+
+- [x] D7: Gate A2 folder architecture and locality of behavior validation
+  CHECK: python3 scripts/validate_folder_architecture.py
+  EXPECT: GATE A2 PASSED
+  EVIDENCE: python3 scripts/validate_folder_architecture.py verified framework-scoped features, 4-tier LoB hierarchy, and absence of cross-behaviour sibling imports.
+
+- [x] D8: Sprint-level quality gates (SG0–SG4), Agent Profile Load Balancer, and company roles
+  EVIDENCE: Defined in docs/QUALITY_GATES.md, docs/COMPANY_ROLES_AND_AGENT_PROFILES.md, and scripts/agent_load_balancer.py.

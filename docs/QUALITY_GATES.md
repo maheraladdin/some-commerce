@@ -80,7 +80,64 @@ flowchart LR
 
 ---
 
-## 3. User story validation gates (G0 — G4)
+## 3. Gate A1: System Architecture Conformance Gate
+
+Gate A1 enforces strict conformance to the master architectural blueprints defined in [`docs/SYSTEM_ARCHITECTURE.md`](SYSTEM_ARCHITECTURE.md):
+
+```mermaid
+flowchart LR
+    A1_A["Check 1: 10 Architectural Layers<br/>Microkernel, DB, Caching, ETag, WatermelonDB, Hooks, UI"]
+    A1_B["Check 2: Single-Table DynamoDB<br/>Enforce PK/SK + GSI1-GSI5 patterns"]
+    A1_C["Check 3: Trait Ports & Plugins<br/>Payment, Carrier, License trait boundaries"]
+    A1_D["Check 4: Transport Decoupling<br/>Axum pure Tower services"]
+
+    A1_A --> PASS_A1{"Gate A1<br/>Passed?"}
+    A1_B --> PASS_A1
+    A1_C --> PASS_A1
+    A1_D --> PASS_A1
+
+    PASS_A1 -->|Yes| SG3_A1["SG3 Architecture Approval"]
+    PASS_A1 -->|No| REJECT_A1["Block PR & Fail Sprint Gate"]
+```
+
+### Gate A1 Verification Rules
+- **Rule A1.1 (10-Layer Integrity)**: Asserts that every feature implementation respects the 10 core architectural layers specified in `docs/SYSTEM_ARCHITECTURE.md`.
+- **Rule A1.2 (Single-Table Key Standard)**: Validates that database entities implement `PK`, `SK`, and compound GSI index keys without table proliferation.
+- **Rule A1.3 (Polyglot Decoupling)**: Asserts strict operational boundaries between DynamoDB (OLTP), OpenSearch (facets/search), Redis/Moka (caching), and WatermelonDB (client offline sync).
+- **Enforcement Script**: `python3 scripts/validate_system_architecture.py`
+
+---
+
+## 4. Gate A2: Folder Architecture & Locality of Behavior (LoB) Conformance Gate
+
+Gate A2 enforces strict adherence to the monorepo directory layout and colocation rules defined in [`docs/FOLDER_ARCHITECTURE.md`](FOLDER_ARCHITECTURE.md):
+
+```mermaid
+flowchart LR
+    A2_A["Check 1: Framework Scoping Law<br/>features/ NEVER at root; must be in apps/ or backend/"]
+    A2_B["Check 2: 4-Tier Hierarchy<br/>features -> modules -> behaviours -> subdirs"]
+    A2_C["Check 3: Shared Folder Naming<br/>_shared/ at module/feature; shared/ at framework"]
+    A2_D["Check 4: No Cross-Behaviour Sibling Imports<br/>Enforce promotion to _shared before sibling reuse"]
+
+    A2_A --> PASS_A2{"Gate A2<br/>Passed?"}
+    A2_B --> PASS_A2
+    A2_C --> PASS_A2
+    A2_D --> PASS_A2
+
+    PASS_A2 -->|Yes| SG3_A2["SG3 Architecture Approval"]
+    PASS_A2 -->|No| REJECT_A2["Block PR & Fail Sprint Gate"]
+```
+
+### Gate A2 Verification Rules
+- **Rule A2.1 (Framework Scoping Law)**: The `features/` directory is strictly forbidden at the monorepo root. All behavioral slices must be located within `apps/storefront/src/features/` or `backend/src/features/`.
+- **Rule A2.2 (4-Tier LoB Hierarchy)**: Validates that all behaviour code lives under `features/<feature>/modules/<module>/behaviours/<behaviour>/[services, designs, logic, types, constants]`.
+- **Rule A2.3 (Client vs Backend Directory Purity)**: The `designs/` directory is strictly reserved for the client application (`apps/storefront/`); it is prohibited in backend microservices.
+- **Rule A2.4 (No Direct Sibling Imports)**: Sibling behaviours within a module must not import directly from each other; shared contracts must be promoted to module `_shared/` or feature `_shared/`.
+- **Enforcement Script**: `python3 scripts/validate_folder_architecture.py`
+
+---
+
+## 5. User story validation gates (G0 — G4)
 
 ## Gate sequence and ownership
 

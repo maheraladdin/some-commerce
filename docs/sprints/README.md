@@ -42,39 +42,53 @@ flowchart LR
 
 ---
 
-## Autonomous 3-Agent Parallel Delivery Framework
+---
 
-The development and implementation of `some-commerce` is executed using **3 concurrent, autonomous AI coding agents** (Agent $\alpha$, Agent $\beta$, Agent $\gamma$). Each agent takes end-to-end ownership of one distinct User Story at a time from the sprint backlog to prevent merge conflicts and maintain complete domain context.
+## Multi-Agent Sprint Delivery Framework & Profile Load Balancer
+
+The engineering delivery of `some-commerce` across all 12 sprints is orchestrated through a scalable multi-agent organization powered by the **Agent Profile Load Balancer** ([`scripts/agent_load_balancer.py`](../scripts/agent_load_balancer.py)) and detailed in [COMPANY_ROLES_AND_AGENT_PROFILES.md](../COMPANY_ROLES_AND_AGENT_PROFILES.md) and [AGENT_PROFILES_AND_MULTI_AGENT_FRAMEWORK.md](../AGENT_PROFILES_AND_MULTI_AGENT_FRAMEWORK.md).
 
 ```mermaid
 flowchart TD
     subgraph "Sprint Backlog"
-        US1[User Story A]
-        US2[User Story B]
-        US3[User Story C]
+        STORIES["User Stories × 7 PR Slices<br/>(35–56 Discrete Tasks per Sprint)"]
     end
 
-    subgraph "Parallel Autonomous Agent Execution"
-        US1 --> AgentA["Agent α (Owner: Story A)"]
-        US2 --> AgentB["Agent β (Owner: Story B)"]
-        US3 --> AgentC["Agent γ (Owner: Story C)"]
+    subgraph "Agent Profile Load Balancer (scripts/agent_load_balancer.py)"
+        ROUTER["Skill & Layer Router<br/>• PR 1-4 ➔ backend-engineer<br/>• PR 5-7 ➔ client-engineer<br/>• Gates G0-G4 ➔ qa-security-auditor"]
+        SCHEDULER["Least-Loaded Concurrency Scheduler<br/>• DAG Dependency Gating<br/>• Whitelisted Path Sandboxes"]
     end
 
-    subgraph "Standardized 7-PR Vertical Slicing Pipeline (Per Story)"
-        direction TB
-        PR1["1. Microkernel Domain Logic (crates/kernel-core)"]
-        --> PR2["2. Polyglot Database Schema (crates/db-schema)"]
-        --> PR3["3. Repository Handlers & Moka L1 / Redis L2 (crates/db-dynamo, crates/cache-tier)"]
-        --> PR4["4. Axum HTTP Handlers, Auth Guards & WebMCP (bins/*)"]
-        --> PR5["5. Client Axios Services, WatermelonDB & TanStack Query (packages/*)"]
-        --> PR6["6. Headless Custom Hooks & Expo Native Modules (packages/domain-hooks)"]
-        --> PR7["7. Platform-Adaptive UI: @expo/ui (Mobile) + HTML/Tailwind (Web)"]
+    subgraph "Isolated Sprint Workdirs (.agents/workspaces/<sprint>/<agent>/)"
+        BE1["backend-engineer (Instance 1)<br/>workdir: .agents/workspaces/sprint-X/be-1"]
+        BE2["backend-engineer (Instance 2)<br/>workdir: .agents/workspaces/sprint-X/be-2"]
+        FE1["client-engineer (Instance 1)<br/>workdir: .agents/workspaces/sprint-X/fe-1"]
+        FE2["client-engineer (Instance 2)<br/>workdir: .agents/workspaces/sprint-X/fe-2"]
+        QA1["qa-security-auditor (Instance 1)<br/>workdir: .agents/workspaces/sprint-X/qa-1"]
     end
 
-    AgentA --> PR1
-    AgentB -.-> PR1
-    AgentC -.-> PR1
+    STORIES --> ROUTER
+    ROUTER --> SCHEDULER
+    SCHEDULER --> BE1
+    SCHEDULER --> BE2
+    SCHEDULER --> FE1
+    SCHEDULER --> FE2
+    SCHEDULER --> QA1
 ```
+
+### 1. The 3 Core Execution Profiles
+1. **`backend-engineer`**: Delivers PR 1 (Microkernel logic), PR 2 (Schemas), PR 3 (Repos/Caching), and PR 4 (Pure Axum routes). Strictly adheres to the **Rust Zero-Clone Law** and microkernel purity (**Gate M1**).
+2. **`client-engineer`**: Delivers PR 5 (API clients & WatermelonDB sync), PR 6 (Custom hooks & logic), and PR 7 (Platform-adaptive UI). Strictly adheres to framework-scoped LoB (**Gate A2**), `@expo/ui`, Tailwind, and bilingual RTL layout.
+3. **`qa-security-auditor`**: Enforces Security Gateways (G2), OWASP ASVS v4.0.3 L2 compliance, synthetic tenant isolation pentesting, and signs off on Quality Gates (G0–G4, SG0–SG4, Gate A1, Gate A2, Gate M1).
+
+### 2. Physical Sprint-Level Workdir Isolation
+Every agent spawned by the load balancer receives an isolated sprint-level working directory:
+`.agents/workspaces/<sprint-id>/<agent-name>/`
+containing:
+- `agent.yaml`: Config with write-whitelisted and blacklisted paths to guarantee zero merge collisions.
+- `context.md`: Tailored context bundle with story narrative, Gherkin ACs `[AC-US-X.Y.Z-NN]`, and exact PR deliverables.
+- `tasks.md`: Ordered task execution checklist.
+- `workspace/`: (Optional) Dedicated Git worktree on branch `agent/<sprint-id>/<agent-name>`.
 
 ---
 
