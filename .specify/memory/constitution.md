@@ -15,18 +15,25 @@ The lifecycle for every feature, change, and bugfix must follow:
 
 ---
 
-## 2. Master Folder Architecture & Colocation Laws
+## 2. Master Folder Architecture & Framework Scoping Laws
 
-The entire codebase is structured on the **Locality of Behavior (LoB)** and **Vertical Slice Architecture** principles.
+The codebase enforces **Locality of Behavior (LoB)** and **Vertical Slice Architecture** implemented directly **inside framework containers, NOT at the repository root**.
 
-### 2.1 The 4-Tier Hierarchical Model
+### 2.1 Framework Scoping Principle
+- **Client App (Universal Expo SDK 58)**: Located under `apps/storefront/src/features/`.
+  - Hierarchy: `apps/storefront/src/features/<feature>/modules/<module>/behaviours/<behaviour>/[services, designs, logic, types, constants]`
+- **Backend Services (Rust 2024 Cargo Lambda + Axum 0.8)**: Located under `backend/src/features/` (or `backend/bins/<service>/src/features/`).
+  - Hierarchy: `backend/src/features/<feature>/modules/<module>/behaviours/<behaviour>/[services, logic, types, constants]`
+- The repository root is reserved strictly for monorepo workspaces (`apps/`, `backend/`, `packages/`, `infra/`, `docs/`, `.specify/`).
+
+### 2.2 The 4-Tier Hierarchical Model (Inside Each Framework)
 
 ```
 features/
 └── <feature-name>/                      # Domain Feature Slice
     ├── _shared/                         # Shared across modules in this feature
     │   ├── services/
-    │   ├── designs/
+    │   ├── designs/                     # (Client only)
     │   ├── logic/
     │   ├── types/
     │   └── constants/
@@ -34,29 +41,26 @@ features/
         └── <module-name>/               # Functional Module
             ├── _shared/                 # Shared across behaviours in this module
             │   ├── services/
-            │   ├── designs/
+            │   ├── designs/             # (Client only)
             │   ├── logic/
             │   ├── types/
             │   └── constants/
             └── behaviours/
                 └── <behaviour-name>/    # Concrete Autonomous Behaviour
-                    ├── services/        # API clients, queries, mutations, network handlers
-                    ├── designs/         # UI components, SDUI widgets, screens, styles
+                    ├── services/        # API clients / handlers, queries, mutations
+                    ├── designs/         # UI components, screens, SDUI widgets (Client)
                     ├── logic/           # Domain state machines, custom hooks, validation
                     ├── types/           # Interfaces, DTOs, schemas, models
                     └── constants/       # Config keys, routes, error codes, limits
 ```
 
-### 2.2 Project-Wide Shared Tier (`shared/`)
+### 2.3 Framework-Level Shared Tier (`shared/`)
 
-Items that cut across multiple distinct features are placed in the global root `shared/` directory:
-- `shared/services/`: Global transport clients, DynamoDB client wrapper, KMS crypto client, Redis L2 cache connection multiplexer, EventBridge dispatcher.
-- `shared/designs/`: Core design tokens, global theme provider, typography primitives, toast/dialog containers.
-- `shared/logic/`: Currency/Money arithmetic (`crates/kernel-core`), RFC 9110 ETag generator, i18n locale resolver, rate-limiter primitives.
-- `shared/types/`: Universal domain primitives (`TenantId`, `Money`, `CognitoSub`, `Result<T, E>`), standard HTTP/SDUI envelope schemas.
-- `shared/constants/`: Universal HTTP headers (`ETag`, `If-None-Match`), system error codes, supported locales list.
+Items that cut across multiple distinct features inside a framework are placed in that framework's shared tier:
+- Client (`apps/storefront/src/shared/`): Core design tokens, global theme provider, typography primitives, toast/dialog containers.
+- Backend (`backend/crates/kernel-core/` or `backend/src/shared/`): Global transport clients, DynamoDB client wrapper, KMS crypto client, Redis L2 cache connection multiplexer, EventBridge dispatcher, `Money` arithmetic, RFC 9110 ETag generator, i18n locale resolver.
 
-### 2.3 Strict Colocation & Promotion Rules
+### 2.4 Strict Colocation & Promotion Rules
 
 1. **Locality of Behavior (Default)**: Everything required to implement a behaviour MUST reside inside that behaviour's directory (`features/<F>/modules/<M>/behaviours/<B>/`). Never preemptively abstract code to a shared folder.
 2. **Promotion to Module Shared (`_shared`)**: When and only when a type, validator, or service is needed by two or more behaviours within the same module `M`, it is promoted to `features/<F>/modules/<M>/_shared/`.
@@ -115,3 +119,38 @@ Every user story and specification must incorporate a **Security Gateway** gover
 - **G2 (Security Audit)**: Formal security gateway sign-off, SAST, DAST, abuse testing, ASVS verification, 0 critical/high findings.
 - **G3 (Architecture & Maintainability)**: Strict adherence to the `features -> modules -> behaviours` folder hierarchy, zero-clone borrowing discipline in Rust, verified import boundaries, zero circular dependencies.
 - **G4 (Integrated Acceptance)**: End-to-end sandbox execution across affected web/mobile platforms, metrics recorded, release candidate verified.
+
+---
+
+## 6. Microkernel Architecture & Cloud Portability Law
+
+1. **Pure Microkernel Domain Crates (`crates/some-*`)**:
+   - Core domain business logic, validators, pricing math, ticket state machines, and license verification MUST be packaged into pure, standalone crates.
+   - Microkernel crates must have **zero dependencies** on cloud vendor SDKs (`aws-sdk-*`, `azure-*`, `google-cloud-*`), zero direct database drivers, and zero network runtimes.
+   - Microkernel crates must be publishable to [crates.io](https://crates.io) and target `wasm32-unknown-unknown` for edge execution.
+2. **Axum HTTP Transport Decoupling**:
+   - HTTP APIs in `backend/src/features/` must be pure `axum::Router` functions and Tower services.
+   - Axum routers and handlers **MUST NEVER** import `lambda_http`, `aws_lambda_events`, or Cargo Lambda runtime packages.
+   - Cargo Lambda runtime (`lambda_http::run`) is strictly restricted to thin entrypoint wrappers in `backend/bins/lambda-serverless/src/main.rs`.
+   - The same Axum router must run unaltered under `axum::serve` in `backend/bins/standalone-server/src/main.rs` for portable Docker, GCP Cloud Run, Azure Container Apps, or bare metal deployments.
+3. **Hexagonal Ports-and-Adapters**:
+   - Backend features interact with external infrastructure (blob storage, database, messaging, AI inference) strictly through trait ports (`BlobStoragePort`, `DocumentDbPort`, `MessagingPort`).
+   - Cloud vendor adapters (AWS, GCP, Azure) implement these traits without leaking proprietary SDK types into domain logic.
+
+---
+
+## 7. Sprint-Level Quality Gates (SG0–SG4 & Gate M1)
+
+Every sprint delivery milestone must pass the five sprint-level quality gates before completion:
+- **SG0 (Planning Readiness)**: 100% of backlog stories meet G0; microkernel ports and crate boundaries resolved.
+- **SG1 (Cross-Story Integration)**: End-to-end multi-module flows verified under realistic integration suites; monorepo coverage maintained $\ge 90\%$ line and $\ge 85\%$ branch.
+- **SG2 (Security & Multi-Tenant Audit)**: Synthetic penetration testing verifies zero cross-tenant data leaks; 0 Critical/High CVEs; OWASP ASVS L2 verification.
+- **SG3 (Architecture & Gate M1 Compliance)**:
+  - Automated execution of **Gate M1** (`scripts/validate_microkernel.py`):
+    - Crate Purity: Zero cloud SDKs or direct DB drivers in pure domain crates.
+    - Transport Decoupling: Zero `lambda_http` imports in Axum routers.
+    - Zero-Clone Law: Zero deep `.clone()` calls on domain structs (strict borrowing and `Arc::clone` only).
+  - Framework-scoped LoB directory validation passes 100%.
+  - Code duplication $< 3\%$; cyclomatic complexity $\le 10$.
+- **SG4 (Release Candidate & Operations)**: Staging smoke tests pass across web and native mobile; p95 latency $< 150\text{ms}$; automated cloud provisioning verified.
+

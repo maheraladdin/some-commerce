@@ -1,5 +1,7 @@
 # some-commerce: Detailed System Architecture Specification (`docs/SYSTEM_ARCHITECTURE.md`)
 
+> **Specification status:** Planned design, not verified implementation. The [quality gates](QUALITY_GATES.md) define acceptance, and the [stress-test register](DOCS_STRESS_TEST.md) identifies unresolved contradictions and unverified platform/performance/compliance claims. Examples below require those decisions and evidence before production use.
+
 ## 1. End-to-End System Architecture Overview & Master Diagram
 
 `some-commerce` is built on a **Client-First, Multi-Tier Cached, Microkernel Architecture** combining a 5-binary [Rust](https://docs.aws.amazon.com/lambda/latest/dg/lambda-rust.html) + [Cargo Lambda](https://www.cargo-lambda.info/) backend on AWS with a universal, local-first [Expo](https://docs.expo.dev/) frontend. Every layer is decoupled through strict contracts:

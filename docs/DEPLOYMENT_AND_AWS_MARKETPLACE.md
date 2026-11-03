@@ -1,5 +1,7 @@
 # some-commerce: Deployment Infrastructure & AWS Marketplace Master Guide
 
+> **Specification status:** Planned design, not verified implementation. The [quality gates](QUALITY_GATES.md) define acceptance, and the [stress-test register](DOCS_STRESS_TEST.md) identifies unresolved contradictions and unverified platform/performance/compliance claims. Examples below require those decisions and evidence before production use.
+
 > **Target Release**: v5.0 · **Slices**: v1.0–v6.0 · **Infrastructure as Code**: AWS CDK v2 (TypeScript) · **Cloud**: 100% AWS Native
 
 ---
@@ -355,18 +357,18 @@ To achieve the **AWS Qualified Software** badge and list on the AWS Marketplace,
 
 | Category | Requirement | Implementation in some-commerce | Status |
 |:---------|:------------|:--------------------------------|:-------|
-| **Security** | Encrypt data at rest | All DynamoDB tables, ElastiCache Redis, S3 buckets, and Secrets use AWS KMS Customer Managed Keys (CMK) | ✅ PASS |
-| **Security** | Encrypt data in transit | TLS 1.3 enforced on CloudFront, API Gateway, Redis connections, and all internal microservices | ✅ PASS |
-| **Security** | Least-privilege IAM | Zero wildcard (`*`) IAM resource actions in production; scoped ARNs for DynamoDB tables and KMS keys | ✅ PASS |
-| **Security** | Secrets management | Payment gateway keys (Stripe, Paymob, BTCPay) stored in AWS KMS Envelope Encryption Vault | ✅ PASS |
-| **Security** | Tenant data isolation | Strict logical tenant partitioning (`tenant_id` hash partition in DynamoDB + Cognito JWT validation) | ✅ PASS |
-| **Reliability** | Multi-AZ High Availability | DynamoDB, S3, ElastiCache Serverless, and Cognito operate across 3 Availability Zones natively | ✅ PASS |
-| **Reliability** | Backup & Disaster Recovery | DynamoDB Continuous Backups & Point-In-Time Recovery (PITR); S3 Cross-Region Replication (CRR) | ✅ PASS |
-| **Reliability** | Fault tolerance & retries | Rust Axum services use `tower` backoff policies, circuit breakers, and SQS Dead Letter Queues (DLQs) | ✅ PASS |
-| **Performance** | Infrastructure efficiency | Rust compiled to ARM64 Graviton; L1 Moka (< 50µs) + L2 Redis (< 2ms) two-tier caching architecture | ✅ PASS |
-| **Performance** | Edge optimization | RFC 9110 HTTP `ETag` conditional queries returning `304 Not Modified` with 0-byte payload | ✅ PASS |
-| **Cost** | Scale to zero | Standard edition utilizes serverless compute and on-demand databases with zero idle compute cost | ✅ PASS |
-| **Operations** | Audit logging | AWS CloudTrail enabled; CloudWatch structured JSON logs with tenant tracing and correlation IDs | ✅ PASS |
+| **Security** | Encrypt data at rest | All DynamoDB tables, ElastiCache Redis, S3 buckets, and Secrets use AWS KMS Customer Managed Keys (CMK) | Pending evidence |
+| **Security** | Encrypt data in transit | TLS 1.3 enforced on CloudFront, API Gateway, Redis connections, and all internal microservices | Pending evidence |
+| **Security** | Least-privilege IAM | Zero wildcard (`*`) IAM resource actions in production; scoped ARNs for DynamoDB tables and KMS keys | Pending evidence |
+| **Security** | Secrets management | Payment gateway keys (Stripe, Paymob, BTCPay) stored in AWS KMS Envelope Encryption Vault | Pending evidence |
+| **Security** | Tenant data isolation | Strict logical tenant partitioning (`tenant_id` hash partition in DynamoDB + Cognito JWT validation) | Pending evidence |
+| **Reliability** | Multi-AZ High Availability | DynamoDB, S3, ElastiCache Serverless, and Cognito operate across 3 Availability Zones natively | Pending evidence |
+| **Reliability** | Backup & Disaster Recovery | DynamoDB Continuous Backups & Point-In-Time Recovery (PITR); S3 Cross-Region Replication (CRR) | Pending evidence |
+| **Reliability** | Fault tolerance & retries | Rust Axum services use `tower` backoff policies, circuit breakers, and SQS Dead Letter Queues (DLQs) | Pending evidence |
+| **Performance** | Infrastructure efficiency | Rust compiled to ARM64 Graviton; L1 Moka (< 50µs) + L2 Redis (< 2ms) two-tier caching architecture | Pending evidence |
+| **Performance** | Edge optimization | RFC 9110 HTTP `ETag` conditional queries returning `304 Not Modified` with 0-byte payload | Pending evidence |
+| **Cost** | Scale to zero | Standard edition utilizes serverless compute and on-demand databases with zero idle compute cost | Pending evidence |
+| **Operations** | Audit logging | AWS CloudTrail enabled; CloudWatch structured JSON logs with tenant tracing and correlation IDs | Pending evidence |
 
 ---
 

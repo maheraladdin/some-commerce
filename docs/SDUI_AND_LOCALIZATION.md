@@ -1,5 +1,7 @@
 # Server-Driven UI (SDUI), WebMCP Tools, Dynamic Product Properties, N-Level Taxonomy & Multilingual Specification
 
+> **Specification status:** Planned design, not verified implementation. The [quality gates](QUALITY_GATES.md) define acceptance, and the [stress-test register](DOCS_STRESS_TEST.md) identifies unresolved contradictions and unverified platform/performance/compliance claims. Examples below require those decisions and evidence before production use.
+
 ## 1. End-to-End Multilingual Architecture (`crates/i18n-engine` + `expo-localization`)
 
 To make `some-commerce` work seamlessly across MENA (`ar-EG`, `ar-SA`, `ar-AE`), Europe (`en-GB`, `fr-FR`, `de-DE`, `es-ES`), North America (`en-US`), and Turkey (`tr-TR`), multilingual support is built into **six architectural layers**:

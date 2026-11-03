@@ -1,5 +1,7 @@
 # Payments, Global Shipping, Split COD, SNS Notifications & 6-Mode Digital Licensing Specification
 
+> **Specification status:** Planned design, not verified implementation. The [quality gates](QUALITY_GATES.md) define acceptance, and the [stress-test register](DOCS_STRESS_TEST.md) identifies unresolved contradictions and unverified platform/performance/compliance claims. Examples below require those decisions and evidence before production use.
+
 ## 1. KMS-Encrypted Dynamic Payment Vault (`PaymentProvider` Trait)
 
 Store admins configure payment gateways directly from the Expo Admin Dashboard (`POST /v1/admin/payment-gateways`). Credentials are encrypted using [AWS KMS](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html) envelope encryption (`kms:Encrypt` with `EncryptionContext: {"tenant_id": "...", "provider": "..."}`) and stored in `SomeCommerceTable` (`PK = TENANT#<tid>`, `SK = GW_VAULT#PAYMENT#<provider>`).
