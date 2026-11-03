@@ -2,7 +2,7 @@
 
 ## Scope and status
 
-These gates apply to **every user story (G0–G4 + G-Review + G-Law)**, every implementation PR, **every sprint as a whole (SG0–SG4)**, the **microkernel architecture (Gate M1)**, **system architecture (Gate A1)**, **folder architecture (Gate A2)**, and the **Project Constitution non-negotiable laws (Gate L1)**. They replace weaker sprint checklists and blanket claims of “100% test coverage.” Each story and sprint contains strict, verifiable criteria. Passing documentation validation means only that the required sections and references exist; it does not mean the application has been tested or audited.
+These gates apply to **every user story (G0–G4 + G-Review + G-Borrow + G-UI + G-Law)**, every implementation PR, **every sprint as a whole (SG0–SG4)**, the **microkernel architecture (Gate M1)**, **system architecture (Gate A1)**, **folder architecture (Gate A2)**, the **Rust zero-clone borrowing discipline (Gate R1)**, the **platform-adaptive presentation discipline (Gate F1)**, and the **Project Constitution non-negotiable laws (Gate L1)**. They replace weaker sprint checklists and blanket claims of “100% test coverage.” Each story and sprint contains strict, verifiable criteria. Passing documentation validation means only that the required sections and references exist; it does not mean the application has been tested or audited.
 
 The repository currently contains specifications, architecture blueprints, and documentation utilities. Application gates below are **mandatory gates for delivery**.
 
@@ -17,7 +17,7 @@ While G0–G4 govern individual user stories, the **Sprint Quality Gates (SG0–
 | **SG0 — Sprint Planning & Architecture Readiness** | Before Sprint Kickoff | Sprint Lead + Principal Architect | 100% of backlog stories reach Gate G0; cross-story dependency DAG verified without cycles; microkernel crate boundaries confirmed; cross-cutting threat boundary mapped; shared capacity and budgets allocated. |
 | **SG1 — Cross-Story Integration & Coverage** | Mid-Sprint / PR Consolidation | QA Lead + Test Reviewer | All completed stories pass Gate G1; cross-story integrated workflows pass (e.g. Auth $\to$ Catalog $\to$ Cart $\to$ Checkout); monorepo-wide coverage maintains $\ge 90\%$ line and $\ge 85\%$ branch across affected packages; 0 flaky tests. |
 | **SG2 — Monorepo Security & Tenant Isolation Audit** | Pre-Feature Freeze | Security Lead + G2 Auditor | All stories pass Gate G2; monorepo-wide SAST, dependency vulnerability scan, and SBOM generated with 0 Critical/High issues; synthetic multi-tenant penetration test verifies zero cross-tenant data leakage across all sprint endpoints; zero hardcoded credentials or unmasked PII. |
-| **SG3 — Architecture, Microkernel Boundary & Code Quality** | Code Freeze | Architecture Reviewer | Monorepo passes **Gate M1** (zero cloud SDKs in pure domain crates, zero `lambda_http` in Axum routers, zero-clone borrowing audit in Rust); code duplication $< 3\%$; cyclomatic complexity $\le 10$; directory structure conforms 100% to framework-scoped LoB standard (`features/modules/behaviours`). |
+| **SG3 — Architecture, Microkernel Boundary & Code Quality** | Code Freeze | Architecture Reviewer | Monorepo passes **Gate M1** (microkernel purity), **Gate R1** (zero deep `.clone()` on domain structs), **Gate F1** (platform-adaptive presentation: `@expo/ui` mobile & semantic HTML/Tailwind web with strict `designs/` vs `logic/` separation), and **Gate L1** (constitutional & statutory laws); code duplication $< 3\%$; cyclomatic complexity $\le 10$; directory structure conforms 100% to framework-scoped LoB standard (`features/modules/behaviours`). |
 | **SG4 — Sprint Release Candidate & Operational Readiness** | Release Sign-Off | Release Manager + DevOps Lead | All stories reach Gate G4; staging deployment smoke tests pass across web and mobile platforms; load test verifies SLA budgets (p95 latency $< 150\text{ms}$ warm, $< 400\text{ms}$ cold); AWS CDK synth/diff clean; backup/restore & rollback verification verified; release candidate tagged and cryptographically signed. |
 
 ### SG0 — Sprint Planning & Architecture Readiness
@@ -36,11 +36,10 @@ While G0–G4 govern individual user stories, the **Sprint Quality Gates (SG0–
 - **Dependency & License Audit**: `cargo audit`, `npm audit`, and license compliance check (`deny.toml`) verifying zero high/critical CVEs and zero GPL/copyleft license contamination in client/backend bundles.
 
 ### SG3 — Architecture, Microkernel Boundary & Code Quality
-- **Mandatory Gate M1 Execution**: Automated execution of `scripts/validation/validate_microkernel.py` verifying:
-  1. Pure domain crates (`crates/some-*`) have zero references to cloud SDKs (`aws-sdk-*`, `azure_*`, `google-cloud-*`), zero direct DB drivers, and zero network runtimes.
-  2. Axum API handlers in `backend/src/features/` have zero references to `lambda_http` or AWS Lambda runtime types, maintaining 100% portability.
-  3. Rust zero-clone borrowing audit confirms zero deep `.clone()` calls on domain structs (permitting only `Arc::clone` / `Rc::clone`).
-- **Locality of Behavior (LoB) Audit**: Automated directory scanner verifying that code is strictly placed inside `apps/storefront/src/features/...` and `backend/src/features/...` following the 4-tier model.
+- **Mandatory Gate M1 Execution**: Automated execution of `scripts/validation/validate_microkernel.py` verifying pure domain crates have zero cloud SDKs, zero `lambda_http`, and pure trait ports.
+- **Mandatory Gate R1 Execution**: Automated execution of `scripts/validation/validate_rust_borrowing.py` verifying zero deep `.clone()` calls on domain structs (permitting only `Arc::clone` / `Rc::clone`) and all 51 stories define `G-Borrow`.
+- **Mandatory Gate F1 Execution**: Automated execution of `scripts/validation/validate_platform_presentation.py` verifying `@expo/ui` (+ native modules) for mobile, semantic HTML5 + Tailwind CSS for web, strict separation between `designs/` (presentation) and `logic/` (headless custom hooks), and all 51 stories define `G-UI`.
+- **Locality of Behavior (LoB) Audit**: Automated directory scanner (`scripts/validation/validate_folder_architecture.py`) verifying that code is strictly placed inside `apps/storefront/src/features/...` and `backend/src/features/...` following the 4-tier model.
 - **Complexity and Duplication**: Pinned duplicate-code detector verifying $< 3\%$ duplication on handwritten production code; cyclomatic complexity $\le 10$ across all new functions.
 
 ### SG4 — Sprint Release Candidate & Operational Readiness
@@ -178,9 +177,90 @@ flowchart LR
 - **Rule L1.9 (Role Separation & Agency-Agents Governance Law)**: Asserts exactly 17 company roles are configured in catalog and profiles, with active Code Reviewer (Gate G-Review) and Legal Compliance Auditor (Gate G-Law) standards.
 - **Enforcement Script**: `python3 scripts/validation/validate_laws.py`
 
+### Two-Phase Legal Conformance Technical Layer ("Planned Legally, Then Built Legally")
+To guarantee that legal compliance is not merely an afterthought or a reactive post-hoc fix, `some-commerce` enforces a rigorous two-phase legal engineering lifecycle:
+1. **Phase 1: Planned Legally (Pre-Implementation Verification at Gate G0 / L1–L2 Planning)**
+   - Before any code is dispatched to engineering (junior or senior), the Specification Kit (`spec.md`), domain schemas, and API contracts must undergo statutory legal analysis.
+   - Requirements must explicitly cite applicable statutory articles (e.g. GDPR Art. 6/7/17, EU Omnibus Dir. 2019/2161 Art. 6a, EU Consumer Rights Dir. 2011/83/EU, KSA ZATCA Phase 2, PCI-DSS v4.0).
+   - Domain invariants must define non-negotiable legal constraints (e.g. 30-day price history preservation, sequential gapless invoice IDs, right-to-be-forgotten cascading tombstone triggers).
+   - Gate G0 sign-off cannot be granted without explicit statutory mapping in `AC-US-X.Y.Z-LAW`.
+2. **Phase 2: Built Legally (Post-Implementation Verification at Gate G-Law / L3–L4 Integration)**
+   - Once implementation candidates are produced, automated verification enforces statutory adherence in the running system.
+   - Every legal requirement is backed by executable test assertions in `TC-X.Y.Z-LAW` (e.g. simulating 30-day prior pricing lookups, asserting 14-day statutory withdrawal time calculations, verifying ZATCA TLV QR code structure and ECDSA signatures).
+   - Automated compliance scanner (`python3 scripts/validation/validate_laws.py`) runs as a mandatory CI step, blocking PR merges upon any statutory or constitutional deviation.
+
 ---
 
-## 6. User story validation gates (G0 — G4 + G-Review + G-Law)
+## 6. Gate R1: Rust Zero-Clone Borrowing Discipline Gate
+
+Gate R1 enforces strict, compiler-level and static analysis adherence to Rust zero-copy memory safety and borrowing discipline across all backend crates (`crates/`) and API features (`backend/src/features/`):
+
+```mermaid
+flowchart LR
+    subgraph "Gate R1 Validator (scripts/validation/validate_rust_borrowing.py)"
+        R1_A["Check 1: Zero Unauthorized Deep .clone()<br/>Forbidden on domain structs, models & payloads"]
+        R1_B["Check 2: Explicit Reference Counting Only<br/>Arc::clone(&x) and Rc::clone(&x) permitted"]
+        R1_C["Check 3: Borrowing & Lifetimes<br/>Enforce &T, &mut T, Cow<'a, str>, bytes::Bytes"]
+        R1_D["Check 4: Story G-Borrow Gate<br/>US-X.Y.Z-G-Borrow defined across all 51 stories"]
+    end
+
+    R1_A --> PASS_R1{"Gate R1<br/>Passed?"}
+    R1_B --> PASS_R1
+    R1_C --> PASS_R1
+    R1_D --> PASS_R1
+
+    PASS_R1 -->|Yes| SG3_R1["SG3 Architecture Approval"]
+    PASS_R1 -->|No| REJECT_R1["Block PR & Fail Sprint Gate"]
+```
+
+### Gate R1 Verification Rules
+- **Rule R1.1 (Deep .clone() Prohibition)**: Domain logic, entities, DTOs, request pipelines, and database models must NEVER invoke `.clone()` to bypass borrow checker lifetimes.
+- **Rule R1.2 (Explicit Pointer Increments)**: The only allowed clone operations are explicit reference-counted pointer increments via `Arc::clone(&handle)` or `Rc::clone(&handle)`.
+- **Rule R1.3 (Borrowing by Default)**: All function interfaces must borrow (`&T`, `&mut T`), use Cow (`std::borrow::Cow<'a, str>`), or utilize zero-copy byte buffers (`bytes::Bytes`).
+- **Rule R1.4 (User Story G-Borrow Gate)**: Every user story specification (all 51 stories) must define `### G-Borrow — Rust zero-clone borrowing validation` with `- [ ] **US-X.Y.Z-G-Borrow:** ...`.
+- **Enforcement Script**: `python3 scripts/validation/validate_rust_borrowing.py`
+
+---
+
+## 7. Gate F1: Platform-Adaptive Presentation Gate (@expo/ui Mobile + HTML/Tailwind Web)
+
+Gate F1 enforces strict platform adaptation and frontend separation of concerns between visual presentation (`designs/`) and headless client logic (`logic/` and `services/`):
+
+```mermaid
+flowchart LR
+    subgraph "Gate F1 Validator (scripts/validation/validate_platform_presentation.py)"
+        F1_A["Check 1: Separation of Concerns<br/>designs/ strictly presentational (ui-ux-designer)<br/>logic/ headless custom hooks (client-engineer)"]
+        F1_B["Check 2: Mobile Presentation Standard<br/>@expo/ui primitives & native modules<br/>Zero unadapted web DOM tags (div, span)"]
+        F1_C["Check 3: Web Presentation Standard<br/>Semantic HTML5 styled with Tailwind CSS<br/>className utility classes"]
+        F1_D["Check 4: Story G-UI Gate<br/>US-X.Y.Z-G-UI defined across all 51 stories"]
+    end
+
+    F1_A --> PASS_F1{"Gate F1<br/>Passed?"}
+    F1_B --> PASS_F1
+    F1_C --> PASS_F1
+    F1_D --> PASS_F1
+
+    PASS_F1 -->|Yes| SG3_F1["SG3 Architecture Approval"]
+    PASS_F1 -->|No| REJECT_F1["Block PR & Fail Sprint Gate"]
+```
+
+### Gate F1 Verification Rules
+- **Rule F1.1 (Frontend Separation of Concerns)**:
+  - `designs/` is owned strictly by `ui-ux-designer`. Files in `designs/` are pure presentation components and MUST NOT export business custom hooks (`use[A-Z]...`) or execute direct data queries/mutations (`useQuery`, `useMutation`, `fetchWithEtag`).
+  - `logic/` is owned strictly by `client-engineer`. Files in `logic/` implement headless custom hooks, state machines, and client validation math, and MUST NOT return JSX/TSX presentation markup.
+  - `services/` is owned strictly by `client-engineer`. Implements API fetchers, TanStack Query mutations, and WatermelonDB SQLite sync adapters.
+- **Rule F1.2 (Mobile Presentation Standard - @expo/ui + Native Modules)**:
+  - Mobile storefront components (`*.native.tsx`, `*.ios.tsx`, `*.android.tsx`, or mobile design targets) must use `@expo/ui` primitives (SwiftUI/Jetpack Compose wrappers) and designated native module bridges.
+  - Raw web DOM elements (`<div>`, `<span>`, `<p>`, `<table>`, etc.) and web Tailwind classes without the native bridge are strictly forbidden in mobile code.
+- **Rule F1.3 (Web Presentation Standard - Semantic HTML5 + Tailwind CSS)**:
+  - Web storefront components (`*.web.tsx` or web design targets) must use semantic HTML5 elements (`<header>`, `<nav>`, `<main>`, `<article>`, `<section>`, `<aside>`, `<footer>`, `<form>`, `<input>`, `<button>`, etc.).
+  - Web styling must be declared using Tailwind CSS utility classes (`className="..."`).
+- **Rule F1.4 (User Story G-UI Gate)**: Every user story specification (all 51 stories) must define `### G-UI — UI/UX validation` with `- [ ] **US-X.Y.Z-G-UI:** ...`.
+- **Enforcement Script**: `python3 scripts/validation/validate_platform_presentation.py`
+
+---
+
+## 8. User story validation gates (G0 — G4 + G-Review + G-Borrow + G-UI + G-Law)
 
 ## Gate sequence and ownership
 
@@ -191,8 +271,10 @@ flowchart LR
 | G2 — Security audit | Merging each PR | Security reviewer | Threat review, applicable scans, and adversarial tests pass; no open critical/high findings; lower-severity findings have an owner and due date. |
 | G3 — Architecture and maintainability | Merging each PR | Architecture reviewer | Dependency boundaries, reuse, complexity, readability, and changeability checks pass with a recorded review. |
 | G-Review — Code review | Merging each PR and before final acceptance | Code reviewer / Senior peer reviewer | Independent senior code review completed across 5 pillars (Correctness, Security, Maintainability, Performance, Test completeness) with 4-tier triage (🔴 Blocker, 🟡 Suggestion, 🟢 Nitpick, 🌟 Praise); zero open Blocker issues, all Suggestions addressed or formally resolved, concrete actionable code suggestions recorded. |
+| G-Borrow — Rust zero-clone borrowing | Merging each backend PR and before final acceptance | Senior backend engineer / Systems reviewer | Rust zero-clone borrowing discipline verified; zero unauthorized deep `.clone()` calls on domain structs/entities; strict borrowing (`&T`, `&mut T`), lifetimes, and `Arc::clone(&handle)` pointer-increments only; `[US-X.Y.Z-G-Borrow]` verified. |
+| G-UI — UI/UX validation | Merging each client PR and before final acceptance | UI/UX designer / Design system reviewer | UI/UX visual and accessibility compliance verified; strict separation between presentation (`designs/`, pure UI) and headless business hooks (`logic/`); mobile components use `@expo/ui` primitives (+ native modules if needed); web components use semantic HTML5 styled with Tailwind CSS; WCAG 2.1 AA and Arabic RTL layout parity; `[US-X.Y.Z-G-UI]` verified. |
 | G-Law — Law validation | Merging each PR and before final acceptance | Compliance auditor / Legal specialist (agency-legal-compliance-checker) | Independent verification of compliance with applicable global e-commerce legal & statutory requirements across jurisdictions (GDPR/CCPA privacy, EU Omnibus pricing, 14-day statutory withdrawal, PCI-DSS/PSD2 payment rules, ZATCA/VAT fiscal invoicing, DSA/P2B platform rules, and EAA/ADA accessibility) and Project Constitution invariants; explicit `[AC-US-X.Y.Z-LAW]` verified with zero legal violations. |
-| G4 — Integrated acceptance | Marking the story Done or releasing it | Story owner + release reviewer | Complete story works across its affected layers/platforms, required provider sandbox checks and operational drills pass, and all G0–G3, G-Review, and G-Law evidence refers to the release candidate commit. |
+| G4 — Integrated acceptance | Marking the story Done or releasing it | Story owner + release reviewer | Complete story works across its affected layers/platforms, required provider sandbox checks and operational drills pass, and all G0–G3, G-Review, G-Borrow, G-UI, and G-Law evidence refers to the release candidate commit. |
 
 Reviewers must be identified; “reviewed by agent” without an identity and evidence is insufficient. An implementation author cannot be the sole approver of G2 or G3. One qualified independent reviewer may cover multiple roles. Splitting work into several PRs does not defer tests, security, or architecture until the last PR. A partially implemented story stays In Progress and is inaccessible in production until G4 passes.
 
@@ -333,6 +415,50 @@ Every G-Review sign-off produces a standardized review record:
 [Actionable code comments with exact files, line numbers, and proposed diffs]
 ```
 
+## G-Borrow — Rust zero-clone borrowing validation
+
+The **G-Borrow** validation gate enforces Rust zero-copy memory safety and borrowing discipline on all backend crates and feature logic. To ensure sub-millisecond execution times and minimal memory footprint in high-concurrency environments, domain code must borrow data rather than clone it.
+
+Compliance sign-off is certified by the Senior Backend Engineer / Systems Reviewer and validated automatically by `scripts/validation/validate_rust_borrowing.py`.
+
+### Mandatory Borrowing Invariants
+1. **Strict Clone Prohibition**: Zero unauthorized deep `.clone()` calls on domain structs, models, entities, and request pipelines in `crates/` and `backend/src/features/`.
+2. **Explicit Reference Counting**: The only permitted clone operations are explicit reference-counted pointer increments via `Arc::clone(&handle)` or `Rc::clone(&handle)`.
+3. **Borrowing by Default**: All function parameters, handlers, validators, and transformers must borrow (`&T`, `&mut T`), use Cow (`std::borrow::Cow<'a, str>`), or utilize zero-copy byte buffers (`bytes::Bytes`).
+4. **Clippy & Compiler Audits**: Cargo workspace must reject redundant clones and enforce borrow checker lifetimes without escaping to heap duplication.
+
+### Pass Condition
+- Domain models and feature handlers contain zero deep `.clone()` calls.
+- Automated static analysis check `python3 scripts/validation/validate_rust_borrowing.py` exits with code 0.
+- User story Section 6 gate check `[US-X.Y.Z-G-Borrow]` is verified and signed off.
+
+## G-UI — UI/UX validation (@expo/ui Mobile & Tailwind Web)
+
+The **G-UI** validation gate enforces frontend separation of concerns, platform adaptation, and visual/accessibility parity across native mobile and web storefronts.
+
+Compliance sign-off is certified by the UI/UX Designer / Design System Reviewer and validated automatically by `scripts/validation/validate_platform_presentation.py`.
+
+### Mandatory Frontend Invariants
+1. **Separation of Concerns**:
+   - `designs/` is owned strictly by the UI/UX Designer. Contains pure presentational components receiving props. Files in `designs/` MUST NOT define custom hooks (`use[A-Z]...`) or execute direct data queries/mutations (`useQuery`, `useMutation`, `fetchWithEtag`).
+   - `logic/` is owned strictly by the Frontend / Client Engineer. Contains headless custom React hooks, state machines, and validation math. Files in `logic/` MUST NOT contain JSX/TSX presentation markup.
+   - `services/` is owned strictly by the Frontend / Client Engineer. Contains API fetchers, TanStack Query mutations, and WatermelonDB SQLite sync adapters.
+2. **Mobile Presentation Standard**:
+   - Mobile storefront components (`*.native.tsx`, `*.ios.tsx`, `*.android.tsx`, or mobile design targets) must use `@expo/ui` primitives (SwiftUI/Jetpack Compose wrappers) and designated native modules if needed.
+   - Raw web DOM elements (`<div>`, `<span>`, `<p>`, `<table>`, etc.) and unadapted web Tailwind classes are strictly forbidden in mobile files.
+3. **Web Presentation Standard**:
+   - Web storefront components (`*.web.tsx` or web design targets) must use semantic HTML5 elements (`<header>`, `<nav>`, `<main>`, `<article>`, `<section>`, `<aside>`, `<footer>`, `<form>`, `<input>`, `<button>`, etc.).
+   - Web styling must be declared using Tailwind CSS utility classes (`className="..."`).
+4. **Accessibility & RTL Parity**:
+   - WCAG 2.1 Level AA conformance: minimum 4.5:1 text contrast, accessible screen reader semantics, keyboard accessibility, and minimum $44\times 44\text{pt}$ touch targets.
+   - 100% Arabic RTL layout mirroring parity across both mobile and web storefronts.
+
+### Pass Condition
+- Pure separation of `designs/` (presentation) and `logic/` (headless custom hooks) maintained across all client modules.
+- Mobile components implement `@expo/ui` (+ native modules) and web components implement semantic HTML5 + Tailwind CSS.
+- Automated static analysis check `python3 scripts/validation/validate_platform_presentation.py` exits with code 0.
+- User story Section 6 gate check `[US-X.Y.Z-G-UI]` is verified and signed off.
+
 ## G-Law — Law validation (Global E-Commerce Legal & Regulatory Compliance)
 
 The **G-Law** validation gate enforces independent, rigorous legal and regulatory compliance across international e-commerce jurisdictions. Every pull request and user story must satisfy both statutory legal requirements governing international digital commerce and foundational Project Constitution invariants before merging and final acceptance.
@@ -382,6 +508,6 @@ No critical/high security waiver, isolation waiver, or financial invariant waive
 
 The implemented `docs-validation` job runs `python3 scripts/validation/validate_docs.py`. It checks documentation structure and cross-references only. It does not run application audits, validate evidence authenticity, or configure GitHub branch protection.
 
-Before merging the first application implementation, add blocking CI checks named `story-tests`, `story-security`, `story-architecture`, `story-review`, `story-law`, and `story-acceptance`, backed by real commands for the affected packages. Configure branch protection/rulesets to require them and independent review. Conditional jobs must explicitly report reviewed N/A sub-checks; missing reports, skipped required tests, or `continue-on-error` cannot produce a successful gate. A final aggregator must fail when any required job fails, is cancelled, or is unexpectedly skipped.
+Before merging the first application implementation, add blocking CI checks named `story-tests`, `story-security`, `story-architecture`, `story-review`, `story-borrow`, `story-ui`, `story-law`, and `story-acceptance`, backed by real commands for the affected packages. Configure branch protection/rulesets to require them and independent review. Conditional jobs must explicitly report reviewed N/A sub-checks; missing reports, skipped required tests, or `continue-on-error` cannot produce a successful gate. A final aggregator must fail when any required job fails, is cancelled, or is unexpectedly skipped.
 
 Tools can include Rust coverage/property tests and dependency audits, TypeScript branch coverage and browser/device tests, dependency graph checks, duplication analysis, IaC/security scanners, and mutation tests. Pin tools and lockfiles after compatibility verification; tool selection is not evidence that a check ran. Maintain path-to-story ownership so a shared module change runs all affected story suites. Re-run required checks on the merge candidate when its dependencies change.

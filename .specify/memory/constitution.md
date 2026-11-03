@@ -11,7 +11,7 @@ The lifecycle for every feature, change, and bugfix must follow:
 4. **Plan (`plan.md`)**: Formulates the technical blueprint, domain models, state machines, invariants, and data flows.
 5. **Tasks (`tasks.md`)**: Deconstructs the plan into ordered, granular, test-driven implementation tasks.
 6. **Security Gateway (`security-audit`)**: Enforces threat boundaries, actor matrices, abuse testing, ASVS controls, cryptographic protection, and zero-trust tenant isolation before code execution.
-7. **Implementation & Gate Verification (G0–G4 + G-Review + G-Law)**: Code delivery strictly against the spec, backed by passing automated assertions and gate evidence.
+7. **Implementation & Gate Verification (G0–G4 + G-Review + G-Borrow + G-UI + G-Law)**: Code delivery strictly against the spec, backed by passing automated assertions and gate evidence.
 
 ---
 
@@ -95,6 +95,21 @@ To guarantee sub-millisecond execution, zero-copy performance, and minimal memor
      - `#![deny(clippy::clone_on_ref_ptr)]`
      - `#![warn(clippy::redundant_clone)]`
      - Code reviews must reject deep `.clone()` or frivolous `.to_owned()` / `.to_string()` on referenced data.
+6. **Gate R1 Automated Validation**:
+   - Monorepo CI must enforce `python3 scripts/validation/validate_rust_borrowing.py` verifying zero deep `.clone()` calls and ensuring all user stories define `[US-X.Y.Z-G-Borrow]`.
+
+### 3.1 Frontend Presentation Law: Platform Adaptation & UI/UX Separation (Gate F1)
+1. **Frontend Division of Labor**:
+   - `designs/` (presentation) is owned strictly by `ui-ux-designer`. Pure presentational components receiving props. Files in `designs/` MUST NOT define custom hooks (`use[A-Z]...`) or execute direct data queries/mutations (`useQuery`, `useMutation`, `fetchWithEtag`).
+   - `logic/` (headless custom hooks, state machines, validation math) and `services/` (API clients, WatermelonDB SQLite sync, TanStack Query mutations) are owned strictly by `client-engineer`. Files in `logic/` MUST NOT contain JSX/TSX presentation markup.
+2. **Mobile Presentation Standard**:
+   - Mobile storefront components (`*.native.tsx`, `*.ios.tsx`, `*.android.tsx`, or mobile design targets) must use `@expo/ui` primitives (SwiftUI/Jetpack Compose wrappers) and designated native modules if needed.
+   - Raw web DOM elements (`<div>`, `<span>`, `<p>`, `<table>`, etc.) and unadapted web Tailwind classes are strictly forbidden in mobile files.
+3. **Web Presentation Standard**:
+   - Web storefront components (`*.web.tsx` or web design targets) must use semantic HTML5 elements (`<header>`, `<nav>`, `<main>`, `<article>`, `<section>`, `<aside>`, `<footer>`, `<form>`, `<input>`, `<button>`, etc.).
+   - Web styling must be declared using Tailwind CSS utility classes (`className="..."`).
+4. **Gate F1 Automated Validation**:
+   - Monorepo CI must enforce `python3 scripts/validation/validate_platform_presentation.py` verifying `@expo/ui` mobile and semantic HTML/Tailwind web conformance, and ensuring all user stories define `[US-X.Y.Z-G-UI]`.
 
 ---
 
@@ -112,14 +127,18 @@ Every user story and specification must incorporate a **Security Gateway** gover
 
 ---
 
-## 5. Quality Gates Standard (G0–G4 + G-Review + G-Law)
+## 5. Quality Gates Standard (G0–G4 + G-Review + G-Borrow + G-UI + G-Law)
 
-- **G0 (Ready)**: Stable identifiers (`AC-*`, `TC-*`), dependency resolution, threat boundary mapping, measurable performance budgets.
+- **G0 (Ready)**: Stable identifiers (`AC-*`, `TC-*`), dependency resolution, threat boundary mapping, measurable performance budgets, Phase 1 statutory legal mapping.
 - **G1 (Test Coverage)**: 90% line and 85% branch coverage in affected packages; 95% branch coverage in critical domain rules (auth, money, stock, licensing).
 - **G2 (Security Audit)**: Formal security gateway sign-off, SAST, DAST, abuse testing, ASVS verification, 0 critical/high findings.
 - **G3 (Architecture & Maintainability)**: Strict adherence to the `features -> modules -> behaviours` folder hierarchy, zero-clone borrowing discipline in Rust, verified import boundaries, zero circular dependencies.
 - **G-Review (Code Review)**: Independent senior code review under the Agency-Agents standard across 5 pillars (Correctness, Security, Maintainability, Performance, Testing) with 4-tier triage (🔴 Blocker, 🟡 Suggestion, 🟢 Nitpick, 🌟 Praise); zero open blockers and actionable code diffs.
-- **G-Law (Global E-Commerce Legal Compliance & Gate L1)**: Mandatory verification of international statutory e-commerce legal requirements (GDPR/CCPA privacy, EU Omnibus pricing, 14-day statutory withdrawal, PCI-DSS/PSD2 payment rules, ZATCA/VAT fiscal invoicing, DSA/P2B platform rules, and EAA/ADA accessibility) and Project Constitution invariants; every story must define an explicit domain-tailored `[AC-US-X.Y.Z-LAW]` statutory legal acceptance rule and pass Gate L1 automated validation (`scripts/validation/validate_laws.py`).
+- **G-Borrow (Rust Zero-Clone Borrowing Validation & Gate R1)**: Automated enforcement (`scripts/validation/validate_rust_borrowing.py`) verifying zero unauthorized deep `.clone()` calls on domain structs, models, and entities; strict borrowing (`&T`, `&mut T`), lifetimes, zero-copy buffers, and `Arc::clone(&handle)` pointer increments only; every story defines `[US-X.Y.Z-G-Borrow]`.
+- **G-UI (UI/UX Platform Presentation & Separation Validation & Gate F1)**: Automated enforcement (`scripts/validation/validate_platform_presentation.py`) verifying strict separation between `designs/` (presentation, pure UI) and `logic/` (headless custom hooks); mobile storefront components use `@expo/ui` primitives (+ native modules); web storefront components use semantic HTML5 styled with Tailwind CSS; WCAG 2.1 AA and Arabic RTL parity; every story defines `[US-X.Y.Z-G-UI]`.
+- **G-Law (Global E-Commerce Legal Compliance & Gate L1)**: Mandatory verification of international statutory e-commerce legal requirements (GDPR/CCPA privacy, EU Omnibus pricing, 14-day statutory withdrawal, PCI-DSS/PSD2 payment rules, ZATCA/VAT fiscal invoicing, DSA/P2B platform rules, and EAA/ADA accessibility) and Project Constitution invariants via the Two-Phase Legal Conformance Technical Layer ("Planned Legally, Then Built Legally"):
+  - *Phase 1 (Planned Legally)*: Pre-implementation verification at Gate G0 mapping statutory mandates to `[AC-US-X.Y.Z-LAW]`.
+  - *Phase 2 (Built Legally)*: Post-implementation verification at Gate G-Law with executable assertions (`TC-*-LAW`) and automated compliance scanner (`scripts/validation/validate_laws.py`) exiting with 0 violations.
 - **G4 (Integrated Acceptance)**: End-to-end sandbox execution across affected web/mobile platforms, metrics recorded, release candidate verified.
 
 ---
@@ -147,11 +166,17 @@ Every sprint delivery milestone must pass the five sprint-level quality gates be
 - **SG0 (Planning Readiness)**: 100% of backlog stories meet G0; microkernel ports and crate boundaries resolved.
 - **SG1 (Cross-Story Integration)**: End-to-end multi-module flows verified under realistic integration suites; monorepo coverage maintained $\ge 90\%$ line and $\ge 85\%$ branch.
 - **SG2 (Security & Multi-Tenant Audit)**: Synthetic penetration testing verifies zero cross-tenant data leaks; 0 Critical/High CVEs; OWASP ASVS L2 verification.
-- **SG3 (Architecture & Gate M1 Compliance)**:
+- **SG3 (Architecture & Gate M1/R1/F1/L1 Compliance)**:
   - Automated execution of **Gate M1** (`scripts/validation/validate_microkernel.py`):
     - Crate Purity: Zero cloud SDKs or direct DB drivers in pure domain crates.
     - Transport Decoupling: Zero `lambda_http` imports in Axum routers.
+  - Automated execution of **Gate R1** (`scripts/validation/validate_rust_borrowing.py`):
     - Zero-Clone Law: Zero deep `.clone()` calls on domain structs (strict borrowing and `Arc::clone` only).
+  - Automated execution of **Gate F1** (`scripts/validation/validate_platform_presentation.py`):
+    - Platform Adaptation: `@expo/ui` mobile and semantic HTML5 + Tailwind CSS web presentation.
+    - Separation of Concerns: `designs/` (presentation) vs `logic/` (headless custom hooks).
+  - Automated execution of **Gate L1** (`scripts/validation/validate_laws.py`):
+    - Global statutory legal and constitutional conformance.
   - Framework-scoped LoB directory validation passes 100%.
   - Code duplication $< 3\%$; cyclomatic complexity $\le 10$.
 - **SG4 (Release Candidate & Operations)**: Staging smoke tests pass across web and native mobile; p95 latency $< 150\text{ms}$; automated cloud provisioning verified.

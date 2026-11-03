@@ -49,3 +49,23 @@ Scope: review specification gaps; add measurable test, security, architecture, r
   CHECK: python3 scripts/validation/test_validate_laws.py
   EXPECT: OK
   EVIDENCE: python3 scripts/validation/test_validate_laws.py verified negative controls for statutory e-commerce legal rules, framework scoping, zero-clone borrowing, microkernel purity, Axum decoupling, AC-*-LAW rules, G-Law gates, and role separation.
+
+- [x] D11: Gate R1 Rust zero-clone borrowing discipline validation
+  CHECK: python3 scripts/validation/validate_rust_borrowing.py
+  EXPECT: GATE R1 PASSED
+  EVIDENCE: python3 scripts/validation/validate_rust_borrowing.py verified zero unauthorized deep .clone() calls on domain structs and presence of G-Borrow gate across all 51 user stories.
+
+- [x] D12: Gate R1 negative controls verification
+  CHECK: python3 scripts/validation/test_validate_rust_borrowing.py
+  EXPECT: OK
+  EVIDENCE: python3 scripts/validation/test_validate_rust_borrowing.py verified negative controls for deep .clone() violations, Arc::clone/Rc::clone exemptions, and missing G-Borrow gates.
+
+- [x] D13: Gate F1 platform-adaptive presentation & UI/UX separation validation
+  CHECK: python3 scripts/validation/validate_platform_presentation.py
+  EXPECT: GATE F1 PASSED
+  EVIDENCE: python3 scripts/validation/validate_platform_presentation.py verified separation of designs/ (pure presentation, ui-ux-designer) and logic/ (custom hooks, client-engineer), @expo/ui mobile primitives, semantic HTML/Tailwind web presentation, and presence of G-UI gate across all 51 user stories.
+
+- [x] D14: Gate F1 negative controls verification
+  CHECK: python3 scripts/validation/test_validate_platform_presentation.py
+  EXPECT: OK
+  EVIDENCE: python3 scripts/validation/test_validate_platform_presentation.py verified negative controls for custom hooks in designs/, direct queries in designs/, JSX in logic/, raw web DOM in mobile, missing Tailwind classes on web, and missing G-UI gates.

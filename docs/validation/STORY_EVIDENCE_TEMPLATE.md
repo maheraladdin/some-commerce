@@ -13,7 +13,7 @@ This is a validation attachment indexed by the [canonical story record](STORY_RE
 | CTO charter / approved master-plan revision / parent workstream node | Pending |
 | Scope / affected layers and platforms | Pending |
 | Source commit / PRs / release candidate | Pending |
-| Story owner / test reviewer / security reviewer / architecture reviewer / code reviewer | Pending |
+| Story owner / test reviewer / security reviewer / architecture reviewer / code reviewer / systems reviewer / design reviewer / compliance auditor | Pending |
 | Dependency stories and blocking findings | Pending |
 | ADR or design note / threat model | Pending |
 | Runtime, tool versions, advisory database date, test environment | Pending |
@@ -35,7 +35,9 @@ Include all original ACs and TCs as well as the story-specific validation scenar
 | G2 | Threat review, authorization matrix, SAST/SCA/secrets/IaC/runtime findings, SBOM | Pending | Pending | Pending |
 | G3 | Import graph, lint/types, duplication report, reuse/change exercise, complexity review | Pending | Pending | Pending |
 | G-Review | Independent code review, 5 evaluation pillars, 4-tier triage, actionable diffs, 0 blockers | Pending | Pending | Pending |
-| G-Law | Project Constitution law compliance, AC-*-LAW acceptance rule, Zero-Clone, Gate M1/A1/A2 | Pending | Pending | Pending |
+| G-Borrow | Rust zero-clone borrowing discipline, zero deep .clone() on domain structs, Arc::clone only | Pending | Pending | Pending |
+| G-UI | Frontend separation of concerns, @expo/ui mobile primitives, semantic HTML/Tailwind web | Pending | Pending | Pending |
+| G-Law | Global e-commerce legal compliance, AC-*-LAW acceptance rule, Two-Phase Legal Conformance | Pending | Pending | Pending |
 | G4 | Full flow, provider/platform checks, load/fault results, migration/rollback, operational drill | Pending | Pending | Pending |
 
 ## Performance and recovery evidence
@@ -61,4 +63,4 @@ For stateful features record recovery point/time objectives and measured restore
 |:--------------------|:---------|:-------------------------------|:--------------|:---------------------|:-------|:-------|
 | Pending review | Pending | Pending | Pending | Pending | Pending | Pending |
 
-Mark this table “None” only after review. A story is Done only when G0–G4, G-Review, and G-Law pass and there are no unresolved blockers or expired exceptions.
+Mark this table “None” only after review. A story is Done only when G0–G4, G-Review, G-Borrow, G-UI, and G-Law pass and there are no unresolved blockers or expired exceptions.

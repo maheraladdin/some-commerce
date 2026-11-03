@@ -40,7 +40,7 @@ Record planning/context reads, assignments, scoped tool/command calls, edits, ex
 |:---------------------------|:-------------------------------------------|:-----------------------|:-------------------------------------------|
 | Pending | Pending | Pending | Pending |
 
-Link story G0–G4, G-Review, G-Law, and sprint E1–E5/SG0–SG4 evidence here, rather than making a separate role record authoritative. Large logs and restricted artifacts stay in suitable storage. A digest binds content; verify the trusted producer/issuer too.
+Link story G0–G4, G-Review, G-Borrow, G-UI, G-Law, and sprint E1–E5/SG0–SG4 evidence here, rather than making a separate role record authoritative. Large logs and restricted artifacts stay in suitable storage. A digest binds content; verify the trusted producer/issuer too.
 
 ## Handoff checklist (one event-backed instance per transfer)
 

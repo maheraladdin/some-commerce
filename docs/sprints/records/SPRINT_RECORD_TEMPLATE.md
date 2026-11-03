@@ -23,9 +23,9 @@
 
 ## 2. Sprint Backlog & 10-PR Slicing Execution Progress
 
-| Story ID | Story Title | Points | PR 1–6 (BE) | PR 7–10 (FE) | Story Gate (G0–G4 + G-Review + G-Law) | Story Record Link |
-|:---------|:------------|:-------|:------------|:-------------|:--------------------------------------|:------------------|
-| *US-X.Y.1* | *Feature Title* | *8* | `[MERGED]` | `[MERGED]` | `G0 [x] G1 [x] G2 [x] G3 [x] G-Review [x] G-Law [x] G4 [x]` | [`US-X.Y.1.md`](../../validation/story-records/US-X.Y.1.md) |
+| Story ID | Story Title | Points | PR 1–6 (BE) | PR 7–10 (FE) | Story Gate (G0–G4 + G-Review + G-Borrow + G-UI + G-Law) | Story Record Link |
+|:---------|:------------|:-------|:------------|:-------------|:--------------------------------------------------------|:------------------|
+| *US-X.Y.1* | *Feature Title* | *8* | `[MERGED]` | `[MERGED]` | `G0 [x] G1 [x] G2 [x] G3 [x] G-Review [x] G-Borrow [x] G-UI [x] G-Law [x] G4 [x]` | [`US-X.Y.1.md`](../../validation/story-records/US-X.Y.1.md) |
 
 ---
 
@@ -36,7 +36,7 @@
 | **SG0** | **Readiness & Workdir Isolation** | `tech-lead` | Backlog mapped, agent workdirs verified | `[PENDING | PASSED]` |
 | **SG1** | **Cross-Story Integration** | `testing-qa-engineer` | [`REPORT-INT-sprint-X.Y.md`](../../reports/02-integration-and-cross-module/) | `[PENDING | PASSED]` |
 | **SG2** | **Security & Tenant Audit** | `senior-security-qa-auditor` | [`AUDIT-SEC-sprint-X.Y.md`](../../audits/01-security-and-penetration/) | `[PENDING | PASSED]` |
-| **SG3** | **Microkernel & Zero-Clone Audit** | `system-architect` | [`AUDIT-ARCH-sprint-X.Y.md`](../../audits/02-architecture-and-zero-clone/) | `[PENDING | PASSED]` |
+| **SG3** | **Microkernel, Borrowing & UI Presentation Audit** | `system-architect` | [`AUDIT-ARCH-sprint-X.Y.md`](../../audits/02-architecture-and-zero-clone/) | `[PENDING | PASSED]` |
 | **SG4** | **Release Candidate & CTO Agreement** | `chief-technology-officer` | [`REPORT-RC-sprint-X.Y.md`](../../reports/05-sprint-closeout-and-rc/) | `[PENDING | PASSED]` |
 
 ---
