@@ -4,9 +4,13 @@ Status: **Pending — template only; no checks have run.**
 
 Use one record per story/release candidate. Replace placeholders before review; a completed checkbox without a linked result is not evidence. See [quality gates](../QUALITY_GATES.md).
 
+This is a validation attachment indexed by the [canonical story record](STORY_RECORD_TEMPLATE.md); it does not replace that record's full action/decision/handoff history.
+
 | Field | Value |
 |:------|:------|
 | Story ID and specification | Pending |
+| Canonical story record / acknowledged revision / related action event IDs | Pending — `docs/validation/story-records/US-<id>.md` |
+| CTO charter / approved master-plan revision / parent workstream node | Pending |
 | Scope / affected layers and platforms | Pending |
 | Source commit / PRs / release candidate | Pending |
 | Story owner / test reviewer / security reviewer / architecture reviewer | Pending |
