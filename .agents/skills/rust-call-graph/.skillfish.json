@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "rust-call-graph",
+  "owner": "actionbook",
+  "repo": "rust-skills",
+  "path": "skills/rust-call-graph",
+  "branch": "main",
+  "sha": "e0213f95974750283cf06040c033d407edd41176",
+  "source": "manual"
+}

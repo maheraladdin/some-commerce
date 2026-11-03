@@ -1,0 +1,33 @@
+name: Documentation & Quality Gates Validation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate-specs-and-microkernel:
+    name: Spec Kit, Security Gateways & Microkernel Gate M1
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate Spec Kit Stories & Security Gateways
+        run: python3 scripts/validate_docs.py
+
+      - name: Run Documentation Negative Controls Test Suite
+        run: python3 scripts/test_validate_docs.py
+
+      - name: Run Gate M1: Microkernel Logic Abstraction Audit
+        run: python3 scripts/validate_microkernel.py
+
+      - name: Run Gate M1 Negative Controls Test Suite
+        run: python3 scripts/test_validate_microkernel.py

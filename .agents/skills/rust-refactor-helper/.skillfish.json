@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "rust-refactor-helper",
+  "owner": "actionbook",
+  "repo": "rust-skills",
+  "path": "skills/rust-refactor-helper",
+  "branch": "main",
+  "sha": "f66e42acb07e7077d5f021163770737090d75080",
+  "source": "manual"
+}

@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "rust-async-patterns",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/systems-programming/skills/rust-async-patterns",
+  "branch": "main",
+  "sha": "3624037dbe3d96e2e55ecb6988afeaffbbb9ad1b",
+  "source": "manual"
+}

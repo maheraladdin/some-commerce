@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "aws-cdk-development",
+  "owner": "aws-samples",
+  "repo": "sample-agent-skills-for-builders",
+  "path": "skills/aws-cdk-development",
+  "branch": "main",
+  "sha": "423e64739ec66245f2cbbba56f1347fe610b6c54",
+  "source": "manual"
+}

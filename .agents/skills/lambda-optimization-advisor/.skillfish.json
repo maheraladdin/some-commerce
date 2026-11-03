@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "lambda-optimization-advisor",
+  "owner": "emillindfors",
+  "repo": "claude-marketplace",
+  "path": "plugins/rust-lambda/skills/lambda-optimization-advisor",
+  "branch": "main",
+  "sha": "5e63a9072bf5da3ee219f0d669c43efa04b62157",
+  "source": "manual"
+}

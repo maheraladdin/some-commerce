@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "tanstack-query",
+  "owner": "wanghaisheng",
+  "repo": "cloudflare-workers-d1-r2-expo-turborepo-trpc-workflows-astro-cleark",
+  "path": "ref/tanstack/tanstack-query",
+  "branch": "main",
+  "sha": "b73085898a2015a0f33c98aef0f3f2ff4ee9454f",
+  "source": "manual"
+}

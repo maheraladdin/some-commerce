@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "aws-serverless-deployment",
+  "owner": "awslabs",
+  "repo": "agent-plugins",
+  "path": "plugins/aws-serverless/skills/aws-serverless-deployment",
+  "branch": "main",
+  "sha": "bd34795825cde4b767325f4bd3193034bb78f862",
+  "source": "manual"
+}

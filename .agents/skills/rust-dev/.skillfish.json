@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "rust-dev",
+  "owner": "doccker",
+  "repo": "cc-use-exp",
+  "path": ".antigravity/skills/rust-dev",
+  "branch": "main",
+  "sha": "dfbe856f619d9cfe5a39977971a5e9c3adcd16db",
+  "source": "manual"
+}
