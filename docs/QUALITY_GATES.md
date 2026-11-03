@@ -2,7 +2,7 @@
 
 ## Scope and status
 
-These gates apply to **every user story (G0–G4)**, every implementation PR, **every sprint as a whole (SG0–SG4)**, and the **microkernel architecture (Gate M1)**. They replace weaker sprint checklists and blanket claims of “100% test coverage.” Each story and sprint contains strict, verifiable criteria. Passing documentation validation means only that the required sections and references exist; it does not mean the application has been tested or audited.
+These gates apply to **every user story (G0–G4 + G-Review + G-Law)**, every implementation PR, **every sprint as a whole (SG0–SG4)**, the **microkernel architecture (Gate M1)**, **system architecture (Gate A1)**, **folder architecture (Gate A2)**, and the **Project Constitution non-negotiable laws (Gate L1)**. They replace weaker sprint checklists and blanket claims of “100% test coverage.” Each story and sprint contains strict, verifiable criteria. Passing documentation validation means only that the required sections and references exist; it does not mean the application has been tested or audited.
 
 The repository currently contains specifications, architecture blueprints, and documentation utilities. Application gates below are **mandatory gates for delivery**.
 
@@ -138,7 +138,49 @@ flowchart LR
 
 ---
 
-## 5. User story validation gates (G0 — G4)
+## 5. Gate L1: Global E-Commerce Legal & Regulatory Compliance Gate (and Constitutional Invariants)
+
+Gate L1 enforces strict monorepo-wide compliance with international statutory e-commerce legal mandates across global jurisdictions as well as the non-negotiable Project Constitution defined in [`.specify/memory/constitution.md`](../.specify/memory/constitution.md):
+
+```mermaid
+flowchart LR
+    L1_A["Check 1: Global E-Commerce Legal Compliance<br/>GDPR, CCPA, Omnibus, Consumer Rights, PSD2, ZATCA, DSA"]
+    L1_B["Check 2: Spec Kit AC-*-LAW & G-Law<br/>Statutory law acceptance rule & gate across all 51 stories"]
+    L1_C["Check 3: SDD & Constitution Integrity<br/>Mandatory sections present & immutable"]
+    L1_D["Check 4: Master Framework Scoping<br/>features/ NEVER at root; framework-scoped"]
+    L1_E["Check 5: Rust Zero-Clone Memory Law<br/>0 deep .clone() on domain structs; Arc::clone only"]
+    L1_F["Check 6: Microkernel Purity (Gate M1)<br/>Pure crates/ with zero cloud/DB dependencies"]
+    L1_G["Check 7: Axum Transport Portability<br/>Pure Tower services; zero lambda_http in features"]
+    L1_H["Check 8: Zero-Trust Multi-Tenancy<br/>PK = TENANT#<id> partition enforcement"]
+
+    L1_A --> PASS_L1{"Gate L1<br/>Passed?"}
+    L1_B --> PASS_L1
+    L1_C --> PASS_L1
+    L1_D --> PASS_L1
+    L1_E --> PASS_L1
+    L1_F --> PASS_L1
+    L1_G --> PASS_L1
+    L1_H --> PASS_L1
+
+    PASS_L1 -->|Yes| SG3_L1["SG3 Legal & Constitutional Approval"]
+    PASS_L1 -->|No| REJECT_L1["Block PR & Fail Sprint Gate"]
+```
+
+### Gate L1 Verification Rules
+- **Rule L1.1 (Global Legal & Regulatory E-Commerce Compliance)**: Asserts that all features, schemas, and user journeys satisfy international statutory e-commerce requirements across privacy (GDPR, CCPA/CPRA), pricing transparency (EU Omnibus Directive 2019/2161, FTC Deceptive Pricing Guides), consumer cancellation & warranty rights (EU Consumer Rights Directive 2011/83/EU, 2-Year Conformity Warranty), payment regulations (PCI-DSS v4.0, PSD2/PSD3 SCA, cash ceiling caps), fiscal invoicing (VAT, KSA ZATCA Phase 2), platform governance (EU DSA, P2B Regulation, US INFORM Consumers Act), and accessibility (EAA Directive 2019/882, ADA Title III).
+- **Rule L1.2 (Spec Kit Law Acceptance Rules & G-Law)**: Verifies that all 51 user stories contain an explicit domain-specific legal acceptance scenario `[AC-US-X.Y.Z-LAW]`, mapped test case `TC-X.Y.Z-LAW`, and validation gate `US-X.Y.Z-G-Law`.
+- **Rule L1.3 (Constitution & SDD Integrity)**: Verifies presence of `.specify/memory/constitution.md` and complete coverage of all core constitutional and statutory laws.
+- **Rule L1.4 (Master Framework Scoping Law)**: Asserts that `features/` does NOT exist at the monorepo root. All behavioral slices must reside under `apps/storefront/src/features/` or `backend/src/features/`.
+- **Rule L1.5 (Rust Zero-Clone Memory Law)**: Scans domain crates (`crates/`) and Axum handlers (`backend/src/features/`) for deep `.clone()` calls on domain structs (permitting only `Arc::clone` and `Rc::clone`).
+- **Rule L1.6 (Pure Microkernel Domain Law)**: Scans all `crates/*/Cargo.toml` to guarantee zero cloud SDK dependencies (`aws-sdk-*`, `azure_*`, `google-cloud-*`), zero `lambda_http`, and zero direct DB drivers (`tokio-postgres`, `mongodb`, `sqlx`).
+- **Rule L1.7 (Axum Transport Portability Law)**: Asserts route handlers in `backend/src/features/` never import `lambda_http`, ensuring portability to Docker, GCP, Azure, and bare-metal.
+- **Rule L1.8 (Security Gateway & Multi-Tenancy Law)**: Verifies that all 51 user stories enforce `PK = TENANT#<id>` partition filtering and STRIDE threat matrices.
+- **Rule L1.9 (Role Separation & Agency-Agents Governance Law)**: Asserts exactly 17 company roles are configured in catalog and profiles, with active Code Reviewer (Gate G-Review) and Legal Compliance Auditor (Gate G-Law) standards.
+- **Enforcement Script**: `python3 scripts/validation/validate_laws.py`
+
+---
+
+## 6. User story validation gates (G0 — G4 + G-Review + G-Law)
 
 ## Gate sequence and ownership
 
@@ -148,7 +190,9 @@ flowchart LR
 | G1 — Tests and coverage | Merging each PR | Test reviewer | Relevant automated tests pass, coverage meets the thresholds below, every changed acceptance outcome has an assertion, and story-specific failure scenarios are tested. |
 | G2 — Security audit | Merging each PR | Security reviewer | Threat review, applicable scans, and adversarial tests pass; no open critical/high findings; lower-severity findings have an owner and due date. |
 | G3 — Architecture and maintainability | Merging each PR | Architecture reviewer | Dependency boundaries, reuse, complexity, readability, and changeability checks pass with a recorded review. |
-| G4 — Integrated acceptance | Marking the story Done or releasing it | Story owner + release reviewer | Complete story works across its affected layers/platforms, required provider sandbox checks and operational drills pass, and all G0–G3 evidence refers to the release candidate commit. |
+| G-Review — Code review | Merging each PR and before final acceptance | Code reviewer / Senior peer reviewer | Independent senior code review completed across 5 pillars (Correctness, Security, Maintainability, Performance, Test completeness) with 4-tier triage (🔴 Blocker, 🟡 Suggestion, 🟢 Nitpick, 🌟 Praise); zero open Blocker issues, all Suggestions addressed or formally resolved, concrete actionable code suggestions recorded. |
+| G-Law — Law validation | Merging each PR and before final acceptance | Compliance auditor / Legal specialist (agency-legal-compliance-checker) | Independent verification of compliance with applicable global e-commerce legal & statutory requirements across jurisdictions (GDPR/CCPA privacy, EU Omnibus pricing, 14-day statutory withdrawal, PCI-DSS/PSD2 payment rules, ZATCA/VAT fiscal invoicing, DSA/P2B platform rules, and EAA/ADA accessibility) and Project Constitution invariants; explicit `[AC-US-X.Y.Z-LAW]` verified with zero legal violations. |
+| G4 — Integrated acceptance | Marking the story Done or releasing it | Story owner + release reviewer | Complete story works across its affected layers/platforms, required provider sandbox checks and operational drills pass, and all G0–G3, G-Review, and G-Law evidence refers to the release candidate commit. |
 
 Reviewers must be identified; “reviewed by agent” without an identity and evidence is insufficient. An implementation author cannot be the sole approver of G2 or G3. One qualified independent reviewer may cover multiple roles. Splitting work into several PRs does not defer tests, security, or architecture until the last PR. A partially implemented story stays In Progress and is inaccessible in production until G4 passes.
 
@@ -226,6 +270,102 @@ Prefer one canonical owner for each rule. A port is justified by an external bou
 - Demonstrate one relevant change exercise: add a provider, a fee rule, a locale, or a consumer in the design/test fixture. Show which files change and why. Avoid editing unrelated modules or copying existing implementations. Do not add an unused feature just for this exercise.
 - Document public contracts and migration/version compatibility. Build affected consumers and run shared conformance tests after changing reused code. Keep secrets, mutable global state, clocks, and external clients injectable at boundaries.
 
+## G-Review — Code review (Agency-Agents Standard)
+
+The **G-Review** validation gate enforces independent, rigorous, and educational peer code review modeled after the industry-leading [Agency-Agents Code Reviewer standard](https://github.com/msitarzewski/agency-agents). Code review is not merely an adversarial obstacle; it serves as a teaching opportunity, a quality firewall, and a knowledge-sharing bridge between senior reviewers and junior authors.
+
+Every implementation PR must obtain an independent G-Review sign-off before merge, and every user story must complete integrated G-Review sign-off before Gate G4.
+
+### Core Mindset & Principles
+- **Educational & Mentoring Focus**: Reviews explain the *why* behind requested changes, offering clear rationale, architectural references, and educational context to elevate the team.
+- **Single-Pass Completeness**: Reviewers perform exhaustive reviews in a single pass to eliminate review churn and avoid "death by a thousand roundtrips."
+- **Actionable & Constructive**: Every critique must include a concrete code snippet, replacement diff, or specific implementation suggestion—never vague complaints.
+- **Holistic Assessment**: Balance critical scrutiny with recognition—call out elegant design patterns and thorough test suites with praise.
+
+### The 5 Evaluation Pillars
+
+| Pillar | Core Invariants & Inspection Focus | Pass Criteria |
+|:-------|:-----------------------------------|:--------------|
+| **1. Correctness** | Invariant preservation, edge case handling, off-by-one errors, error propagation, concurrency safety, async cancellation, state machine validity. | Zero logic bugs, zero unhandled error states, deterministic behavior under race conditions. |
+| **2. Security** | OWASP ASVS v4.0.3 L2 compliance, zero-trust tenant isolation, object-level authorization (IDOR), input sanitization, cryptographic keys, secret hygiene. | Zero vulnerabilities; all tenant boundaries filtered by `PK = TENANT#<id>`; zero raw PII in logs. |
+| **3. Maintainability** | Locality of Behavior (LoB), 4-tier folder hierarchy, zero code duplication (<3%), cyclomatic complexity ($\le 10$), clean naming, domain clarity. | High readability, clean domain boundaries, minimal cognitive load, zero dead code or catch-all `any`. |
+| **4. Performance** | Algorithmic efficiency, Rust zero-clone borrowing discipline (zero deep `.clone()` on domain structs), DynamoDB query optimization, memory bounds, cache hit ratios. | Linear or logarithmic scaling, zero unnecessary heap allocations, p95 API latency budgets respected. |
+| **5. Testing** | Acceptance criteria mapping (100% of ACs/TCs asserted), property-based test coverage, real repository integration, failure/recovery cases, mutation test survival ($\ge 90\%$). | Comprehensive test assertions, zero skipped or unasserted branches, reproducible test seeds. |
+
+### 4-Tier Feedback Triage System
+
+All review findings must be explicitly classified into one of four tiers:
+
+- 🔴 **Blocker**: Critical defects that **must be resolved before merge**.
+  - *Examples*: Logic bugs, security vulnerabilities (ASVS L2 violations), invariant breaches, unauthorized `.clone()` calls in pure domain logic, data loss risks, race conditions, missing test assertions for core acceptance criteria.
+  - *Enforcement*: Hard stop. The PR cannot merge and Gate G-Review fails until a new candidate is submitted with verified regression evidence.
+- 🟡 **Suggestion**: Strongly recommended improvements for architecture, robustness, or readability.
+  - *Examples*: Extracting reusable helpers to module `_shared/`, minor edge-case handling, idiomatic Rust/TypeScript refactoring, improving docstrings or invariant comments.
+  - *Enforcement*: Non-blocking for emergency hotfixes, but required for standard PRs. Must be implemented or explicitly triaged with an agreed follow-up issue before Gate G4 sign-off.
+- 🟢 **Nitpick**: Minor stylistic, typographical, or non-critical cosmetic preferences.
+  - *Examples*: Variable renaming for extra clarity, comment typos, trivial formatting tweaks.
+  - *Enforcement*: Completely non-blocking. Author may implement or decline at their discretion.
+- 🌟 **Praise**: Explicit positive recognition of high-quality craftsmanship.
+  - *Examples*: Elegant functional composition, exceptional property test design, clear domain modeling, thorough documentation of tricky concurrency invariants.
+  - *Enforcement*: Reviewers are encouraged to include at least one praise comment per substantial PR to foster psychological safety and team excellence.
+
+### Review Output Format & Evidence
+Every G-Review sign-off produces a standardized review record:
+```markdown
+## Code Review: PR #[pr_number] — [Story ID] [Pillar Name]
+**Reviewer**: [Name / Agent Profile] (Independent Senior Reviewer)
+**Verdict**: [APPROVE | CHANGES REQUESTED]
+
+### Executive Summary
+- **Correctness**: [Pass | Concerns]
+- **Security**: [Pass | Concerns]
+- **Maintainability**: [Pass | Concerns]
+- **Performance**: [Pass | Concerns]
+- **Testing**: [Pass | Concerns]
+
+### Triage Breakdown
+- 🔴 Blockers: [Count]
+- 🟡 Suggestions: [Count]
+- 🟢 Nitpicks: [Count]
+- 🌟 Praises: [Count]
+
+### Detailed Feedback & Actionable Diffs
+[Actionable code comments with exact files, line numbers, and proposed diffs]
+```
+
+## G-Law — Law validation (Global E-Commerce Legal & Regulatory Compliance)
+
+The **G-Law** validation gate enforces independent, rigorous legal and regulatory compliance across international e-commerce jurisdictions. Every pull request and user story must satisfy both statutory legal requirements governing international digital commerce and foundational Project Constitution invariants before merging and final acceptance.
+
+Compliance sign-off is certified by an authorized compliance auditor leveraging the [`agency-legal-compliance-checker`](../.agents/skills/agency-legal-compliance-checker) and [`agency-compliance-auditor`](../.agents/skills/agency-compliance-auditor) capabilities.
+
+### Core International Statutory E-Commerce Pillars Enforced by G-Law
+
+| Statutory Domain | Global Legal Frameworks & Directives | Mandatory Verification Criteria |
+|:-----------------|:-------------------------------------|:--------------------------------|
+| **1. Data Protection & Consumer Privacy** | EU GDPR (Reg 2016/679), US CCPA/CPRA, Canada PIPEDA, Brazil LGPD, EU ePrivacy (Dir 2002/58/EC) | Explicit lawful basis (Art 6), verifiable consent (Art 7), age gating for minors (COPPA / GDPR Art 8), right of access/rectification (Art 15/16), right to erasure/forgotten (Art 17), and prior affirmative consent for non-essential cookies/storage. |
+| **2. Pricing Transparency & Consumer Protection** | EU Omnibus Directive (Dir 2019/2161 Art 6a), EU Price Indication Directive (Dir 98/6/EC), US FTC Deceptive Pricing Guides (16 CFR Part 233) | Mandatory display of prior 30-day lowest price on all discount/promotional claims; unit pricing per kg/L/unit; prohibition of deceptive urgency (fake countdowns / false stock counters per EU DSA Art 25); total price transparency with zero hidden fees (drip pricing). |
+| **3. Consumer Rights, Cancellation & Warranty** | EU Consumer Rights Directive (Dir 2011/83/EU), EU Sales of Goods Directive (Dir 2019/771), UK Consumer Rights Act | 14-calendar-day statutory Right of Withdrawal without cause; provision of statutory model cancellation form; unambiguous purchase button labeling ("Pay now" / "Order with obligation to pay"); prohibition of pre-ticked add-on checkboxes; 2-year statutory conformity warranty. |
+| **4. Payments, Financial Integrity & Surcharges** | PCI-DSS v4.0 (SAQ-A), EU PSD2 / PSD3 & RTS on Strong Customer Authentication (SCA 3DS2), National AML Cash Limits | Zero storage of raw PAN/CVV; mandatory 3DS2 SCA authentication on electronic payments; statutory ban on consumer credit/debit card surcharges (PSD2 Art 62(4)); automated enforcement of national cash-on-delivery (COD) statutory ceilings (e.g. EU €1,000–€5,000 caps). |
+| **5. Invoicing, Fiscalization & Taxation** | EU VAT Directive (Dir 2006/112/EC), KSA ZATCA FATOORAH Phase 2 E-Invoicing, US Marketplace Facilitator Laws (Wayfair) | Sequential, tamper-proof, gapless tax invoicing; ZATCA cryptographic compliance (QR code TLV encoding, UBL 2.1 XML); itemized VAT/tax calculations per jurisdiction; separation of marketplace facilitator deemed supplier remittance vs vendor tax. |
+| **6. Marketplace & Platform Governance** | EU Digital Services Act (Reg 2022/2065), EU Platform-to-Business (Reg 2019/1150 / P2B), US INFORM Consumers Act, EU DAC7 | Mandatory KYB seller traceability verification prior to onboarding; public disclosure of seller identity on listings; 15-day advance notice for terms modifications; objective ranking parameter transparency; DAC7 / 1099-K statutory tax earnings reporting. |
+| **7. Universal Digital Accessibility** | European Accessibility Act (EAA Dir 2019/882 / EN 301 549), US Americans with Disabilities Act (ADA Title III), Section 508 | Strict WCAG 2.1 Level AA conformance across web and mobile storefronts; minimum 4.5:1 text contrast; accessible screen reader semantics; keyboard accessibility; touch targets $\ge 44\times 44\text{pt}$. |
+| **8. Cross-Border Customs, Trade & Product Safety** | Harmonized System (HS) Tariff Codes, EU Import One-Stop Shop (IOSS), EU General Product Safety Reg (GPSR 2023/988), IATA/ADR Dangerous Goods | Validated 6-10 digit HS codes on cross-border shipments; IOSS VAT compliance for consignments $\le €150$; GPSR manufacturer contact & CE marking indications on product listings; hazardous goods (lithium batteries) transport compliance. |
+| **9. Promotions, Gift Cards & Loyalty Governance** | US Credit CARD Act of 2009 (15 U.S.C. § 1693l-1), State Escheatment / Unclaimed Property Laws, FTC Endorsement Guides (16 CFR Part 255) | Gift cards non-expiring for minimum 5 years; prohibition of dormancy fees unless statutory conditions are met; cash redemption for small balances where mandated; clear "#ad" endorsement disclosures for affiliate/influencer links. |
+
+### Architectural Invariants Also Audited under G-Law
+In addition to statutory legal compliance, G-Law verifies that the code implements these legal requirements without violating core Project Constitution invariants:
+- Strict Locality of Behavior (LoB) framework scoping (features/ NEVER at monorepo root)
+- Rust zero-clone borrowing discipline (zero deep `.clone()` on domain structs)
+- Pure microkernel domain crate isolation with zero cloud SDK coupling (Gate M1)
+- Zero-trust multi-tenant partition key enforcement (`PK = TENANT#<id>`)
+
+### Pass Condition
+- Every user story contains an explicit domain-tailored `[AC-US-X.Y.Z-LAW]` Gherkin scenario defining the applicable statutory legal requirements.
+- Mapped test case `TC-X.Y.Z-LAW` passes with concrete legal assertions.
+- Section 6 checklist `### G-Law — Law validation` is verified and signed off by the compliance auditor.
+- Automated execution of `python3 scripts/validation/validate_laws.py` exits with code 0 (zero statutory legal or constitutional violations).
+
 ## G4 — Integrated acceptance and operations
 
 Verify the complete user outcome across the affected APIs, workers, storage, and clients. Include upgrade/rollback with representative data; restart/retry without lost or duplicated effects; tenant-safe logs/metrics/traces; alert delivery and runbook; and backup/restore when persisted data changes. Record numeric RPO/RTO and demonstrate them before the first production release of a stateful feature.
@@ -242,6 +382,6 @@ No critical/high security waiver, isolation waiver, or financial invariant waive
 
 The implemented `docs-validation` job runs `python3 scripts/validation/validate_docs.py`. It checks documentation structure and cross-references only. It does not run application audits, validate evidence authenticity, or configure GitHub branch protection.
 
-Before merging the first application implementation, add blocking CI checks named `story-tests`, `story-security`, `story-architecture`, and `story-acceptance`, backed by real commands for the affected packages. Configure branch protection/rulesets to require them and independent review. Conditional jobs must explicitly report reviewed N/A sub-checks; missing reports, skipped required tests, or `continue-on-error` cannot produce a successful gate. A final aggregator must fail when any required job fails, is cancelled, or is unexpectedly skipped.
+Before merging the first application implementation, add blocking CI checks named `story-tests`, `story-security`, `story-architecture`, `story-review`, `story-law`, and `story-acceptance`, backed by real commands for the affected packages. Configure branch protection/rulesets to require them and independent review. Conditional jobs must explicitly report reviewed N/A sub-checks; missing reports, skipped required tests, or `continue-on-error` cannot produce a successful gate. A final aggregator must fail when any required job fails, is cancelled, or is unexpectedly skipped.
 
 Tools can include Rust coverage/property tests and dependency audits, TypeScript branch coverage and browser/device tests, dependency graph checks, duplication analysis, IaC/security scanners, and mutation tests. Pin tools and lockfiles after compatibility verification; tool selection is not evidence that a check ran. Maintain path-to-story ownership so a shared module change runs all affected story suites. Re-run required checks on the merge candidate when its dependencies change.

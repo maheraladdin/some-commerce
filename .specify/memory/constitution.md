@@ -11,7 +11,7 @@ The lifecycle for every feature, change, and bugfix must follow:
 4. **Plan (`plan.md`)**: Formulates the technical blueprint, domain models, state machines, invariants, and data flows.
 5. **Tasks (`tasks.md`)**: Deconstructs the plan into ordered, granular, test-driven implementation tasks.
 6. **Security Gateway (`security-audit`)**: Enforces threat boundaries, actor matrices, abuse testing, ASVS controls, cryptographic protection, and zero-trust tenant isolation before code execution.
-7. **Implementation & Gate Verification (G0–G4)**: Code delivery strictly against the spec, backed by passing automated assertions and gate evidence.
+7. **Implementation & Gate Verification (G0–G4 + G-Review + G-Law)**: Code delivery strictly against the spec, backed by passing automated assertions and gate evidence.
 
 ---
 
@@ -112,12 +112,14 @@ Every user story and specification must incorporate a **Security Gateway** gover
 
 ---
 
-## 5. Quality Gates Standard (G0–G4)
+## 5. Quality Gates Standard (G0–G4 + G-Review + G-Law)
 
 - **G0 (Ready)**: Stable identifiers (`AC-*`, `TC-*`), dependency resolution, threat boundary mapping, measurable performance budgets.
 - **G1 (Test Coverage)**: 90% line and 85% branch coverage in affected packages; 95% branch coverage in critical domain rules (auth, money, stock, licensing).
 - **G2 (Security Audit)**: Formal security gateway sign-off, SAST, DAST, abuse testing, ASVS verification, 0 critical/high findings.
 - **G3 (Architecture & Maintainability)**: Strict adherence to the `features -> modules -> behaviours` folder hierarchy, zero-clone borrowing discipline in Rust, verified import boundaries, zero circular dependencies.
+- **G-Review (Code Review)**: Independent senior code review under the Agency-Agents standard across 5 pillars (Correctness, Security, Maintainability, Performance, Testing) with 4-tier triage (🔴 Blocker, 🟡 Suggestion, 🟢 Nitpick, 🌟 Praise); zero open blockers and actionable code diffs.
+- **G-Law (Global E-Commerce Legal Compliance & Gate L1)**: Mandatory verification of international statutory e-commerce legal requirements (GDPR/CCPA privacy, EU Omnibus pricing, 14-day statutory withdrawal, PCI-DSS/PSD2 payment rules, ZATCA/VAT fiscal invoicing, DSA/P2B platform rules, and EAA/ADA accessibility) and Project Constitution invariants; every story must define an explicit domain-tailored `[AC-US-X.Y.Z-LAW]` statutory legal acceptance rule and pass Gate L1 automated validation (`scripts/validation/validate_laws.py`).
 - **G4 (Integrated Acceptance)**: End-to-end sandbox execution across affected web/mobile platforms, metrics recorded, release candidate verified.
 
 ---

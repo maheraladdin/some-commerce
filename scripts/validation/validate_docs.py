@@ -43,6 +43,8 @@ REQUIRED_SUBSECTIONS = [
     "### G1 — Test coverage",
     "### G2 — Security audit",
     "### G3 — Architecture and maintainability",
+    "### G-Review — Code review",
+    "### G-Law — Law validation",
     "### G4 — Integrated acceptance"
 ]
 
@@ -78,6 +80,14 @@ def validate_all_stories():
                 # Check for AC identifier tags in Gherkin
                 if f"AC-{story_id}-" not in content:
                     errors.append(f"{path} ({story_id}): Missing scenario identifiers 'AC-{story_id}-NN'")
+
+                # Check for constitutional law acceptance rule
+                if f"AC-{story_id}-LAW" not in content:
+                    errors.append(f"{path} ({story_id}): Missing constitutional law acceptance rule 'AC-{story_id}-LAW'")
+
+                # Check for law validation gate
+                if f"{story_id}-G-Law" not in content:
+                    errors.append(f"{path} ({story_id}): Missing law validation gate check '{story_id}-G-Law'")
 
                 # Check for behavior folder blueprint
                 if "features/" not in content or "behaviours/" not in content:
