@@ -16,3 +16,16 @@ Scope: review specification gaps; add measurable test, security, architecture, r
 
 - [x] D3: the gap register and quality policy cover the requested outcomes without claiming runtime validation
   EVIDENCE: All 51 stories specify comprehensive Security Gateways, behavior-centric folder structures, and G0-G4 quality gates in Pending status awaiting implementation verification.
+
+- [x] D4: Gate M1 microkernel logic abstraction and cloud decoupling validation
+  CHECK: python3 scripts/validate_microkernel.py
+  EXPECT: GATE M1 PASSED
+  EVIDENCE: python3 scripts/validate_microkernel.py verified crate purity, Axum transport decoupling from lambda_http, and zero-clone borrowing compliance.
+
+- [x] D5: Gate M1 negative controls verification
+  CHECK: python3 scripts/test_validate_microkernel.py
+  EXPECT: OK
+  EVIDENCE: python3 scripts/test_validate_microkernel.py verified that forbidden cloud SDKs, misplaced lambda_http imports, and illegal .clone() calls are detected and rejected.
+
+- [x] D6: Sprint-level quality gates (SG0–SG4) and microkernel architecture enshrinement
+  EVIDENCE: Defined in docs/QUALITY_GATES.md, docs/sprints/README.md, docs/MICROKERNEL_AND_CLOUD_PORTABILITY.md, and .specify/memory/constitution.md.

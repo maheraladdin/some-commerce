@@ -1,10 +1,86 @@
-# User story validation gates
+# Quality Gates & Governance Standard
 
 ## Scope and status
 
-These gates apply to **every user story**, every implementation PR, and every production slice. They replace weaker sprint checklists and blanket claims of “100% test coverage.” Each story contains additional, story-specific requirements. Passing documentation validation means only that the required sections and references exist; it does not mean the application has been tested or audited.
+These gates apply to **every user story (G0–G4)**, every implementation PR, **every sprint as a whole (SG0–SG4)**, and the **microkernel architecture (Gate M1)**. They replace weaker sprint checklists and blanket claims of “100% test coverage.” Each story and sprint contains strict, verifiable criteria. Passing documentation validation means only that the required sections and references exist; it does not mean the application has been tested or audited.
 
-The repository currently contains specifications and documentation utilities, with no application manifests, implementation, or application CI. Application gates below are **required but not implemented**. No story has passed them. The [stress-test register](DOCS_STRESS_TEST.md) lists unresolved design and delivery blockers.
+The repository currently contains specifications, architecture blueprints, and documentation utilities. Application gates below are **mandatory gates for delivery**.
+
+---
+
+## 1. Sprint-Level Quality Gates (SG0 — SG4)
+
+While G0–G4 govern individual user stories, the **Sprint Quality Gates (SG0–SG4)** govern the cohesion, multi-tenant security, cross-story performance, microkernel boundary compliance, and release readiness of the entire sprint iteration.
+
+| Sprint Gate | Required Timing | Accountable Owner | Exit Criteria & Verification |
+|:------------|:----------------|:------------------|:-----------------------------|
+| **SG0 — Sprint Planning & Architecture Readiness** | Before Sprint Kickoff | Sprint Lead + Principal Architect | 100% of backlog stories reach Gate G0; cross-story dependency DAG verified without cycles; microkernel crate boundaries confirmed; cross-cutting threat boundary mapped; shared capacity and budgets allocated. |
+| **SG1 — Cross-Story Integration & Coverage** | Mid-Sprint / PR Consolidation | QA Lead + Test Reviewer | All completed stories pass Gate G1; cross-story integrated workflows pass (e.g. Auth $\to$ Catalog $\to$ Cart $\to$ Checkout); monorepo-wide coverage maintains $\ge 90\%$ line and $\ge 85\%$ branch across affected packages; 0 flaky tests. |
+| **SG2 — Monorepo Security & Tenant Isolation Audit** | Pre-Feature Freeze | Security Lead + G2 Auditor | All stories pass Gate G2; monorepo-wide SAST, dependency vulnerability scan, and SBOM generated with 0 Critical/High issues; synthetic multi-tenant penetration test verifies zero cross-tenant data leakage across all sprint endpoints; zero hardcoded credentials or unmasked PII. |
+| **SG3 — Architecture, Microkernel Boundary & Code Quality** | Code Freeze | Architecture Reviewer | Monorepo passes **Gate M1** (zero cloud SDKs in pure domain crates, zero `lambda_http` in Axum routers, zero-clone borrowing audit in Rust); code duplication $< 3\%$; cyclomatic complexity $\le 10$; directory structure conforms 100% to framework-scoped LoB standard (`features/modules/behaviours`). |
+| **SG4 — Sprint Release Candidate & Operational Readiness** | Release Sign-Off | Release Manager + DevOps Lead | All stories reach Gate G4; staging deployment smoke tests pass across web and mobile platforms; load test verifies SLA budgets (p95 latency $< 150\text{ms}$ warm, $< 400\text{ms}$ cold); AWS CDK synth/diff clean; backup/restore & rollback verification verified; release candidate tagged and cryptographically signed. |
+
+### SG0 — Sprint Planning & Architecture Readiness
+- **Backlog G0 Conformance**: Every story scheduled for the sprint must have passed Gate G0 with stable identifiers (`AC-*`, `TC-*`), resolved design blockers, and numerical latency/throughput budgets.
+- **Microkernel Allocation**: Identify whether any pure domain logic needs promotion to a standalone `crates/some-*` microkernel package. If so, draft the port-and-adapter interface contract before starting story implementation.
+- **Threat Surface Alignment**: Review cross-cutting security invariants (e.g. JWT claims propagation, KMS envelope keys, multi-tenant DynamoDB partition keys) across all interacting stories in the sprint.
+
+### SG1 — Cross-Story Integration & Coverage
+- **Integration Test Suites**: Execute cross-boundary test suites linking multiple modules delivered within the sprint. A single story's mock passing does not fulfill SG1.
+- **Regression Prevention**: Automated verification in CI ensuring no previously implemented features or test suites experienced coverage drops or broken assertions.
+- **Concurrency & Eventual Consistency**: Assert eventual consistency across DynamoDB streams, Redis L2 cache invalidation, and WatermelonDB client sync under concurrent multi-user load.
+
+### SG2 — Monorepo Security & Tenant Isolation Audit
+- **Tenant Isolation Stress Test**: Automated penetration test executing concurrent interleaved requests across different `TenantId` contexts, asserting 0 cross-tenant reads or writes.
+- **OWASP ASVS Verification**: monorepo-level audit against OWASP ASVS v4.0.3 L2 controls.
+- **Dependency & License Audit**: `cargo audit`, `npm audit`, and license compliance check (`deny.toml`) verifying zero high/critical CVEs and zero GPL/copyleft license contamination in client/backend bundles.
+
+### SG3 — Architecture, Microkernel Boundary & Code Quality
+- **Mandatory Gate M1 Execution**: Automated execution of `scripts/validate_microkernel.py` verifying:
+  1. Pure domain crates (`crates/some-*`) have zero references to cloud SDKs (`aws-sdk-*`, `azure_*`, `google-cloud-*`), zero direct DB drivers, and zero network runtimes.
+  2. Axum API handlers in `backend/src/features/` have zero references to `lambda_http` or AWS Lambda runtime types, maintaining 100% portability.
+  3. Rust zero-clone borrowing audit confirms zero deep `.clone()` calls on domain structs (permitting only `Arc::clone` / `Rc::clone`).
+- **Locality of Behavior (LoB) Audit**: Automated directory scanner verifying that code is strictly placed inside `apps/storefront/src/features/...` and `backend/src/features/...` following the 4-tier model.
+- **Complexity and Duplication**: Pinned duplicate-code detector verifying $< 3\%$ duplication on handwritten production code; cyclomatic complexity $\le 10$ across all new functions.
+
+### SG4 — Sprint Release Candidate & Operational Readiness
+- **Staging Verification**: End-to-end verification in staging environment deploying AWS CDK stacks and verifying both mobile (Expo Go / TestFlight) and web storefront builds.
+- **Performance & Resource Budgets**: P95 API response times under simulated load meet defined thresholds (e.g. Catalog browse $< 80\text{ms}$, Checkout $< 200\text{ms}$).
+- **Rollback & Recovery Drill**: Dry-run rollback of database schema migration and cloud infrastructure stack without data corruption or service disruption.
+
+---
+
+## 2. Gate M1: Microkernel Logic Abstraction & Cloud Decoupling Gate
+
+Gate M1 is a dedicated, automated architectural gate verifying the microkernel foundation and cloud portability of `some-commerce`:
+
+```mermaid
+flowchart LR
+    subgraph "Gate M1 Verification Suite (scripts/validate_microkernel.py)"
+        M1_A["Check 1: Pure Logic Crate Isolation<br/>(crates/some-*)<br/>No aws-sdk, no lambda_http, no DB drivers"]
+        M1_B["Check 2: Axum HTTP Decoupling<br/>(backend/src/features/*)<br/>No lambda_http imports in Axum routers"]
+        M1_C["Check 3: Rust Zero-Clone Borrowing<br/>0 deep .clone() calls in domain logic<br/>Strict borrowing & Arc::clone only"]
+        M1_D["Check 4: Hexagonal Ports Compliance<br/>Domain services consume trait Ports<br/>Adapters isolated in infra crates"]
+    end
+
+    M1_A --> PASS{"Gate M1<br/>Passed?"}
+    M1_B --> PASS
+    M1_C --> PASS
+    M1_D --> PASS
+
+    PASS -->|Yes| SG3_PASS["SG3 Architecture Approval"]
+    PASS -->|No| REJECT["Block PR & Fail Sprint Gate"]
+```
+
+### Gate M1 Verification Rules
+1. **Rule M1.1 (Crate Purity)**: Any crate residing in `crates/some-*` or tagged as a domain microkernel package must have a `Cargo.toml` free of any cloud vendor SDKs (`aws-sdk-*`, `azure-*`, `google-cloud-*`), cloud transport runtimes (`lambda_http`, `aws_lambda_events`), and direct network I/O drivers (`reqwest`, `tokio-postgres`, `mongodb`, `redis`).
+2. **Rule M1.2 (Axum Transport Decoupling)**: Axum router and handler files located in `backend/src/features/` must be pure Tower HTTP services. They must NEVER import `lambda_http`. AWS Lambda specific bindings must exist exclusively in `backend/bins/lambda-serverless`.
+3. **Rule M1.3 (Zero-Clone Borrowing Invariant)**: In accordance with the Constitution, Rust code in microkernel crates and Axum feature logic must rely on borrowing (`&T`, `&mut T`), lifetimes, and zero-copy byte slices. Any `.clone()` on non-`Arc`/`Rc` types triggers a failing check unless explicitly annotated with a justified architectural exemption.
+4. **Rule M1.4 (Publishability Guarantee)**: Every microkernel crate must maintain clean metadata, zero internal path hacks, and compile cleanly for `wasm32-unknown-unknown` to ensure immediate distribution on crates.io.
+
+---
+
+## 3. User story validation gates (G0 — G4)
 
 ## Gate sequence and ownership
 

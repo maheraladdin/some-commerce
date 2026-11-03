@@ -21,6 +21,27 @@
 
 ---
 
+## Sprint Quality Gates Lifecycle (SG0 — SG4)
+
+Every sprint in `some-commerce` is governed as a unified delivery milestone through the 5 **Sprint Quality Gates** detailed in [QUALITY_GATES.md](../QUALITY_GATES.md):
+
+```mermaid
+flowchart LR
+    SG0["<b>SG0: Readiness</b><br/>• 100% G0 Stories<br/>• Microkernel ports mapped<br/>• No circular dependencies"]
+    --> SG1["<b>SG1: Integration</b><br/>• Cross-story suites pass<br/>• ≥90% line / ≥85% branch<br/>• Eventual consistency verified"]
+    --> SG2["<b>SG2: Security & Tenant Audit</b><br/>• Zero cross-tenant leaks<br/>• 0 Critical/High CVEs<br/>• OWASP ASVS L2 audit"]
+    --> SG3["<b>SG3: Microkernel & LoB</b><br/>• <b>Gate M1 Passed</b><br/>• Axum/Lambda decoupled<br/>• Rust zero-clone check"]
+    --> SG4["<b>SG4: Release Candidate</b><br/>• Staging smoke tests pass<br/>• P95 < 150ms SLA met<br/>• Rollback drill verified"]
+```
+
+1. **SG0 (Planning & Readiness)**: Story backlogs verified; pure domain logic isolated for crates.io packaging.
+2. **SG1 (Cross-Story Integration)**: End-to-end multi-module flows verified under realistic data schemas.
+3. **SG2 (Security & Tenant Isolation)**: Monorepo vulnerability scan and adversarial multi-tenant fuzzing with zero data leaks.
+4. **SG3 (Architecture & Gate M1)**: Strict verification of pure microkernel logic crates, Axum transport decoupling from `lambda_http`, zero-clone Rust borrowing compliance, and framework-scoped LoB folder hierarchy (`apps/storefront/src/features/...` and `backend/src/features/...`).
+5. **SG4 (Release Candidate & Operations)**: Production staging deployment, load budgets met, operational recovery drill verified.
+
+---
+
 ## Autonomous 3-Agent Parallel Delivery Framework
 
 The development and implementation of `some-commerce` is executed using **3 concurrent, autonomous AI coding agents** (Agent $\alpha$, Agent $\beta$, Agent $\gamma$). Each agent takes end-to-end ownership of one distinct User Story at a time from the sprint backlog to prevent merge conflicts and maintain complete domain context.
@@ -59,7 +80,7 @@ flowchart TD
 
 ## The 7-PR Vertical Slicing Standard
 
-Every single User Story must be delivered through the following **7 sequential, atomic Pull Requests (PRs)** to ensure rock-solid quality, strict separation of concerns, and 100% test coverage at each architectural layer:
+The seven rows below identify architectural responsibilities, not a mandatory PR count. At G0, select affected layers, record reuse and justify N/A layers. Combine layers when that produces a coherent, independently testable change; preserve dependency order and backwards-compatible contracts. Do not introduce empty packages, unnecessary wrappers, or duplicate rules to fill a layer. Every PR and story must pass the [quality gates](../QUALITY_GATES.md); coverage is measured by those rules.
 
 | PR # | Architectural Layer | Primary Targets & Crates | Deliverables & Definition of Done |
 |:-----|:--------------------|:-------------------------|:-----------------------------------|
@@ -73,61 +94,11 @@ Every single User Story must be delivered through the following **7 sequential, 
 
 ---
 
-## Toolchain & Package Ecosystem: Always Latest Stable Versions (Expo SDK 58 & Tokio 1.54.1)
+## Toolchain compatibility gate
 
-All development agents must strictly install, declare, and pin the **latest stable releases** across the monorepo workspace, anchored on **Expo SDK 58** and **Tokio 1.54.1**. Legacy patterns, deprecated APIs, and end-of-life dependencies are strictly prohibited.
+Version labels in the earlier system guides are design inputs, not verified pins. Before the first application PR, select a compatible toolchain from official release metadata and commit exact manifests/lockfiles. Rust 2024 requires Rust 1.85 or later; dependency MSRVs may require a newer compiler. See the [Rust edition guide](https://doc.rust-lang.org/edition-guide/rust-2024/index.html).
 
-```mermaid
-flowchart TD
-    subgraph "Monorepo Tech Stack (Pinned Latest Stable)"
-        direction TB
-        subgraph "Backend: Rust 2024 / 1.84+ (Tokio 1.54.1)"
-            R1["Tokio 1.54.1 (CVE-2026-115567 patched)"]
-            R2["Axum 0.8.x / Tower 0.5.2"]
-            R3["Moka 0.12.16 / Redis-rs 0.29.5"]
-            R4["AWS SDK for Rust v1.134.0 (GA)"]
-            R5["Schemars 1.0.0 / Utoipa 5.3.0"]
-            R6["Cargo Lambda 1.5.0 / Nextest"]
-        end
-
-        subgraph "Client: Expo SDK 58 / React Native 0.88 / React 19"
-            T1["Expo SDK 58 (v58.0.0, iOS 27 + New Architecture)"]
-            T2["React 19.0.0 / React DOM 19.0.0 / RN 0.88.x"]
-            T3["Expo Router v5.0.0 / @expo/ui (SwiftUI + Compose)"]
-            T4["TanStack React Query v5.66.0 (ETag 304 fresh)"]
-            T5["WatermelonDB 0.27.x (JSI SQLite Adapter)"]
-            T6["Axios 1.8.x (fetchWithEtag interceptor)"]
-            T7["Tailwind CSS v4.0.x (@theme CSS-first engine)"]
-        end
-
-        subgraph "Tooling & Infra: AWS CDK v2.170+"
-            I1["Bun Runtime & Package Manager"]
-            I2["Turborepo & Biome Linter"]
-            I3["AWS CDK v2.170+ / Node 22 LTS"]
-            I4["AL2023 Graviton3/4 aarch64"]
-        end
-    end
-```
-
-| Layer | Technology | Minimum Pinned Version | Rationale & Compatibility Guarantee |
-|:------|:-----------|:-----------------------|:------------------------------------|
-| **Async Runtime** | Tokio | **`1.54.1`** | **Explicitly Pinned**. Includes critical fix for `CVE-2026-115567` (`Interval` race condition). Multi-threaded runtime with cooperative scheduling. |
-| **Rust Compiler** | Rust | **`2024 Edition (1.84+)`** | Native async closures, RPITIT (return-position `impl Trait` in traits), modern borrow checker. |
-| **HTTP Framework** | Axum | **`0.8.x` (0.8.9)** | Fully compatible with Tokio 1.54.1. Modern routing, Tower 0.5 middleware, zero-copy streaming. |
-| **In-Memory Cache** | Moka | **`0.12.16`** | Lock-free TinyLFU cache with `try_get_with` request coalescing across 64 concurrent tasks. |
-| **Distributed Cache** | Redis-rs | **`0.29.5`** | Async multiplexed connections with automatic pipeline bundling and Redis Pub/Sub support. |
-| **Cloud SDK** | AWS SDK for Rust | **`v1.134.0` (GA)** | Strongly-typed official SDK (`aws-sdk-dynamodb`, `aws-sdk-kms`, `aws-sdk-sns`, `aws-sdk-bedrockruntime`, `aws-sdk-marketplacemetering`). |
-| **Type & API Codegen** | Schemars & Utoipa | **`schemars 1.0.0` / `utoipa 5.3.0`** | Automated Rust-to-TypeScript interfaces, OpenAPI 3.1 specs, and W3C WebMCP tool schemas. |
-| **Packaging & Compute**| Cargo Lambda | **`1.5.0+`** | Cross-compilation for Amazon Linux 2023 (`al2023`) targeting ARM64 Graviton. |
-| **Mobile & Web App** | Expo SDK | **`SDK 58 (v58.0.0)`** | **Explicitly Pinned**. iOS 27 support, New Architecture (RN 0.88), `@expo/ui` SwiftUI/Jetpack Compose, Expo Router v5, and native MCP support. |
-| **Client Core** | React / React Native | **`React 19.0.0` / `RN 0.88.x`** | Bundled with Expo SDK 58. Native Actions, `use()` hook, Server Components compatibility, and asset preloading. |
-| **Web Styling** | Tailwind CSS | **`v4.0.x`** | Modern CSS-first engine (`@theme`), Lightning CSS compilation, zero legacy `tailwind.config.js`. Compatible with Expo 58 Web. |
-| **Server State** | TanStack React Query | **`v5.66.0`** | ETag conditional request caching (`304 Not Modified`), optimistic offline mutations. |
-| **Client Database** | WatermelonDB | **`0.27.x`** | High-speed SQLite adapter over C++ JSI on iOS/Android (via Expo 58 config plugin); LokiJS/IndexedDB on Web. |
-| **HTTP Client** | Axios | **`1.8.x`** | Interceptor pipeline handling RFC 9110 HTTP `ETag` / `If-None-Match` caching transparently. |
-| **Package Manager** | Bun | **`Latest Stable`** | Fast JS/TS runtime, package manager, and bundler for monorepo tasks. |
-| **Monorepo Build** | Turborepo & Biome | **`Latest Stable`** | Cache-accelerated monorepo task graph + sub-second Biome linting and formatting. |
-| **Infra as Code** | AWS CDK | **`v2.170+`** | CloudFormation synthesis targeting Node 22 LTS with Graviton4 Managed Instance L2 constructs. |
+Verify the Expo/React/React Native/Router/native-module combination on web, iOS and Android; Rust/AWS/CDK compatibility in target regions; and current security advisories with named sources. Record the selected versions, source links, date and build evidence. Do not assert a CVE is fixed without a matching advisory. Updates require compatibility and security gates; “latest stable” is not a reproducible version constraint. See findings F17/F18 in the [stress-test register](../DOCS_STRESS_TEST.md).
 
 ---
 
@@ -144,3 +115,9 @@ flowchart LR
 ```
 
 
+
+## Definition of Ready and Done
+
+Every story, including P1/P2 work, requires [G0–G4 validation](../QUALITY_GATES.md) and its [evidence record](../validation/STORY_EVIDENCE_TEMPLATE.md). Security, architecture and tests are merge gates in every sprint. Sprint 6.3 repeats system-wide validation and cannot substitute for earlier checks.
+
+The calendar records current planning, not validated dependency order or capacity. Resolve [F21 dependency gaps](../DOCS_STRESS_TEST.md) before committing a sprint. Story points now match their tables; estimates must include gate work. Stories appearing in multiple sprints remain In Progress until all of their acceptance criteria and integrated gates pass.

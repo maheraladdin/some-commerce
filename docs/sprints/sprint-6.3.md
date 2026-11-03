@@ -20,7 +20,7 @@ Final hardening sprint: security audit, performance tuning, load testing, docume
 
 ## Production Readiness Checklist
 
-- [ ] All 46 user stories have passed acceptance criteria
+- [ ] All 51 user stories have passed acceptance criteria
 - [ ] Zero critical or high security findings
 - [ ] p99 search latency < 50ms under load
 - [ ] p99 checkout latency < 200ms under load
@@ -33,3 +33,9 @@ Final hardening sprint: security audit, performance tuning, load testing, docume
 - [ ] Monitoring dashboards operational
 - [ ] Incident response runbook published
 - [ ] Team on-call rotation established
+
+## Mandatory Story Validation
+
+- [ ] Every story delivered in this sprint passes [G0–G4](../QUALITY_GATES.md), including its tailored test, security and architecture checks; attach a [story evidence record](../validation/STORY_EVIDENCE_TEMPLATE.md).
+- [ ] Resolve relevant [design and dependency blockers](../DOCS_STRESS_TEST.md) before commitment/release. Partial story work remains In Progress; P1/P2 priority does not exempt it from gates.
+- [ ] Non-story tasks that change production behavior use the same gates and have an accountable owner and evidence record.
