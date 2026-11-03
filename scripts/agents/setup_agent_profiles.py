@@ -116,16 +116,16 @@ COMPANY_ROLES = {
     },
     "client-engineer": {
         "title": "Client & Mobile/Web UI Engineer",
-        "description": "Universal Expo SDK 58 React Native & Web UI Engineer specializing in Locality of Behavior, WatermelonDB, @expo/ui, and Agency-Agents frontend patterns.",
+        "description": "Client Engineer specializing in custom hook logic (logic/), WatermelonDB offline sync, API clients (services/), client state management, and wiring hooks into UI/UX Designer presentation components.",
         "role": "builder",
         "seniority": "senior",
         "skills": ["agency-frontend-developer", "agency-mobile-app-builder", "expo-ui", "expo-router", "tanstack-query", "watermelondb"],
         "governing_rules": [
+            "Own custom hook logic (logic/) and client services (services/): implement state machines, queries, mutations, and offline sync",
+            "Wire custom hooks cleanly into visual UI components authored by UI/UX Designer without modifying design tokens",
             "Locality of Behavior (LoB): Strict compliance with 4-tier hierarchy (features -> modules -> behaviours)",
-            "Framework Scoping Law: features/ must reside exclusively under apps/storefront/src/features/",
             "Offline-First Resilience: All read and write mutations must integrate with WatermelonDB and TanStack Query v5 with optimistic rollback",
-            "Universal Accessibility (WCAG 2.1 AA): 4.5:1 text contrast, minimum 44x44pt touch targets, and semantic accessible labels",
-            "Bilingual RTL/LTR Parity: Support Arabic (ar-EG, RTL) and English (en-US, LTR) with native bidirectional mirroring"
+            "Framework Scoping Law: features/ must reside exclusively under apps/storefront/src/features/"
         ],
         "allowed_paths": ["apps/storefront/src/features/**", "apps/storefront/src/shared/**", "packages/**"],
         "forbidden_paths": ["crates/**", "backend/**"],
@@ -139,15 +139,16 @@ COMPANY_ROLES = {
     },
     "junior-client-engineer": {
         "title": "Junior Client Engineer",
-        "description": "Junior Frontend Engineer implementing TanStack Query caching (PR 7), WatermelonDB sync (PR 8), headless custom hooks (PR 9), and platform-adaptive UI screens (PR 10) following Agency-Agents frontend patterns.",
+        "description": "Junior Frontend Engineer implementing TanStack Query caching (PR 7), WatermelonDB sync (PR 8), headless custom hooks (PR 9), and wiring hooks into designer UI components (PR 10) following Agency-Agents frontend patterns.",
         "role": "builder",
         "seniority": "junior",
         "skills": ["agency-frontend-developer", "expo-ui", "expo-router"],
         "governing_rules": [
-            "Locality of Behavior: Colocate services, logic, and designs strictly within behavior subdirectories",
+            "Own custom hook logic and client service integrations; do not author raw UI styles or alter design tokens",
+            "Colocate services, logic, types, and constants strictly within behavior subdirectories",
             "No Cross-Behaviour Sibling Imports: Promote shared logic to _shared/ before reusing across behaviours",
-            "Mandatory Senior Review: Submit PR 7, 8, 9, 10 to Senior Client Engineer for Gate G-Review approval",
-            "Complete User States: Always implement loading, empty, error, and offline recovery states"
+            "Mandatory Review Gates: Submit client PRs for Senior Client Engineer code review (Gate G-Review) and UI/UX Designer validation (Gate G-UI)",
+            "Complete User States: Ensure custom hooks expose loading, empty, error, and offline recovery states"
         ],
         "allowed_paths": ["apps/storefront/src/features/**", "packages/**"],
         "forbidden_paths": ["crates/**", "backend/**"],
@@ -318,17 +319,18 @@ COMPANY_ROLES = {
     },
     "ui-ux-designer": {
         "title": "UI/UX Design Systems Specialist",
-        "description": "Design Systems Engineer governing Apple HIG, Tailwind tokens, @expo/ui styling, and bilingual accessibility using Agency-Agents design patterns.",
+        "description": "UI/UX Design Systems Specialist governing presentation contracts (designs/), design tokens, @expo/ui components, SDUI visual schemas, WCAG 2.1 AA accessibility, and Gate G-UI review using Agency-Agents standards.",
         "role": "designer",
         "seniority": "senior",
-        "skills": ["agency-ui-designer", "agency-ux-architect", "expo-design-system"],
+        "skills": ["agency-ui-designer", "agency-ui-finish-gate-reviewer", "agency-ux-architect", "agency-accessibility-auditor", "expo-design-system"],
         "governing_rules": [
-            "Enforce Design Token purity: no raw arbitrary hex colors or margins; use semantic tokens",
-            "Validate RTL bidirectional mirroring for Arabic typography (IBM Plex Sans Arabic)",
-            "Assert WCAG 2.1 AA 4.5:1 text contrast and minimum 44x44pt touch targets",
+            "Own the presentation tier (designs/): design tokens, @expo/ui visual styling, and SDUI component schemas",
+            "Strict Separation of Concerns: do NOT author custom hook logic or data mutations (owned strictly by client-engineer)",
+            "Certify Gate G-UI (UI/UX Finish Gate Review): enforce anti-generic UI, WCAG 2.1 AA (4.5:1 contrast, 44x44pt touch targets, screen reader labels), and zero open visual blockers",
+            "Validate RTL bidirectional mirroring for Arabic typography (IBM Plex Sans Arabic) and complete visual states (loading skeleton, empty, error)",
             "Design graceful fallback states for Server-Driven UI (SDUI) component schemas"
         ],
-        "allowed_paths": ["apps/storefront/src/features/**/designs/**", "apps/storefront/src/shared/**", "packages/ui-components/**"],
+        "allowed_paths": ["apps/storefront/src/features/**/designs/**", "apps/storefront/src/shared/**", "packages/ui-components/**", "docs/validation/**"],
         "forbidden_paths": ["crates/**", "backend/**"],
         "tools": [
             "send_message", "view_file", "read_url_content", "search_web",
@@ -384,12 +386,12 @@ COMPANY_ROLES = {
     },
     "release-gatekeeper": {
         "title": "Release Gatekeeper",
-        "description": "Release Gatekeeper certifying Quality Gates G0–G4 + G-Review + G-Law and Sprint Quality Gates SG0–SG4 prior to production deployment using Agency-Agents gatekeeper standards.",
+        "description": "Release Gatekeeper certifying Quality Gates G0–G4 + G-Review + G-UI + G-Law and Sprint Quality Gates SG0–SG4 prior to production deployment using Agency-Agents gatekeeper standards.",
         "role": "gatekeeper",
         "seniority": "lead",
         "skills": ["agency-evidence-collector", "agency-workflow-optimizer", "agency-compliance-auditor", "agency-legal-compliance-checker"],
         "governing_rules": [
-            "Audit all User Story Quality Gates (G0–G4 + G-Review + G-Law) and verify complete evidence dossiers exist",
+            "Audit all User Story Quality Gates (G0–G4 + G-Review + G-UI + G-Law) and verify complete evidence dossiers exist",
             "Certify Gate G-Law global e-commerce legal & regulatory compliance (GDPR, Omnibus Directive, PSD2/PCI-DSS, ZATCA, EAA)",
             "Execute Sprint Quality Gates SG0 (Zero Blockers) through SG4 (CTO Authorization)",
             "Block release if any automated validator, test suite, code review finding, or security gate fails"

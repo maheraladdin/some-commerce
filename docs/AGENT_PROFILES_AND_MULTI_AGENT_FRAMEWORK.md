@@ -63,18 +63,25 @@ G0 rejects missing spec/plan/tasks, stale revisions, unassigned ACs or an unappr
 
 ## 3. Core execution profiles and task permissions
 
-Company job titles map to three reusable capability profiles. Seniority is a review assignment, not an automatic permission upgrade. Separate instances of the same profile may work concurrently.
+Company job titles map to reusable capability profiles across backend engineering, client engineering, UI/UX design, QA testing, security auditing, and release gatekeeping. Seniority is a review assignment, not an automatic permission upgrade. Separate instances of the same profile may work concurrently.
 
 Authentication is a separate dimension: **agent-a, agent-b and agent-c can run every job title and profile**. `auth_account: auto` uses the local allocator in `scripts/agents/agent_account_pool.py` through `scripts/agents/agy_agent.sh`; neither account names nor job titles determine a fixed engineering track. It reserves capacity atomically and balances estimated usage, configured budgets, active reservations and cooldowns. Its local ledger is not provider quota telemetry or the durable story scheduler. Explicit account selection still respects local limits. See the [account and role README](../.agents/agents/README.md) for usage, quota reporting and recovery commands.
+
+### Clear Frontend Ownership Boundary: UI/UX Designer vs. Client Engineer
+To maintain clean Locality of Behavior (LoB) and prevent frontend architectural degradation, the presentation layer and state/logic layer maintain strict separate ownership:
+- **`ui-ux-designer`**: Owns the **presentation and design tier** (`designs/` directory). Governs design tokens, @expo/ui native styling, Server-Driven UI (SDUI) component schemas, visual loading/empty/error states, WCAG 2.1 AA accessibility (touch targets, contrast, screen reader labels), and Arabic RTL bidirectional mirroring. **Never writes custom hook logic, business state machines, or direct network/database mutations.**
+- **`client-engineer`**: Owns the **custom hook logic and client services tier** (`logic/` and `services/` directories). Governs custom hooks (e.g. `usePhoneOtpAuth`, `useProductConfigurator`), client business rules, TanStack Query mutations, WatermelonDB offline-first SQLite synchronization, and connecting headless custom hooks into the UI components provided by the designer. **Never invents design tokens or hardcodes arbitrary visual styles.**
 
 | Profile / mode | Responsibilities | Eligible paths; task must narrow them | Explicit limits |
 |:---------------|:-----------------|:--------------------------------------|:----------------|
 | `backend-engineer` / builder | Domain rules, schemas, adapters, APIs and workers | Named files under `crates/`, `backend/` | No CI/policy changes, credentials, merge or release rights |
 | `backend-engineer` / tester | Unit/property/repository/concurrency tests | Assigned test files or named inline test sections | Inline tests share ownership with production files; no simultaneous writers |
-| `client-engineer` / builder | Client services, sync, hooks, web/native views | Named files under `apps/storefront/` and applicable `packages/` | No independent financial/auth policy; no blanket offline execution of sensitive mutations |
-| `client-engineer` / tester | Component/device/offline/accessibility tests | Assigned test files and fixtures | Real integration evidence required where mocks cannot prove behavior |
+| `client-engineer` / builder | Custom hook logic (`logic/`), client state, WatermelonDB SQLite sync and API services (`services/`), types and constants; wires custom hooks into designer UI components | Named files under `apps/storefront/src/features/**/{logic,services,types,constants}/` and `packages/` | Cannot author arbitrary UI styling or design tokens; no independent financial/auth policy; no unapproved offline execution of sensitive mutations |
+| `client-engineer` / tester | Custom hook tests, offline sync tests, state machine and provider contract tests | Assigned test files and fixtures | Real integration evidence required where mocks cannot prove behavior |
+| `ui-ux-designer` / designer (builder) | Presentation tier (`designs/`), semantic design tokens, @expo/ui components, SDUI schemas, responsive layouts, accessibility (WCAG 2.1 AA), Arabic RTL bidirectional mirroring, and visual UX states (skeletons, empty, error) | Named files under `apps/storefront/src/features/**/designs/`, `packages/ui-components/` | No custom hook logic or direct API/DB mutations; cannot publish SDUI schemas without approved workflow or bypass Gate G-UI |
+| `ui-ux-designer` / reviewer (Gate G-UI) | UI/UX Finish Gate audit, accessibility verification (EAA/ADA), design token purity, contrast/touch target checks, and RTL layout parity certification | Own review drafts, `docs/validation/` | Cannot self-approve own UI designs; zero open visual/interaction blockers |
 | `qa-security-auditor` / security tester | Threat review, synthetic adversarial tests, scanner triage | Assigned tests and own draft evidence directory | No production probing, access to live credentials, or final evidence/signing authority |
-| `qa-security-auditor` / gatekeeper | Verify evidence completeness and trusted check results | Own review drafts; trusted service writes final decisions | Cannot approve own implementation, edit prior evidence or merge by writing a file |
+| `qa-security-auditor` / gatekeeper | Verify evidence completeness across all gates (G0–G4 + G-Review + G-UI + G-Law) and trusted check results | Own review drafts; trusted service writes final decisions | Cannot approve own implementation, edit prior evidence or merge by writing a file |
 
 Job titles, responsibilities and approval separation are specified in the [company authority matrix](COMPANY_ROLES_AND_AGENT_PROFILES.md#2-role-and-authority-matrix). Profile defaults such as `crates/**`, `packages/**` or `**` must not become active per-task grants. A task requiring CI, dependency, generator, policy or manifest changes is separately scoped and independently reviewed.
 
@@ -161,14 +168,14 @@ An assignment is READY only when all of the following hold:
 
 Dispatch all independent READY assignments up to configured capacity; do not serialize them solely by PR number, job title or seniority. When a verified task unblocks a successor, dispatch it without waiting for unrelated branches. If all work is blocked, report the blocking edge/owner instead of polling or inventing progress.
 
-| Example task | Junior | Prerequisite | Concurrent work allowed |
-|:-------------|:-------|:-------------|:------------------------|
-| Backend repository PR | BE-01 | Verified domain/schema contract | Client service PR and isolated QA fixture PR |
-| Client service PR | FE-01 | Same frozen API/sync contract | Backend repository PR using contract fixtures |
-| Independent catalog PR | BE-02 | Its own ready spec and free paths | Both auth tracks if no shared writes |
-| API handlers PR | BE-03 | Verified repository interface/commit | Independent catalog/client work |
-| UI PR | FE-02 | Verified hook contract/commit | Backend work with stable consumer contract |
-| Integrated acceptance | QA-02 | Exact combined candidate built and tested | No G4 pass from mocked or partial dependencies |
+| Example task | Assignee | Prerequisite | Concurrent work allowed |
+|:-------------|:---------|:-------------|:------------------------|
+| Backend repository PR | BE-01 (Backend) | Verified domain/schema contract | Client service PR and isolated QA fixture PR |
+| Client service PR (`services/`) | FE-01 (Client) | Same frozen API/sync contract | Backend repository PR using contract fixtures |
+| UI/UX Component & Layout PR (`designs/`) | UI-01 (Designer) | Approved design tokens & SDUI schema | Client custom hook PR (`logic/`) and backend API PR |
+| Client Custom Hook PR (`logic/`) | FE-02 (Client) | Frozen API/sync contract and hook interface | UI/UX component design PR using typed hook interface |
+| Client Integration PR (Hooks + Designs) | FE-03 (Client) | Verified UI components and verified custom hooks | QA test authoring and backend work |
+| Integrated acceptance (Gate G4) | QA-02 (QA Lead) | Exact combined candidate built and tested across all gates | No G4 pass from mocked or partial dependencies |
 
 If two PRs need the same shared file, extract a prerequisite contract change or serialize that file's ownership. Worktrees permit isolated proposals but do not eliminate semantic merge conflicts. Test authors needing an inline `#[cfg(test)]` module must share a single file owner or sequence their edits.
 
@@ -209,7 +216,7 @@ On an accepted submission, the controller must:
 1. Persist the immutable candidate and handoff receipt, create the L2 senior-validation item, and record the junior's assignment as SUBMITTED. Commit the state change and an outgoing queue event atomically, or use a transactional outbox with idempotent delivery.
 2. Confirm the junior has stopped writing to that candidate, revoke its write lease, and return the worker to AVAILABLE. A failed/malformed handoff remains with its owner until corrected; do not discard the work to free capacity.
 3. In the same scheduling cycle, dispatch the next eligible story/task to the available junior with a fresh role → context → detailed task brief and acknowledged Spec Kit chain. Dispatch senior review independently as soon as its reserved capacity is available.
-4. On each accepted stage result, persist and enqueue the next required stage exactly once: L2 senior → L3 security/architecture → L4 integration → L5 PM acceptance → L6 CTO/release review. Independent L3 checks can run in parallel; both must pass on the same candidate before L4. CTO review applies to the release candidate containing the accepted story; it need not create a separate deployment per story.
+4. On each accepted stage result, persist and enqueue the next required stage exactly once: L2 senior review (Gate G-Review) → L3 security, architecture, UI/UX and legal validation (Gate G2, G3, Gate G-UI, Gate G-Law) → L4 integration → L5 PM acceptance → L6 CTO/release review. Independent L3 checks can run in parallel; all must pass on the same candidate before L4. CTO review applies to the release candidate containing the accepted story; it need not create a separate deployment per story.
 
 Use durable queues per stage, including remediation and blocked work. The queue key includes story/task, candidate revision, stage and attempt. Worker availability is independent of story status. Late callbacks cannot make a worker with a newer assignment AVAILABLE. Queue acknowledgment occurs only after the stage decision and successor event are durably recorded. Redelivery after a crash must not create duplicate review, repair, merge or release actions.
 

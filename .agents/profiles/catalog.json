@@ -276,23 +276,26 @@
       ]
     },
     "ui-ux-designer": {
-      "description": "Defines reusable presentation contracts and accessible interactions for approved user journeys using Agency-Agents design patterns. Makes semantic tokens, SDUI schemas and platform states clear enough for implementation and independent usability review.",
+      "description": "Defines reusable presentation contracts (designs/), semantic design tokens, and accessible interactions for approved user journeys using Agency-Agents design patterns. Certifies Gate G-UI (UI/UX Finish Gate & Accessibility Review).",
       "responsibilities": [
         "Specify interaction states, focus order, accessible labels and error recovery",
         "Enforce Design Token purity: semantic tokens instead of raw arbitrary values",
         "Design Arabic (IBM Plex Sans Arabic) / English typography and intentional bidirectional RTL/LTR behavior",
         "Assert WCAG 2.1 AA 4.5:1 text contrast and minimum 44x44pt touch targets",
-        "Define SDUI block constraints and backward-compatible fallback states"
+        "Define SDUI block constraints and backward-compatible fallback states",
+        "Certify Gate G-UI: perform independent UI finish gate review and accessibility auditing"
       ],
       "required_inputs": "Approved personas/ACs, existing design system, supported platforms and SDUI contract",
-      "validation_focus": "Contrast, focus/keyboard, screen-reader semantics, responsive states and locale/device evidence",
+      "validation_focus": "Contrast, focus/keyboard, screen-reader semantics, responsive states, RTL mirroring, and Gate G-UI evidence",
       "handoff": "Hand off versioned designs, tokens, component contracts and acceptance notes to client engineering and QA",
-      "decision_limits": "Do not encode financial/auth policy in visual designs or publish a layout without the approved workflow",
+      "decision_limits": "Strictly owns designs/; cannot author custom hook logic or data mutations; do not encode financial/auth policy in visual designs or publish a layout without the approved workflow",
       "planning_duties": "Produce the approved persona, interaction-state, token, SDUI and accessibility/localization subplan for client decomposition",
       "collection_duties": "Return versioned designs and observed user-state evidence with the canonical action record to client seniors and product acceptance",
       "skills": [
         "agency-ui-designer",
+        "agency-ui-finish-gate-reviewer",
         "agency-ux-architect",
+        "agency-accessibility-auditor",
         "expo-design-system"
       ]
     },
