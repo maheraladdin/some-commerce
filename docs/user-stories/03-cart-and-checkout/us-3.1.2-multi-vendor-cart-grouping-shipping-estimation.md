@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/order-processing-and-commerce/modules/cart-and-checkout/behaviours/multi-vendor-cart-grouping`  
 > **Backend Framework Path**: `backend/src/features/order-processing-and-commerce/modules/cart-and-checkout/behaviours/multi-vendor-cart-grouping`  
 > **Execution Sprint**: [Sprint 1.2](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -38,6 +38,12 @@ Feature: Multi-Vendor Cart Grouping
     When the user removes all Vendor A items
     Then the Vendor A group disappears
     And shipping is recalculated for Vendor B only
+  Scenario: [AC-US-3.1.2-LAW] Global e-commerce legal compliance and multi-vendor cost transparency regulations
+    Given a multi-vendor cart containing items from independent marketplace merchants
+    When estimating shipping fees and grouping orders by vendor
+    Then the legal identity and physical business address of each third-party seller must be clearly disclosed
+    And shipping, customs, and handling fees must be itemized per vendor with zero hidden or surprise fees (anti-drip pricing)
+    And separate contractual commitments per vendor must be made explicitly clear to the consumer prior to order submission
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -49,6 +55,7 @@ Feature: Multi-Vendor Cart Grouping
 | TC-3.1.2-03 | Remove vendor group | Happy Path | Group disappears, recalc |
 | TC-3.1.2-04 | Per-vendor shipping estimate | Happy Path | Separate rates per vendor |
 | TC-3.1.2-05 | 10 vendors in cart | Performance | All groups render <200ms |
+| TC-3.1.2-LAW | Global legal & regulatory compliance (EU Consumer Rights Directive total price transparency, FTC hidden fee/drip pricing ban) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -212,7 +219,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-3.1.2-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -222,6 +229,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-3.1.2-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-3.1.2-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-3.1.2-G-Law:** Independent verification against global e-commerce legal and statutory requirements: EU Consumer Rights Directive (Directive 2011/83/EU), FTC hidden fee / drip pricing prohibition, and US INFORM Consumers Act seller disclosure; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-3.1.2-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/catalog-and-discovery/modules/webmcp-and-ai/behaviours/admin-store-copilot`  
 > **Backend Framework Path**: `backend/src/features/catalog-and-discovery/modules/webmcp-and-ai/behaviours/admin-store-copilot`  
 > **Execution Sprint**: [Sprint 1.1](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -46,6 +46,12 @@ Feature: Admin WebMCP Copilot
     Given a B2C_CUSTOMER attempts to call admin_style_and_generate_sdui
     Then a 403 Forbidden error is returned
     And the tool is not registered for non-admin users
+  Scenario: [AC-US-8.1.2-LAW] Global e-commerce legal compliance and administrative AI copilot governance
+    Given a store administrator utilizing the WebMCP copilot for catalog edits, pricing adjustments, or bulk actions
+    When the AI assistant executes store management operations
+    Then human oversight mechanisms must require explicit human confirmation for high-impact actions (price changes, inventory write-offs)
+    And algorithmic pricing suggestions must comply with anti-collusion competition laws prohibiting automated price-fixing
+    And an audit record linking the human administrator to every AI-suggested catalog mutation must be maintained
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -60,6 +66,7 @@ Feature: Admin WebMCP Copilot
 | TC-8.1.2-06 | Non-admin access | Security | 403 Forbidden |
 | TC-8.1.2-07 | Invalid layout JSON | Validation | Error with details |
 | TC-8.1.2-08 | Concurrent SDUI publishes | Concurrency | ETag prevents conflict |
+| TC-8.1.2-LAW | Global legal & regulatory compliance (EU AI Act Art 14 human oversight mandate, competition law pricing rules, admin audit trails) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -236,7 +243,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-8.1.2-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -246,6 +253,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-8.1.2-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-8.1.2-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-8.1.2-G-Law:** Independent verification against global e-commerce legal and statutory requirements: EU AI Act Art 14 human oversight requirements, antitrust and algorithmic pricing fairness laws, and operator accountability logging; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-8.1.2-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

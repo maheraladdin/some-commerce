@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/identity-and-access/modules/customer-account/behaviours/customer-profile-management`  
 > **Backend Framework Path**: `backend/src/features/identity-and-access/modules/customer-account/behaviours/customer-profile-management`  
 > **Execution Sprint**: [Sprint 1.1](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -39,6 +39,12 @@ Feature: Profile Management
   Scenario: [AC-US-7.1.1-04] View connected sessions
     Then the profile shows active sessions (device, last active time)
     And the customer can revoke any session
+  Scenario: [AC-US-7.1.1-LAW] Global e-commerce legal compliance and consumer privacy rights regulations
+    Given a customer managing their personal profile details in account settings
+    When accessing, reviewing, or updating their personal data
+    Then the consumer must be granted instantaneous self-service access to all stored personal data per GDPR Art 15 and CCPA
+    And profile corrections and attribute updates must propagate immediately across all operational systems per GDPR Art 16
+    And profile data collection must adhere to explicit purpose limitation without storing undeclared personal characteristics
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -55,6 +61,7 @@ Feature: Profile Management
 | TC-7.1.1-08 | Revoke session | Happy Path | Session terminated |
 | TC-7.1.1-09 | Concurrent profile edits | Concurrency | ETag If-Match → 412 |
 | TC-7.1.1-10 | Unauthenticated access | Security | Redirect to sign-in |
+| TC-7.1.1-LAW | Global legal & regulatory compliance (GDPR Art 15 Right of Access, Art 16 Right to Rectification, CCPA/CPRA Consumer Rights to Know/Correct) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -225,7 +232,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-7.1.1-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -235,6 +242,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-7.1.1-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-7.1.1-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-7.1.1-G-Law:** Independent verification against global e-commerce legal and statutory requirements: GDPR Art 15 (Right of Access), GDPR Art 16 (Right to Rectification), and CCPA/CPRA consumer data access mandates; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-7.1.1-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/order-processing-and-commerce/modules/cart-and-checkout/behaviours/localized-address-management`  
 > **Backend Framework Path**: `backend/src/features/order-processing-and-commerce/modules/cart-and-checkout/behaviours/localized-address-management`  
 > **Execution Sprint**: [Sprint 1.2](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -38,6 +38,12 @@ Feature: Localized Address Management
     When the user sets one as default
     Then that address is pre-selected in checkout
     And can be edited or deleted from the profile page
+  Scenario: [AC-US-3.1.4-LAW] Global e-commerce legal compliance and address verification regulations
+    Given a user creating or modifying delivery addresses across multiple jurisdictions
+    When validating and persisting localized address records
+    Then customer delivery addresses must be protected under GDPR/CCPA with access restricted strictly to fulfillment necessity
+    And address validation must conform to Universal Postal Union (UPU) postal formatting across international destinations
+    And destination countries and postal codes must be verified against international export sanctions and trade embargo restrictions
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -52,6 +58,7 @@ Feature: Localized Address Management
 | TC-3.1.4-06 | Arabic address with RTL | i18n | Fields align RTL |
 | TC-3.1.4-07 | Address with special characters | Validation | Sanitized but accepted |
 | TC-3.1.4-08 | Max 10 saved addresses | Edge Case | Error when adding 11th |
+| TC-3.1.4-LAW | Global legal & regulatory compliance (GDPR address protection, UPU postal standards, OFAC/EU trade sanctions checks) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -222,7 +229,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-3.1.4-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -232,6 +239,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-3.1.4-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-3.1.4-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-3.1.4-G-Law:** Independent verification against global e-commerce legal and statutory requirements: GDPR/CCPA customer address privacy, Universal Postal Union formatting standards, and destination trade embargo screening; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-3.1.4-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

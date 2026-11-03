@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/commercial-models/modules/digital-products-and-licensing/behaviours/six-mode-licensing-engine`  
 > **Backend Framework Path**: `backend/src/features/commercial-models/modules/digital-products-and-licensing/behaviours/six-mode-licensing-engine`  
 > **Execution Sprint**: [Sprint 2.1 / 2.2](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -54,6 +54,12 @@ Feature: 6-Mode Licensing Engine
     When an admin revokes a license
     Then an SNS silent push is sent to the buyer's device
     And the device immediately marks the license as revoked locally
+  Scenario: [AC-US-9.1.2-LAW] Global e-commerce legal compliance and software licensing regulations
+    Given the generation and cryptographic validation of software license grants (perpetual, node-locked, floating)
+    When issuing and verifying digital license certificates
+    Then license parameters and usage constraints must be disclosed unambiguously in the end-user license agreement (EULA)
+    And cryptographic tamper-proofing must comply with legal anti-circumvention provisions protecting digital copyright
+    And license issuance must preserve customer rights to lawful software resale and interoperability decompilation under EU law
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -72,6 +78,7 @@ Feature: 6-Mode Licensing Engine
 | TC-9.1.2-10 | Release after entitlement | Validation | Blocked |
 | TC-9.1.2-11 | Push revocation | Happy Path | Device revokes locally |
 | TC-9.1.2-12 | Max machines exceeded | Validation | Activation denied |
+| TC-9.1.2-LAW | Global legal & regulatory compliance (EU Software Directive 2009/24/EC, DMCA anti-circumvention statutory compliance, EULA transparency) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -247,7 +254,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-9.1.2-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -257,6 +264,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-9.1.2-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-9.1.2-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-9.1.2-G-Law:** Independent verification against global e-commerce legal and statutory requirements: EU Software Directive (Directive 2009/24/EC), DMCA § 1201 anti-circumvention compliance, and statutory software decompilation/resale rights; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-9.1.2-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

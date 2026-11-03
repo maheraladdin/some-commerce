@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/commercial-models/modules/digital-products-and-licensing/behaviours/license-vault-ui`  
 > **Backend Framework Path**: `backend/src/features/commercial-models/modules/digital-products-and-licensing/behaviours/license-vault-ui`  
 > **Execution Sprint**: [Sprint 2.2](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -35,12 +35,23 @@ Feature: Digital License Vault
     When the buyer clicks "Activate Offline Device"
     Then the native camera QR scanner opens (expo-crypto-license)
     And scans the ChallengeQR from the offline workstation
+  Scenario: [AC-US-9.1.4-LAW] Global e-commerce legal compliance and digital certificate vault regulations
+    Given a customer accessing their digital license vault to view keys and download activation credentials
+    When retrieving purchased license keys or certificates
+    Then the customer must be provided with durable, permanent access to license credentials and activation keys on durable media (PDF)
+    And purchased perpetual licenses must remain downloadable and viewable regardless of subsequent catalog deprecations
+    And license transfer and assignment terms must be clearly disclosed within the digital vault interface
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
 
 
-
+| # | Test Case | Type | Expected Result |
+|:--|:----------|:-----|:----------------|
+| TC-9.1.4-01 | Primary user journey functional flow | Happy Path | User story outcome achieved |
+| TC-9.1.4-02 | Edge case and boundary condition validation | Edge Case | Handled with typed error |
+| TC-9.1.4-03 | Threat model and authorization boundary validation | Security | Unauthorized requests rejected |
+| TC-9.1.4-LAW | Global legal & regulatory compliance (EU Consumer Rights Directive Art 8 durable medium, perpetual software purchase preservation) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 ---
 
 ## 2. Behavior-Centric Architecture & Folder Blueprint
@@ -191,7 +202,7 @@ backend/src/features/commercial-models/modules/digital-products-and-licensing/be
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-9.1.4-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -201,6 +212,12 @@ backend/src/features/commercial-models/modules/digital-products-and-licensing/be
 
 ### G3 — Architecture and maintainability
 - [ ] **US-9.1.4-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-9.1.4-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-9.1.4-G-Law:** Independent verification against global e-commerce legal and statutory requirements: EU durable medium proof of purchase, permanent consumer access to perpetual digital licenses, and transparent assignment terms; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-9.1.4-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

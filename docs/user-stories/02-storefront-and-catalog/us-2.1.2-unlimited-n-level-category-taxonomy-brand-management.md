@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/catalog-and-discovery/modules/storefront-and-catalog/behaviours/n-level-taxonomy`  
 > **Backend Framework Path**: `backend/src/features/catalog-and-discovery/modules/storefront-and-catalog/behaviours/n-level-taxonomy`  
 > **Execution Sprint**: [Sprint 1.1](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -58,6 +58,12 @@ Feature: N-Level Category Taxonomy
     When the admin attempts to delete "Gaming Laptops"
     Then a warning "This category has 15 products. Reassign or remove them first." is shown
     And the category is not deleted
+  Scenario: [AC-US-2.1.2-LAW] Global e-commerce legal compliance and regulated goods classification laws
+    Given the product category taxonomy and brand catalog structure
+    When categorizing regulated, branded, or age-restricted merchandise
+    Then age-restricted merchandise (alcohol, tobacco, adult goods) must enforce mandatory age-verification classification flags
+    And category structures must support trademark protection and counterfeit reporting under EU DSA notice-and-action rules
+    And restricted categories must prevent deceptive reclassification to bypass municipal commerce prohibitions
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -74,6 +80,7 @@ Feature: N-Level Category Taxonomy
 | TC-2.1.2-08 | Duplicate slug in same parent | Validation | Error shown |
 | TC-2.1.2-09 | Brand with Arabic-only name | i18n | RTL name stored and searchable |
 | TC-2.1.2-10 | Concurrent category edits | Concurrency | ETag If-Match → 412 on conflict |
+| TC-2.1.2-LAW | Global legal & regulatory compliance (EU Digital Services Act trademark protection, age-restricted goods statutory gating) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -252,7 +259,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-2.1.2-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -262,6 +269,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-2.1.2-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-2.1.2-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-2.1.2-G-Law:** Independent verification against global e-commerce legal and statutory requirements: EU Digital Services Act (DSA Regulation 2022/2065), trademark infringement notice-and-action, and age-restricted goods classification; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-2.1.2-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

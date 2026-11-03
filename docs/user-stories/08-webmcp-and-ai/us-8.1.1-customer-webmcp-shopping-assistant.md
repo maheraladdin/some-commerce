@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/catalog-and-discovery/modules/webmcp-and-ai/behaviours/customer-shopping-assistant`  
 > **Backend Framework Path**: `backend/src/features/catalog-and-discovery/modules/webmcp-and-ai/behaviours/customer-shopping-assistant`  
 > **Execution Sprint**: [Sprint 1.1](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -48,6 +48,12 @@ Feature: Customer WebMCP Shopping Assistant
     Given the browser does not support navigator.modelContext
     Then the in-app AI drawer uses POST /v1/mcp/customer via Bedrock Converse
     And all the same tools are available via the chat interface
+  Scenario: [AC-US-8.1.1-LAW] Global e-commerce legal compliance and consumer AI interaction regulations
+    Given a customer interacting with the WebMCP shopping AI agent
+    When the AI assistant recommends products, summarizes reviews, or assists in checkout
+    Then the user must be informed clearly and unambiguously that they are interacting with an artificial intelligence system (EU AI Act Art 50)
+    And AI recommendations must not manipulate consumer purchasing decisions through deceptive dark patterns or concealed sponsored bias
+    And personal conversational prompts must be handled under strict data privacy safeguards without training external models on customer PII
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -64,6 +70,7 @@ Feature: Customer WebMCP Shopping Assistant
 | TC-8.1.1-08 | Ambiguous query | Edge Case | Clarification requested |
 | TC-8.1.1-09 | Injection attack in query | Security | Input sanitized |
 | TC-8.1.1-10 | Unauthenticated profile update | Security | Requires auth |
+| TC-8.1.1-LAW | Global legal & regulatory compliance (EU AI Act Regulation 2024/1689 Art 50 AI transparency, GDPR Art 22 automated decisions, FTC truth in AI) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -234,7 +241,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-8.1.1-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -244,6 +251,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-8.1.1-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-8.1.1-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-8.1.1-G-Law:** Independent verification against global e-commerce legal and statutory requirements: EU Artificial Intelligence Act (Regulation 2024/1689 Art 50 transparency), GDPR Art 22 automated decision disclosures, and FTC anti-deceptive AI guidance; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-8.1.1-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

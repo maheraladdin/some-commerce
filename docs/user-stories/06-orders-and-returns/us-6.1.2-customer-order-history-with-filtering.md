@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/order-processing-and-commerce/modules/orders-and-returns/behaviours/customer-order-history`  
 > **Backend Framework Path**: `backend/src/features/order-processing-and-commerce/modules/orders-and-returns/behaviours/customer-order-history`  
 > **Execution Sprint**: [Sprint 1.2](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -35,12 +35,23 @@ Feature: Order History
     When the customer clicks "Reorder" on a past order
     Then all items are added to the current cart
     And unavailable items are flagged
+  Scenario: [AC-US-6.1.2-LAW] Global e-commerce legal compliance and statutory invoice retention regulations
+    Given a customer viewing their historical order records and downloading invoices
+    When accessing archived orders and purchase documents
+    Then order confirmations and invoices must remain accessible on a durable medium (PDF/downloadable format) for the statutory period
+    And fiscal purchase records must be retained securely for statutory audit periods (6 to 10 years) under commercial tax laws
+    And personal data masking must balance privacy rights with legal requirements to preserve immutable fiscal transactions
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
 
 
-
+| # | Test Case | Type | Expected Result |
+|:--|:----------|:-----|:----------------|
+| TC-6.1.2-01 | Primary user journey functional flow | Happy Path | User story outcome achieved |
+| TC-6.1.2-02 | Edge case and boundary condition validation | Edge Case | Handled with typed error |
+| TC-6.1.2-03 | Threat model and authorization boundary validation | Security | Unauthorized requests rejected |
+| TC-6.1.2-LAW | Global legal & regulatory compliance (EU Directive 2011/83/EU Art 8(7) durable medium, commercial tax code 6-10 year retention) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 ---
 
 ## 2. Behavior-Centric Architecture & Folder Blueprint
@@ -191,7 +202,7 @@ backend/src/features/order-processing-and-commerce/modules/orders-and-returns/be
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-6.1.2-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -201,6 +212,12 @@ backend/src/features/order-processing-and-commerce/modules/orders-and-returns/be
 
 ### G3 — Architecture and maintainability
 - [ ] **US-6.1.2-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-6.1.2-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-6.1.2-G-Law:** Independent verification against global e-commerce legal and statutory requirements: EU Consumer Rights Directive durable medium access, statutory commercial tax record retention (6–10 years), and fiscal audit integrity; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-6.1.2-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

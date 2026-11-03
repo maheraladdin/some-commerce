@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/order-processing-and-commerce/modules/orders-and-returns/behaviours/realtime-order-tracking`  
 > **Backend Framework Path**: `backend/src/features/order-processing-and-commerce/modules/orders-and-returns/behaviours/realtime-order-tracking`  
 > **Execution Sprint**: [Sprint 1.2](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -37,6 +37,12 @@ Feature: Order Tracking
     Given a multi-vendor order has 3 sub-orders
     Then each sub-order shows its own timeline and tracking info
     And sub-orders may be at different statuses
+  Scenario: [AC-US-6.1.1-LAW] Global e-commerce legal compliance and consumer order delivery regulations
+    Given an active customer order progressing through fulfillment and delivery
+    When updating the live status timeline and estimated delivery date
+    Then the system must enforce statutory delivery deadlines (maximum 30 calendar days under EU law unless explicitly agreed otherwise)
+    And legal risk of loss or transit damage must remain with the merchant until physical possession is acquired by the consumer
+    And delivery milestone updates must provide accurate tracking data without deceptive progress indicators
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -50,6 +56,7 @@ Feature: Order Tracking
 | TC-6.1.1-05 | Order not found | Error | 404 page |
 | TC-6.1.1-06 | Access another user's order | Security | 403 Forbidden |
 | TC-6.1.1-07 | RTL timeline layout | i18n | Mirrored timeline |
+| TC-6.1.1-LAW | Global legal & regulatory compliance (EU Consumer Rights Directive Art 18 30-day fulfillment, risk of loss transfer upon delivery) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -217,7 +224,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-6.1.1-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -227,6 +234,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-6.1.1-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-6.1.1-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-6.1.1-G-Law:** Independent verification against global e-commerce legal and statutory requirements: EU Consumer Rights Directive Art 18 (statutory 30-day fulfillment limit), merchant transit loss liability, and accurate milestone disclosures; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-6.1.1-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

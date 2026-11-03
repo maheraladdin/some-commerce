@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/order-processing-and-commerce/modules/cart-and-checkout/behaviours/multi-step-checkout`  
 > **Backend Framework Path**: `backend/src/features/order-processing-and-commerce/modules/cart-and-checkout/behaviours/multi-step-checkout`  
 > **Execution Sprint**: [Sprint 1.2](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -48,6 +48,12 @@ Feature: Multi-Step Checkout
     When the vendor updates the price to 1200 EGP mid-checkout
     Then a warning "Price has changed for {item}" is shown
     And the user must acknowledge before proceeding
+  Scenario: [AC-US-3.1.3-LAW] Global e-commerce legal compliance and checkout contract formation regulations
+    Given a consumer progressing through the final checkout confirmation screen
+    When presenting order totals and the final commitment trigger
+    Then the final commitment button must be unambiguously labeled "Pay now" or "Order with obligation to pay" (Button-Lösung)
+    And pre-ticked checkboxes for add-on warranties, expedited shipping, or optional services are strictly prohibited
+    And an exhaustive pre-contractual summary displaying total price inclusive of taxes, delivery costs, and cancellation terms must be visible
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -64,6 +70,7 @@ Feature: Multi-Step Checkout
 | TC-3.1.3-08 | Checkout timeout (30 min) | Edge Case | Session expired, restart |
 | TC-3.1.3-09 | RTL checkout steps | i18n | Steps flow right-to-left |
 | TC-3.1.3-10 | Browser refresh mid-checkout | UX | State restored from step 1 |
+| TC-3.1.3-LAW | Global legal & regulatory compliance (EU Consumer Rights Directive Art 8(2) button solution, pre-ticked box prohibition) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -249,7 +256,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-3.1.3-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -259,6 +266,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-3.1.3-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-3.1.3-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-3.1.3-G-Law:** Independent verification against global e-commerce legal and statutory requirements: EU Consumer Rights Directive Art 8 (unambiguous button labeling), prohibition of pre-ticked optional checkboxes, and pre-contractual cost summary; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-3.1.3-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/order-processing-and-commerce/modules/orders-and-returns/behaviours/rma-returns-management`  
 > **Backend Framework Path**: `backend/src/features/order-processing-and-commerce/modules/orders-and-returns/behaviours/rma-returns-management`  
 > **Execution Sprint**: [Sprint 4.2](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -44,6 +44,12 @@ Feature: Return Merchandise Authorization
     When the vendor marks it as "Accepted"
     Then the refund is processed via the original payment method
     And the escrow hold is released
+  Scenario: [AC-US-6.1.3-LAW] Global e-commerce legal compliance and consumer right of withdrawal regulations
+    Given a consumer initiating a return request for ordered products
+    When evaluating the return eligibility under statutory withdrawal rules
+    Then a minimum 14-calendar-day right of withdrawal without giving any reason must be granted for distance contracts
+    And statutory exclusions (custom-made items, unsealed hygiene goods, rapidly perishable items) must be enforced strictly per statute
+    And the consumer must be provided with the statutory standard model withdrawal form upon request
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -60,6 +66,7 @@ Feature: Return Merchandise Authorization
 | TC-6.1.3-08 | Digital product return | Validation | Returns not allowed, license revoked |
 | TC-6.1.3-09 | Concurrent return requests | Concurrency | Only one RMA per item |
 | TC-6.1.3-10 | Return for multi-vendor order | Happy Path | Per-vendor RMA |
+| TC-6.1.3-LAW | Global legal & regulatory compliance (EU Consumer Rights Directive Art 9-16 14-day withdrawal, statutory return exclusions) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -230,7 +237,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-6.1.3-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -240,6 +247,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-6.1.3-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-6.1.3-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-6.1.3-G-Law:** Independent verification against global e-commerce legal and statutory requirements: EU Consumer Rights Directive (Directive 2011/83/EU) 14-day Right of Withdrawal, statutory exclusion tagging, and standard model withdrawal form; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-6.1.3-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/identity-and-access/modules/auth-and-onboarding/behaviours/phone-otp-sign-in`  
 > **Backend Framework Path**: `backend/src/features/identity-and-access/modules/auth-and-onboarding/behaviours/phone-otp-sign-in`  
 > **Execution Sprint**: [Sprint 1.1](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -58,6 +58,13 @@ Feature: Phone OTP Passwordless Sign-In
     When the network is unavailable during verification
     Then the system shows "Network error. Please check your connection and try again."
     And the OTP input remains editable for retry
+  Scenario: [AC-US-1.1.1-LAW] Global e-commerce legal compliance and data protection regulations
+    Given an international user initiating phone OTP authentication
+    When evaluated against international privacy, telecommunications, and consumer protection laws
+    Then phone numbers must be processed under GDPR Art 6 lawful basis with strict data minimization
+    And SMS OTP transmission must comply with US TCPA and EU ePrivacy Directive carrier consent rules without unconsented marketing
+    And anti-abuse rate limiting must prevent unauthorized toll fraud and SMS pumping without collecting unauthorized PII
+    And age verification boundaries must enforce COPPA (under 13) and GDPR Art 8 (under 16) parental consent safeguards
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -76,6 +83,7 @@ Feature: Phone OTP Passwordless Sign-In
 | TC-1.1.1-10 | OTP SMS language matches user locale | i18n | Arabic OTP for ar-EG, English for en-US |
 | TC-1.1.1-11 | Network failure during SMS send | Error | Retry with exponential backoff |
 | TC-1.1.1-12 | Cognito service unavailable | Error | Graceful error page shown |
+| TC-1.1.1-LAW | Global legal & regulatory compliance (GDPR Art 6/7/8 lawful basis, ePrivacy/TCPA SMS consent, COPPA age gate) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -256,7 +264,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-1.1.1-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -266,6 +274,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-1.1.1-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-1.1.1-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-1.1.1-G-Law:** Independent verification against global e-commerce legal and statutory requirements: GDPR (Art 6/7/8 lawful basis & age gating), US TCPA / EU ePrivacy telecommunications consent, and data minimization; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-1.1.1-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

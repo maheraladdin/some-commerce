@@ -7,7 +7,7 @@ Updates all 12 sprint markdown files with:
    - qa-security-auditor (junior tester + senior auditor)
 2. The 6-Layer Governance Ladder (Junior Author -> Senior Reviewer -> Security/Architect -> Tech Lead -> PM -> CTO Agreement).
 3. Agent Profile Load Balancer Allocation Matrix and Dedicated Workdirs.
-4. Story-by-story 7-PR Vertical Slicing Pipeline with explicit Junior Author & Senior Reviewer pairings.
+4. Story-by-story 10-PR Vertical Slicing Pipeline with explicit Junior Author & Senior Reviewer pairings.
 5. Sprint Quality Gates Execution Matrix (SG0–SG4, Gate A1, Gate A2, Gate M1).
 """
 
@@ -84,11 +84,11 @@ Every agent operates inside an isolated working directory (`workdir`) with white
 ```mermaid
 flowchart TD
     subgraph "Sprint Backlog: {sprint_id.upper()}"
-        STORIES["{plan['total_stories']} User Stories × 7 PR Slices<br/>({plan['total_prs']} Discrete Vertical Tasks)"]
+        STORIES["{plan['total_stories']} User Stories × 10 PR Slices<br/>({plan['total_prs']} Discrete Vertical Tasks)"]
     end
 
     subgraph "The 6-Layer Validation Ladder"
-        L1["<b>Layer 1: Junior Author</b><br/>Writes PR 1–7 in isolated workdir"]
+        L1["<b>Layer 1: Junior Author</b><br/>Writes PR 1–10 in isolated workdir"]
         --> L2["<b>Layer 2: Senior Reviewer</b><br/>Audits Zero-Clone, LoB & ASVS (APPROVE)"]
         --> L3["<b>Layer 3: Security & Architect</b><br/>Gate G2 & Gates A1, A2, M1"]
         --> L4["<b>Layer 4: Tech Lead & Gatekeeper</b><br/>Cross-PR Integration & G1/G4 Sign-Off"]
@@ -120,13 +120,26 @@ flowchart TD
 ### 2. Non-Conflicting Concurrency & Directory Whitelisting
 To ensure conflict-free parallel execution across agents working on the same user story:
 - **Backend Track (`backend-engineer`)**: Writes exclusively to `crates/**` and `backend/**`. Operates under the **Rust Zero-Clone Law** and pure microkernel trait contracts. Junior authors submit PRs to `{plan['story_allocations'][0]['prs'][0]['senior_reviewer']}` for code review.
-- **Client Track (`client-engineer`)**: Writes exclusively to `apps/storefront/src/features/**` and `packages/**`. Operates under **Locality of Behavior (LoB)** and `@expo/ui` native guidelines. Junior authors submit PRs to `{plan['story_allocations'][0]['prs'][4]['senior_reviewer']}` for code review.
+- **Client Track (`client-engineer`)**: Writes exclusively to `apps/storefront/src/features/**` and `packages/**`. Operates under **Locality of Behavior (LoB)** and `@expo/ui` native guidelines. Junior authors submit PRs to `{plan['story_allocations'][0]['prs'][6]['senior_reviewer']}` for code review.
 - **Security & Quality Track (`qa-security-auditor`)**: Writes exclusively to `docs/validation/**` and test execution runners. Junior testers submit test suites to `{plan['story_allocations'][0]['qa_auditor']['senior_reviewer']}`.
-- **Contract Synchronization**: Once PR 2 merges schema definitions and generates TypeScript types via `ts-rs`, Backend (PR 3 & 4) and Client (PR 5, 6 & 7) execute simultaneously without blocking.
+- **Contract Synchronization**: Once PR 2 merges schema definitions and generates TypeScript types via `ts-rs`, Backend (PR 3–6) and Client (PR 7–10) execute simultaneously without blocking.
 
-### 3. Story-by-Story 7-PR Slicing Pipeline with Junior Author & Senior Reviewer Pairings
-Every story in this sprint is decomposed into the standardized 7 PRs with assigned Junior Authors and Senior Reviewers:
+### 3. Story-by-Story 10-PR Slicing Pipeline with Junior Author & Senior Reviewer Pairings
+Every story in this sprint is decomposed into the standardized 10 PRs (aligned with the 10-Pillar System Architecture) with assigned Junior Authors and Senior Reviewers:
 """
+
+    gate_req_map = {
+        1: "Gate M1 + Proptest (Pillar 1)",
+        2: "Polyglot Schema Codegen (Pillar 2)",
+        3: "Repository & TransactWrite (Pillar 3)",
+        4: "Redis L2 + Invalidation (Pillar 4)",
+        5: "Moka L1 TinyLFU + Coalescing (Pillar 5)",
+        6: "BLAKE3 ETag + Pure Axum (Pillar 6)",
+        7: "TanStack Query + ETag Client (Pillar 7)",
+        8: "WatermelonDB Delta Sync (Pillar 8)",
+        9: "Headless Hooks State Machine (Pillar 9)",
+        10: "@expo/ui Native + RTL Parity (Pillar 10)",
+    }
 
     for s in plan["story_allocations"]:
         md += f"\n#### Story [{s['story_id'].upper()}]: {s['title']} ({s['points']} Story Points)\n"
@@ -137,7 +150,7 @@ Every story in this sprint is decomposed into the standardized 7 PRs with assign
         for pr in s["prs"]:
             pr_info = PR_SPECS[pr["pr_num"]]
             target_layers = ", ".join([f"`{l}`" for l in pr_info["layers"]])
-            gate_req = "Gate M1 + Proptest" if pr["pr_num"] == 1 else ("Schema Codegen" if pr["pr_num"] == 2 else ("ETag + L1/L2 Cache" if pr["pr_num"] == 3 else ("Tower Axum Service" if pr["pr_num"] == 4 else ("WatermelonDB Sync" if pr["pr_num"] == 5 else ("Hooks State Machine" if pr["pr_num"] == 6 else "@expo/ui + RTL Parity")))))
+            gate_req = gate_req_map.get(pr["pr_num"], "Quality Gate Pass")
             md += f"| **PR {pr['pr_num']}** | {pr['pr_name']} | {target_layers} | `{pr['junior_author']}` | `{pr['senior_reviewer']}` | {gate_req} |\n"
 
     md += f"""

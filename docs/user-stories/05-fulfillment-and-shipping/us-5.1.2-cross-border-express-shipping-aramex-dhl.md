@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/logistics-and-fulfillment/modules/fulfillment-and-shipping/behaviours/cross-border-shipping`  
 > **Backend Framework Path**: `backend/src/features/logistics-and-fulfillment/modules/fulfillment-and-shipping/behaviours/cross-border-shipping`  
 > **Execution Sprint**: [Sprint 3.1](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -39,6 +39,12 @@ Feature: Cross-Border Express Shipping
     Given DHL Express returns an error for the destination
     Then only the Aramex rate is shown
     And a "Limited carrier options" note appears
+  Scenario: [AC-US-5.1.2-LAW] Global e-commerce legal compliance and international trade customs regulations
+    Given international express consignments handled via Aramex or DHL
+    When generating cross-border waybills and customs documentation
+    Then every parcel must generate an automated commercial invoice and CN22/CN23 customs declaration with validated HS tariff codes
+    And low-value consignments destined for the EU (<= 150 EUR) must incorporate valid IOSS identification to prevent double taxation
+    And export control verification must ensure no prohibited, restricted, or sanctioned commodities are dispatched across borders
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -53,6 +59,7 @@ Feature: Cross-Border Express Shipping
 | TC-5.1.2-06 | HS code lookup | Happy Path | Correct codes on invoice |
 | TC-5.1.2-07 | Incoterms DDP vs DDU | Happy Path | Correct badge shown |
 | TC-5.1.2-08 | Rate caching (5 min TTL) | Performance | Cached rate reused |
+| TC-5.1.2-LAW | Global legal & regulatory compliance (WCO Harmonized System HS tariff codes, EU IOSS VAT compliance, CN22/CN23 customs documentation) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -223,7 +230,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-5.1.2-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -233,6 +240,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-5.1.2-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-5.1.2-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-5.1.2-G-Law:** Independent verification against global e-commerce legal and statutory requirements: World Customs Organization (WCO) HS tariff classification, EU IOSS VAT rules, and cross-border export control compliance; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-5.1.2-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

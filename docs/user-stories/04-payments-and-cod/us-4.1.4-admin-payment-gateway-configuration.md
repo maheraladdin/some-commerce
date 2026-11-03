@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/order-processing-and-commerce/modules/payments-and-cod/behaviours/payment-gateway-config`  
 > **Backend Framework Path**: `backend/src/features/order-processing-and-commerce/modules/payments-and-cod/behaviours/payment-gateway-config`  
 > **Execution Sprint**: [Sprint 1.2](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -38,12 +38,23 @@ Feature: Payment Gateway Configuration
     When the admin updates the API key
     Then the old credentials are replaced (not versioned)
     And the in-memory ArcSwap cache is invalidated
+  Scenario: [AC-US-4.1.4-LAW] Global e-commerce legal compliance and payment gateway administration regulations
+    Given an administrator configuring payment provider gateways and API credentials
+    When storing or rotating payment gateway secrets in the management console
+    Then gateway API keys, webhook signing secrets, and merchant credentials must be encrypted in KMS with strict access logging
+    And payment routing configurations must adhere to national central bank payment service provider (PSP) regulatory operating mandates
+    And administrative credential modifications must maintain an immutable audit trail for annual PCI-DSS compliance audits
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
 
 
-
+| # | Test Case | Type | Expected Result |
+|:--|:----------|:-----|:----------------|
+| TC-4.1.4-01 | Primary user journey functional flow | Happy Path | User story outcome achieved |
+| TC-4.1.4-02 | Edge case and boundary condition validation | Edge Case | Handled with typed error |
+| TC-4.1.4-03 | Threat model and authorization boundary validation | Security | Unauthorized requests rejected |
+| TC-4.1.4-LAW | Global legal & regulatory compliance (PCI-DSS Requirement 3 key management, central bank PSP regulations, KMS secret vaulting) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 ---
 
 ## 2. Behavior-Centric Architecture & Folder Blueprint
@@ -194,7 +205,7 @@ backend/src/features/order-processing-and-commerce/modules/payments-and-cod/beha
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-4.1.4-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -204,6 +215,12 @@ backend/src/features/order-processing-and-commerce/modules/payments-and-cod/beha
 
 ### G3 — Architecture and maintainability
 - [ ] **US-4.1.4-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-4.1.4-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-4.1.4-G-Law:** Independent verification against global e-commerce legal and statutory requirements: PCI-DSS v4.0 Requirement 3 cryptographic key management, central bank PSP regulations (CBE, SAMA, FCA), and immutable access logging; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-4.1.4-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

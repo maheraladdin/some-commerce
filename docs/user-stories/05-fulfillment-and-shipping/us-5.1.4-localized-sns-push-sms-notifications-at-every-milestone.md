@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/logistics-and-fulfillment/modules/fulfillment-and-shipping/behaviours/milestone-notifications`  
 > **Backend Framework Path**: `backend/src/features/logistics-and-fulfillment/modules/fulfillment-and-shipping/behaviours/milestone-notifications`  
 > **Execution Sprint**: [Sprint 1.2](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -35,6 +35,12 @@ Feature: Localized Order Notifications
     When the carrier confirms delivery
     Then a "Your order has been delivered" notification is sent
     And includes a link to rate the experience
+  Scenario: [AC-US-5.1.4-LAW] Global e-commerce legal compliance and transactional notification regulations
+    Given automated milestone notifications dispatched via AWS SNS push and SMS
+    When alerting customers of parcel dispatch, out-for-delivery, and delivery completion
+    Then notifications must be strictly restricted to transactional shipping updates and must not include unconsented marketing solicitations
+    And SMS messages must transmit via verified registered sender IDs adhering to national telecommunications registry standards
+    And quiet hours regulations for customer text communications must be respected based on the recipient's geographic time zone
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -46,6 +52,7 @@ Feature: Localized Order Notifications
 | TC-5.1.4-03 | Customer has push disabled | Edge Case | SMS only |
 | TC-5.1.4-04 | Invalid phone number | Error | SMS fails gracefully |
 | TC-5.1.4-05 | All milestones covered | Happy Path | 5+ notification types |
+| TC-5.1.4-LAW | Global legal & regulatory compliance (US TCPA transactional exemption, EU ePrivacy marketing separation, carrier sender ID registry) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -212,7 +219,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-5.1.4-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -222,6 +229,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-5.1.4-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-5.1.4-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-5.1.4-G-Law:** Independent verification against global e-commerce legal and statutory requirements: US TCPA / EU ePrivacy transactional communication standards, verified sender ID compliance, and time zone quiet hours rules; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-5.1.4-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

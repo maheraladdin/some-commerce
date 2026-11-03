@@ -13,7 +13,7 @@ This is a validation attachment indexed by the [canonical story record](STORY_RE
 | CTO charter / approved master-plan revision / parent workstream node | Pending |
 | Scope / affected layers and platforms | Pending |
 | Source commit / PRs / release candidate | Pending |
-| Story owner / test reviewer / security reviewer / architecture reviewer | Pending |
+| Story owner / test reviewer / security reviewer / architecture reviewer / code reviewer | Pending |
 | Dependency stories and blocking findings | Pending |
 | ADR or design note / threat model | Pending |
 | Runtime, tool versions, advisory database date, test environment | Pending |
@@ -34,6 +34,8 @@ Include all original ACs and TCs as well as the story-specific validation scenar
 | G1 | Test runs, per-package changed/total line and branch coverage, critical mutation report | Pending | Pending | Pending |
 | G2 | Threat review, authorization matrix, SAST/SCA/secrets/IaC/runtime findings, SBOM | Pending | Pending | Pending |
 | G3 | Import graph, lint/types, duplication report, reuse/change exercise, complexity review | Pending | Pending | Pending |
+| G-Review | Independent code review, 5 evaluation pillars, 4-tier triage, actionable diffs, 0 blockers | Pending | Pending | Pending |
+| G-Law | Project Constitution law compliance, AC-*-LAW acceptance rule, Zero-Clone, Gate M1/A1/A2 | Pending | Pending | Pending |
 | G4 | Full flow, provider/platform checks, load/fault results, migration/rollback, operational drill | Pending | Pending | Pending |
 
 ## Performance and recovery evidence
@@ -59,4 +61,4 @@ For stateful features record recovery point/time objectives and measured restore
 |:--------------------|:---------|:-------------------------------|:--------------|:---------------------|:-------|:-------|
 | Pending review | Pending | Pending | Pending | Pending | Pending | Pending |
 
-Mark this table “None” only after review. A story is Done only when G0–G4 pass and there are no unresolved blockers or expired exceptions.
+Mark this table “None” only after review. A story is Done only when G0–G4, G-Review, and G-Law pass and there are no unresolved blockers or expired exceptions.

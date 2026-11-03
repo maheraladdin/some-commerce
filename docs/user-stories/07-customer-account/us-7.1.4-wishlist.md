@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/identity-and-access/modules/customer-account/behaviours/customer-wishlist`  
 > **Backend Framework Path**: `backend/src/features/identity-and-access/modules/customer-account/behaviours/customer-wishlist`  
 > **Execution Sprint**: [Sprint 1.1](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -45,6 +45,12 @@ Feature: Wishlist
     Given a wishlisted product's price drops by ≥10%
     Then an SNS push notification "Price dropped!" is sent
     And the wishlist card shows a "Price Drop" badge with old vs new price
+  Scenario: [AC-US-7.1.4-LAW] Global e-commerce legal compliance and promotional price alert regulations
+    Given a customer saving catalog items to a personal wishlist and enabling price drop notifications
+    When generating price drop alerts or saving product preferences
+    Then price drop alert notifications must reflect genuine price reductions calculated against the prior 30-day lowest price baseline
+    And consumer wishlist preferences must not be shared with third-party advertisers without explicit affirmative consent
+    And wishlist items must accurately reflect current stock availability without fabricated urgency warnings
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -61,6 +67,7 @@ Feature: Wishlist
 | TC-7.1.4-08 | Duplicate add | Edge Case | Item not duplicated |
 | TC-7.1.4-09 | Offline wishlist add | Edge Case | Synced on reconnect |
 | TC-7.1.4-10 | Deleted product in wishlist | Edge Case | "Product unavailable" shown |
+| TC-7.1.4-LAW | Global legal & regulatory compliance (EU Omnibus Directive Art 6a price drop baseline, ePrivacy tracking consent, anti-dark patterns) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -229,7 +236,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-7.1.4-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -239,6 +246,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-7.1.4-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-7.1.4-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-7.1.4-G-Law:** Independent verification against global e-commerce legal and statutory requirements: EU Omnibus Directive (Art 6a 30-day baseline for price drop alerts), ePrivacy behavioral tracking consent, and truth-in-advertising stock disclosures; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-7.1.4-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/identity-and-access/modules/auth-and-onboarding/behaviours/social-oidc-sign-in`  
 > **Backend Framework Path**: `backend/src/features/identity-and-access/modules/auth-and-onboarding/behaviours/social-oidc-sign-in`  
 > **Execution Sprint**: [Sprint 1.1](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -45,6 +45,12 @@ Feature: Social OIDC Sign-In
     Given the user signs in with Apple and opts for "Hide My Email"
     Then the system stores the Apple relay email as the primary identifier
     And all transactional emails are sent to the relay address
+  Scenario: [AC-US-1.1.3-LAW] Global e-commerce legal compliance and third-party identity transfer regulations
+    Given a user authenticating via third-party Identity Providers (Google, Apple)
+    When exchanging identity claims across international borders
+    Then identity token requests must be restricted to minimal necessary scopes (sub, email) per GDPR Art 5(1)(c)
+    And international identity exchanges must comply with EU-US Data Privacy Framework (DPF) transfer rules
+    And users must be provided with an immediate self-service mechanism to unlink third-party credentials without data loss
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -59,6 +65,7 @@ Feature: Social OIDC Sign-In
 | TC-1.1.3-06 | Google token expired mid-flow | Error | Graceful retry prompt |
 | TC-1.1.3-07 | Social sign-in on Web (popup) | Platform | Popup completes, tokens stored |
 | TC-1.1.3-08 | Social sign-in on Mobile (in-app browser) | Platform | Deep link returns tokens |
+| TC-1.1.3-LAW | Global legal & regulatory compliance (GDPR Art 5(1)(c) scope minimization, EU-US DPF transfer rules, Apple ID unlinking) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -233,7 +240,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-1.1.3-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -243,6 +250,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-1.1.3-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-1.1.3-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-1.1.3-G-Law:** Independent verification against global e-commerce legal and statutory requirements: GDPR scope data minimization, EU-US DPF cross-border data protection, and platform third-party unlinking rights; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-1.1.3-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

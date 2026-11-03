@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/catalog-and-discovery/modules/storefront-and-catalog/behaviours/dynamic-product-properties`  
 > **Backend Framework Path**: `backend/src/features/catalog-and-discovery/modules/storefront-and-catalog/behaviours/dynamic-product-properties`  
 > **Execution Sprint**: [Sprint 1.1](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -42,6 +42,12 @@ Feature: Custom Product Properties
     Given "Laptops" has property [screen_size] and "Gaming Laptops" has [refresh_rate]
     When viewing the filter sidebar for "Gaming Laptops"
     Then both [screen_size] (inherited) and [refresh_rate] (direct) appear as filters
+  Scenario: [AC-US-2.1.3-LAW] Global e-commerce legal compliance and mandatory product safety disclosures
+    Given product property schemas and filter widgets configured in the admin catalog
+    When applied to consumer-facing product listings
+    Then mandatory statutory disclosures (CE marks, manufacturer contact, GPSR traceability, energy efficiency ratings) must be enforced
+    And food, cosmetics, and chemical listings must require verifiable ingredient and allergen property fields per FDA and EU FIC
+    And catalog filter widgets must never allow concealment or suppression of legally required product safety warnings
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -56,6 +62,7 @@ Feature: Custom Product Properties
 | TC-2.1.3-06 | Property with 100+ options | Performance | Loads within 100ms |
 | TC-2.1.3-07 | Delete property used by products | Validation | Warning with affected count |
 | TC-2.1.3-08 | Localized property labels | i18n | Labels render in user's locale |
+| TC-2.1.3-LAW | Global legal & regulatory compliance (EU GPSR 2023/988 product safety, EU Energy Labeling 2017/1369, FDA/FIC allergen rules) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -226,7 +233,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-2.1.3-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -236,6 +243,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-2.1.3-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-2.1.3-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-2.1.3-G-Law:** Independent verification against global e-commerce legal and statutory requirements: EU General Product Safety Regulation (GPSR 2023/988), mandatory energy efficiency labeling, and food/cosmetic allergen declarations; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-2.1.3-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

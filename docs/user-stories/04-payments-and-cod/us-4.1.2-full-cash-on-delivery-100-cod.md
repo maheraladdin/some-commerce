@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/order-processing-and-commerce/modules/payments-and-cod/behaviours/full-cash-on-delivery`  
 > **Backend Framework Path**: `backend/src/features/order-processing-and-commerce/modules/payments-and-cod/behaviours/full-cash-on-delivery`  
 > **Execution Sprint**: [Sprint 1.2](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -49,6 +49,12 @@ Feature: Full Cash on Delivery
     Given the zone has a COD surcharge of 25 EGP
     Then the checkout summary shows "COD Fee: 25 EGP" as a line item
     And the total includes the surcharge
+  Scenario: [AC-US-4.1.2-LAW] Global e-commerce legal compliance and cash transaction ceiling regulations
+    Given a customer placing an order with 100% Cash on Delivery
+    When dispatching the order and collecting physical cash upon delivery
+    Then orders exceeding national statutory AML cash payment ceilings must be blocked automatically from selecting COD
+    And the courier must issue a legally binding fiscal cash receipt or stamped payment voucher immediately upon cash collection
+    And consumer statutory rights to inspect goods and exercise pre-delivery withdrawal without penalty must be preserved
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -63,6 +69,7 @@ Feature: Full Cash on Delivery
 | TC-4.1.2-06 | COD order RTO (returned) | Edge Case | No refund needed, loss minimized |
 | TC-4.1.2-07 | COD for multi-vendor cart | Happy Path | Per-vendor COD amounts |
 | TC-4.1.2-08 | COD with free shipping | Edge Case | Only product amount collected |
+| TC-4.1.2-LAW | Global legal & regulatory compliance (National AML cash limits e.g. EU €1,000-€5,000, mandatory fiscal cash receipts) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -231,7 +238,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-4.1.2-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -241,6 +248,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-4.1.2-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-4.1.2-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-4.1.2-G-Law:** Independent verification against global e-commerce legal and statutory requirements: national statutory Anti-Money Laundering cash caps, mandatory fiscal cash receipt delivery, and consumer refusal rights; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-4.1.2-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

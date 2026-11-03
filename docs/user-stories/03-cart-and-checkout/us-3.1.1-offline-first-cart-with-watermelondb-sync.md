@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/order-processing-and-commerce/modules/cart-and-checkout/behaviours/offline-cart-sync`  
 > **Backend Framework Path**: `backend/src/features/order-processing-and-commerce/modules/cart-and-checkout/behaviours/offline-cart-sync`  
 > **Execution Sprint**: [Sprint 1.2](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -51,6 +51,12 @@ Feature: Offline-First Cart
     When the user tries to set quantity to 10
     Then the quantity is capped at 5
     And a warning "Only 5 available" is shown
+  Scenario: [AC-US-3.1.1-LAW] Global e-commerce legal compliance and consumer cart integrity regulations
+    Given a user adding items to an offline-first cart stored in local SQLite
+    When the client synchronizes cached cart data with the cloud server
+    Then client-side storage must be encrypted and restricted strictly to cart identifiers without accumulating unconsented PII
+    And price discrepancies arising from offline cache expiration must be transparently disclosed to the consumer before checkout
+    And cached pricing must not be covertly altered or inflated without explicit consumer acknowledgement
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -67,6 +73,7 @@ Feature: Offline-First Cart
 | TC-3.1.1-08 | 50 items in cart | Performance | No lag in UI |
 | TC-3.1.1-09 | Cross-device merge | Concurrency | Union merge, no data loss |
 | TC-3.1.1-10 | Deleted product in cart | Error | Warning + remove option |
+| TC-3.1.1-LAW | Global legal & regulatory compliance (GDPR Art 5 data minimization, consumer price lock disclosures, anti-deceptive trade practices) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -236,7 +243,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-3.1.1-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -246,6 +253,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-3.1.1-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-3.1.1-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-3.1.1-G-Law:** Independent verification against global e-commerce legal and statutory requirements: GDPR client data minimization, transparent cart price lock terms, and anti-deceptive pricing safeguards; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-3.1.1-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

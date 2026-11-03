@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/commercial-models/modules/digital-products-and-licensing/behaviours/client-verification-sdks`  
 > **Backend Framework Path**: `backend/src/features/commercial-models/modules/digital-products-and-licensing/behaviours/client-verification-sdks`  
 > **Execution Sprint**: [Sprint 2.2](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -31,12 +31,23 @@ Feature: Client Verification SDKs
   Scenario: [AC-US-9.1.3-02] TypeScript SDK verification
     Given a developer installs @some-commerce/license-sdk
     Then they can verify licenses in Electron/Node.js apps
+  Scenario: [AC-US-9.1.3-LAW] Global e-commerce legal compliance and client verification SDK privacy regulations
+    Given client verification SDKs embedded in customer host applications to validate software licenses
+    When the SDK evaluates license entitlement tokens in online or offline environments
+    Then verification telemetry must be strictly limited to cryptographic signature verification without collecting unauthorized host telemetry
+    And license verification must execute locally in offline air-gapped environments without mandatory internet heartbeats
+    And audit terms governing software license compliance must be transparently stated in commercial software contracts
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
 
 
-
+| # | Test Case | Type | Expected Result |
+|:--|:----------|:-----|:----------------|
+| TC-9.1.3-01 | Primary user journey functional flow | Happy Path | User story outcome achieved |
+| TC-9.1.3-02 | Edge case and boundary condition validation | Edge Case | Handled with typed error |
+| TC-9.1.3-03 | Threat model and authorization boundary validation | Security | Unauthorized requests rejected |
+| TC-9.1.3-LAW | Global legal & regulatory compliance (GDPR Art 5 data minimization in client SDKs, offline air-gapped license validity, fair audit clauses) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 ---
 
 ## 2. Behavior-Centric Architecture & Folder Blueprint
@@ -187,7 +198,7 @@ backend/src/features/commercial-models/modules/digital-products-and-licensing/be
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-9.1.3-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -197,6 +208,12 @@ backend/src/features/commercial-models/modules/digital-products-and-licensing/be
 
 ### G3 — Architecture and maintainability
 - [ ] **US-9.1.3-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-9.1.3-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-9.1.3-G-Law:** Independent verification against global e-commerce legal and statutory requirements: client SDK data minimization (zero covert telemetry), air-gapped offline entitlement verification, and commercial contract audit terms; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-9.1.3-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

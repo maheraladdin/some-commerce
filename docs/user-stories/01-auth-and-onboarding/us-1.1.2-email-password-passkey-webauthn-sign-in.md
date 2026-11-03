@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/identity-and-access/modules/auth-and-onboarding/behaviours/passkey-webauthn-sign-in`  
 > **Backend Framework Path**: `backend/src/features/identity-and-access/modules/auth-and-onboarding/behaviours/passkey-webauthn-sign-in`  
 > **Execution Sprint**: [Sprint 1.1](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -51,6 +51,12 @@ Feature: Email/Password & Passkey Sign-In
   Scenario: [AC-US-1.1.2-05] Password does not meet policy
     Given the user attempts to set a password without a special character
     Then a validation error listing all unmet requirements is shown
+  Scenario: [AC-US-1.1.2-LAW] Global e-commerce legal compliance and authentication security regulations
+    Given user registration or authentication using Passkeys or passwords
+    When evaluated against international authentication and security standards
+    Then biometric data must remain exclusively on the local authenticator hardware per FIDO2 and eIDAS (Regulation 910/2014) specifications
+    And stored passwords must be hashed using memory-hard Argon2id with unique salts under GDPR Art 32 security of processing
+    And credential failure telemetry must support mandatory 72-hour breach disclosure reporting under GDPR Art 33
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -67,6 +73,7 @@ Feature: Email/Password & Passkey Sign-In
 | TC-1.1.2-08 | Remove existing Passkey | Happy Path | Passkey removed from list |
 | TC-1.1.2-09 | Password with only lowercase chars | Validation | Policy violation error |
 | TC-1.1.2-10 | XSS in email field | Security | Input sanitized |
+| TC-1.1.2-LAW | Global legal & regulatory compliance (FIDO2/eIDAS biometric boundary, GDPR Art 32 Argon2id, Art 33 breach notification) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -244,7 +251,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-1.1.2-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -254,6 +261,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-1.1.2-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-1.1.2-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-1.1.2-G-Law:** Independent verification against global e-commerce legal and statutory requirements: FIDO2 / eIDAS biometric privacy boundaries, GDPR Art 32 cryptographic security, and Art 33 breach notification readiness; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-1.1.2-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

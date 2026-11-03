@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/order-processing-and-commerce/modules/payments-and-cod/behaviours/split-deposit-cod`  
 > **Backend Framework Path**: `backend/src/features/order-processing-and-commerce/modules/payments-and-cod/behaviours/split-deposit-cod`  
 > **Execution Sprint**: [Sprint 1.2](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -50,6 +50,12 @@ Feature: Split Cash on Delivery (DEPOSIT_COD)
     Then the carrier returns it (RTO)
     And the merchant retains the deposit to cover return shipping costs
     And the RTO policy auto-calculates any excess deposit for refund
+  Scenario: [AC-US-4.1.3-LAW] Global e-commerce legal compliance and split payment regulations
+    Given a customer choosing split payment (upfront card deposit plus remainder on COD)
+    When recording the transaction across dual payment channels
+    Then terms governing deposit forfeiture or refundability upon delivery rejection must be disclosed clearly before payment
+    And value-added tax (VAT) must be accurately apportioned across the deposit invoice and final COD fiscal settlement
+    And split payment structures must comply with financial AML anti-structuring safeguards preventing illicit cash evasion
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -66,6 +72,7 @@ Feature: Split Cash on Delivery (DEPOSIT_COD)
 | TC-4.1.3-08 | Deposit webhook replay | Idempotency | Duplicate ignored |
 | TC-4.1.3-09 | Deposit + carrier COD amount | Integration | Carrier gets correct COD |
 | TC-4.1.3-10 | RTO excess refund | Edge Case | Excess deposited refunded |
+| TC-4.1.3-LAW | Global legal & regulatory compliance (Deposit terms disclosure, VAT apportionment accuracy, AML anti-structuring compliance) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -240,7 +247,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-4.1.3-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -250,6 +257,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-4.1.3-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-4.1.3-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-4.1.3-G-Law:** Independent verification against global e-commerce legal and statutory requirements: consumer deposit disclosure rules, accurate multi-tender tax apportionment, and AML anti-structuring compliance; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-4.1.3-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

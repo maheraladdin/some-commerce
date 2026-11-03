@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/order-processing-and-commerce/modules/payments-and-cod/behaviours/prepaid-card-payment`  
 > **Backend Framework Path**: `backend/src/features/order-processing-and-commerce/modules/payments-and-cod/behaviours/prepaid-card-payment`  
 > **Execution Sprint**: [Sprint 1.2](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -56,6 +56,12 @@ Feature: Full Prepaid Online Payment
     When a payment intent is created
     Then the system decrypts the credentials from KMS vault with encryption context
     And uses a 5-minute in-memory cache (ArcSwap) to avoid repeated KMS calls
+  Scenario: [AC-US-4.1.1-LAW] Global e-commerce legal compliance and electronic payment regulations
+    Given a consumer initiating an online prepaid card payment via Stripe or Paymob
+    When processing the credit or debit card transaction
+    Then cardholder data must be tokenized directly at the PCI-DSS compliant gateway iframe with zero raw PAN/CVV touching servers
+    And Strong Customer Authentication (3D Secure 2.x) must be enforced for all applicable European and SCA-mandated card payments
+    And payment surcharges on consumer debit and credit cards are strictly prohibited pursuant to EU PSD2 Art 62(4)
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -74,6 +80,7 @@ Feature: Full Prepaid Online Payment
 | TC-4.1.1-10 | Concurrent payment for same order | Concurrency | Only one succeeds |
 | TC-4.1.1-11 | Zero-amount order (free item) | Edge Case | No payment, direct confirm |
 | TC-4.1.1-12 | Currency mismatch | Validation | Error before payment |
+| TC-4.1.1-LAW | Global legal & regulatory compliance (PCI-DSS v4.0 SAQ-A tokenization, EU PSD2/PSD3 SCA 3DS2, card surcharge prohibition) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -248,7 +255,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-4.1.1-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -258,6 +265,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-4.1.1-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-4.1.1-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-4.1.1-G-Law:** Independent verification against global e-commerce legal and statutory requirements: PCI-DSS v4.0 SAQ-A compliance, EU PSD2/PSD3 Strong Customer Authentication (SCA), and prohibition of consumer payment surcharges; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-4.1.1-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

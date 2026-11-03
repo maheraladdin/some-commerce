@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/logistics-and-fulfillment/modules/fulfillment-and-shipping/behaviours/carrier-aggregation`  
 > **Backend Framework Path**: `backend/src/features/logistics-and-fulfillment/modules/fulfillment-and-shipping/behaviours/carrier-aggregation`  
 > **Execution Sprint**: [Sprint 4.1](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -33,12 +33,23 @@ Feature: Global Multi-Carrier Aggregation
     When a customer requests a return
     Then a prepaid return label is generated via Shippo/EasyPost
     And the label is emailed and shown in the order detail page
+  Scenario: [AC-US-5.1.3-LAW] Global e-commerce legal compliance and multi-carrier transport liability regulations
+    Given multi-carrier rate calculation and label generation via Shippo or EasyPost
+    When contracting carriage across diverse regional and international couriers
+    Then declared merchandise values and liability limits must be recorded in accordance with international carriage conventions (CMR, Montreal)
+    And shipments containing restricted items (e.g., lithium batteries) must generate mandatory hazardous goods transport declarations
+    And cross-carrier delivery terms and transit liability allocations must be transparently recorded before label issuance
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
 
 
-
+| # | Test Case | Type | Expected Result |
+|:--|:----------|:-----|:----------------|
+| TC-5.1.3-01 | Primary user journey functional flow | Happy Path | User story outcome achieved |
+| TC-5.1.3-02 | Edge case and boundary condition validation | Edge Case | Handled with typed error |
+| TC-5.1.3-03 | Threat model and authorization boundary validation | Security | Unauthorized requests rejected |
+| TC-5.1.3-LAW | Global legal & regulatory compliance (Universal Postal Union conventions, CMR/Montreal transport liability, dangerous goods declarations) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 ---
 
 ## 2. Behavior-Centric Architecture & Folder Blueprint
@@ -189,7 +200,7 @@ backend/src/features/logistics-and-fulfillment/modules/fulfillment-and-shipping/
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-5.1.3-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -199,6 +210,12 @@ backend/src/features/logistics-and-fulfillment/modules/fulfillment-and-shipping/
 
 ### G3 — Architecture and maintainability
 - [ ] **US-5.1.3-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-5.1.3-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-5.1.3-G-Law:** Independent verification against global e-commerce legal and statutory requirements: Universal Postal Union (UPU) acts, international transport liability conventions (CMR, Montreal), and dangerous goods shipping rules; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-5.1.3-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

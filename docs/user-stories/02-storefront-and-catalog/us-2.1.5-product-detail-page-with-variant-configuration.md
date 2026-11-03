@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/catalog-and-discovery/modules/storefront-and-catalog/behaviours/product-detail-configurator`  
 > **Backend Framework Path**: `backend/src/features/catalog-and-discovery/modules/storefront-and-catalog/behaviours/product-detail-configurator`  
 > **Execution Sprint**: [Sprint 1.1](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -48,6 +48,12 @@ Feature: Product Detail Page
   Scenario: [AC-US-2.1.5-05] Product not found
     Given the user navigates to "/en-US/products/nonexistent-slug"
     Then a 404 page is displayed with suggestions for similar products
+  Scenario: [AC-US-2.1.5-LAW] Global e-commerce legal compliance and pricing transparency regulations
+    Given a consumer viewing a product detail page with price discounts and variant selections
+    When calculating and displaying variant pricing and promotional badges
+    Then any discount claim must display the prior lowest price applied during a period not less than 30 days prior (EU Omnibus Art 6a)
+    And standard unit pricing (e.g. price per kg, liter, or meter) must be displayed where required by the Price Indication Directive
+    And the displayed product price must clearly indicate tax inclusion (VAT) or explicit jurisdictional tax terms
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -64,6 +70,7 @@ Feature: Product Detail Page
 | TC-2.1.5-08 | RTL media gallery | i18n | Gallery navigation mirrored |
 | TC-2.1.5-09 | Product with 50+ images | Performance | Lazy loading, <2s initial |
 | TC-2.1.5-10 | Deep link to specific variant | UX | Variant pre-selected from URL |
+| TC-2.1.5-LAW | Global legal & regulatory compliance (EU Omnibus Directive 2019/2161 Art 6a 30-day baseline, Price Indication Directive 98/6/EC) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -237,7 +244,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-2.1.5-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -247,6 +254,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-2.1.5-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-2.1.5-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-2.1.5-G-Law:** Independent verification against global e-commerce legal and statutory requirements: EU Omnibus Directive (Art 6a 30-day discount baseline), EU Price Indication Directive (unit pricing), and GPSR manufacturer traceability; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-2.1.5-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

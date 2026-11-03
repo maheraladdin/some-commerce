@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/identity-and-access/modules/auth-and-onboarding/behaviours/b2b-org-registration`  
 > **Backend Framework Path**: `backend/src/features/identity-and-access/modules/auth-and-onboarding/behaviours/b2b-org-registration`  
 > **Execution Sprint**: [Sprint 1.1](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -51,6 +51,12 @@ Feature: B2B Organization Registration
     Given the user attempts to upload a commercial registry file > 10MB
     Then a validation error "File size must be under 10MB" is shown
     And the form is not submitted
+  Scenario: [AC-US-1.1.4-LAW] Global e-commerce legal compliance and B2B corporate verification regulations
+    Given an enterprise submitting a B2B organization registration
+    When vetted prior to administrative onboarding approval
+    Then corporate entity credentials and VAT registration numbers must be validated against official registries (e.g., EU VIES)
+    And corporate officers and beneficial owners must be screened against OFAC and EU international trade sanctions lists
+    And an immutable audit trail of verification evidence must be recorded for statutory Anti-Money Laundering (AMLD) audits
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -68,6 +74,7 @@ Feature: B2B Organization Registration
 | TC-1.1.4-09 | SQL injection in company name | Security | Input sanitized |
 | TC-1.1.4-10 | Concurrent approval by 2 admins | Concurrency | ETag If-Match prevents double-approval |
 | TC-1.1.4-11 | B2B reg with Arabic company name | i18n | RTL name stored in names_i18n |
+| TC-1.1.4-LAW | Global legal & regulatory compliance (EU AMLD KYB due diligence, VIES VAT validation, OFAC/EU trade sanctions screening) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -245,7 +252,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-1.1.4-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -255,6 +262,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-1.1.4-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-1.1.4-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-1.1.4-G-Law:** Independent verification against global e-commerce legal and statutory requirements: EU AMLD corporate KYB verification, VIES VAT registry confirmation, and international trade sanctions screening; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-1.1.4-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

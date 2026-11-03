@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/order-processing-and-commerce/modules/payments-and-cod/behaviours/lightning-bitcoin-payment`  
 > **Backend Framework Path**: `backend/src/features/order-processing-and-commerce/modules/payments-and-cod/behaviours/lightning-bitcoin-payment`  
 > **Execution Sprint**: [Sprint 4.2](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -40,6 +40,12 @@ Feature: BTCPay Server Checkout
     Given the merchant's BTCPay Server is unreachable
     Then the "Bitcoin" payment option is disabled at checkout
     And a message "Crypto payments temporarily unavailable" is shown
+  Scenario: [AC-US-4.1.5-LAW] Global e-commerce legal compliance and virtual asset payment regulations
+    Given a customer selecting Bitcoin or Lightning Network payment via BTCPay Server
+    When generating the payment invoice and confirming blockchain settlement
+    Then cryptocurrency transactions must comply with FATF Travel Rule requirements and EU MiCA regulations for merchant processing
+    And cryptocurrency exchange rates, network mining fees, and price expiration windows must be disclosed explicitly
+    And refund terms must clearly specify whether statutory reversals occur in fiat equivalent or original digital asset amounts
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -53,6 +59,7 @@ Feature: BTCPay Server Checkout
 | TC-4.1.5-05 | BTCPay server down | Error | Option disabled |
 | TC-4.1.5-06 | Invoice expired (24h) | Edge Case | Order cancelled |
 | TC-4.1.5-07 | Invalid BTCPay-Sig | Security | Webhook rejected |
+| TC-4.1.5-LAW | Global legal & regulatory compliance (FATF Travel Rule, EU MiCA Regulation 2023/1114, crypto invoice price transparency) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -223,7 +230,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-4.1.5-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -233,6 +240,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-4.1.5-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-4.1.5-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-4.1.5-G-Law:** Independent verification against global e-commerce legal and statutory requirements: EU Markets in Crypto-Assets (MiCA Regulation 2023/1114), FATF Travel Rule compliance, and cryptocurrency refund transparency; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-4.1.5-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

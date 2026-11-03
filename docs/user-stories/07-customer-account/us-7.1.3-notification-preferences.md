@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/identity-and-access/modules/customer-account/behaviours/notification-preferences`  
 > **Backend Framework Path**: `backend/src/features/identity-and-access/modules/customer-account/behaviours/notification-preferences`  
 > **Execution Sprint**: [Sprint 1.1](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -39,12 +39,23 @@ Feature: Notification Preferences
     When the customer disables all promotional channels
     Then no promotional messages are sent
     And the preference is respected across all notification triggers
+  Scenario: [AC-US-7.1.3-LAW] Global e-commerce legal compliance and marketing consent regulations
+    Given a customer updating their communication and marketing preferences
+    When opting in or out of marketing channels (Email, SMS, Push notifications)
+    Then marketing channels must require explicit affirmative opt-in consent prior to transmitting commercial promotional content
+    And every commercial communication must provide an easy, 1-click unsubscribe mechanism that executes immediately
+    And consent revocation must be recorded with cryptographic timestamps and propagated to messaging gateways within 24 hours
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
 
 
-
+| # | Test Case | Type | Expected Result |
+|:--|:----------|:-----|:----------------|
+| TC-7.1.3-01 | Primary user journey functional flow | Happy Path | User story outcome achieved |
+| TC-7.1.3-02 | Edge case and boundary condition validation | Edge Case | Handled with typed error |
+| TC-7.1.3-03 | Threat model and authorization boundary validation | Security | Unauthorized requests rejected |
+| TC-7.1.3-LAW | Global legal & regulatory compliance (EU ePrivacy Directive express opt-in, US CAN-SPAM 1-click unsubscribe, CASL consent logging) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 ---
 
 ## 2. Behavior-Centric Architecture & Folder Blueprint
@@ -195,7 +206,7 @@ backend/src/features/identity-and-access/modules/customer-account/behaviours/not
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-7.1.3-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -205,6 +216,12 @@ backend/src/features/identity-and-access/modules/customer-account/behaviours/not
 
 ### G3 — Architecture and maintainability
 - [ ] **US-7.1.3-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-7.1.3-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-7.1.3-G-Law:** Independent verification against global e-commerce legal and statutory requirements: EU ePrivacy Directive express consent, US CAN-SPAM / Canada CASL 1-click unsubscribe, and 24-hour consent revocation propagation; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-7.1.3-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.

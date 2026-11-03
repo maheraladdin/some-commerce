@@ -7,7 +7,7 @@
 > **Client Framework Path**: `apps/storefront/src/features/identity-and-access/modules/customer-account/behaviours/address-book-management`  
 > **Backend Framework Path**: `backend/src/features/identity-and-access/modules/customer-account/behaviours/address-book-management`  
 > **Execution Sprint**: [Sprint 1.1](../../sprints/README.md)  
-> **Slicing Standard**: [7-PR Vertical Slicing Framework](../../sprints/README.md#the-7-pr-vertical-slicing-standard)  
+> **Slicing Standard**: [10-PR Vertical Slicing Framework](../../sprints/README.md#the-10-pr-vertical-slicing-standard-aligned-with-10-pillar-system-architecture)  
 > **Security Gateway**: [ASVS Level 2 Verification Gate (security-audit)](#5-security-gateway-powered-by-security-audit)
 
 ---
@@ -40,6 +40,12 @@ Feature: Address Book
     Given the customer has 10 addresses (maximum)
     When they try to add an 11th
     Then an error "Maximum 10 addresses allowed. Remove one first." is shown
+  Scenario: [AC-US-7.1.2-LAW] Global e-commerce legal compliance and address data retention regulations
+    Given a customer managing saved shipping and billing addresses
+    When deleting or updating stored address book entries
+    Then customer address deletions must immediately remove personal location records from active operational address books
+    And archived historical address snapshots tied to fulfilled orders must be retained strictly under statutory fiscal audit rules
+    And cross-border storage of customer address data must comply with international data transfer safeguards (SCCs / DPF)
 ```
 
 ### 1.3 Test Cases & Traceability Matrix
@@ -54,6 +60,7 @@ Feature: Address Book
 | TC-7.1.2-06 | 11th address | Validation | Limit error |
 | TC-7.1.2-07 | Offline address add | Edge Case | Synced on reconnect |
 | TC-7.1.2-08 | Arabic address labels | i18n | RTL labels |
+| TC-7.1.2-LAW | Global legal & regulatory compliance (GDPR Art 17 Right to Erasure, statutory tax audit address preservation, cross-border safeguards) | Legal / Regulatory | Statutory compliance verified with zero legal or regulatory violations |
 
 ---
 
@@ -225,7 +232,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-7.1.2-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -235,6 +242,12 @@ flowchart TD
 
 ### G3 — Architecture and maintainability
 - [ ] **US-7.1.2-G3:** Strict compliance with framework colocation (`apps/storefront/src/features/` or `backend/src/features/`), zero-clone borrowing discipline in Rust, and clean domain boundaries.
+
+### G-Review — Code review
+- [ ] **US-7.1.2-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Law — Law validation
+- [ ] **US-7.1.2-G-Law:** Independent verification against global e-commerce legal and statutory requirements: GDPR Art 17 ("Right to be Forgotten"), commercial tax address retention reconciliation, and international data transfer safeguards; certified by compliance reviewer (`agency-legal-compliance-checker`).
 
 ### G4 — Integrated acceptance
 - [ ] **US-7.1.2-G4:** End-to-end user journey validation across supported platforms (Web, iOS, Android) and verified sandbox integration.
