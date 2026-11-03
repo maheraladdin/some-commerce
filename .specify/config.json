@@ -1,0 +1,37 @@
+{
+  "name": "some-commerce",
+  "version": "1.0.0",
+  "spec_driven_development": true,
+  "standards": {
+    "constitution": ".specify/memory/constitution.md",
+    "templates": {
+      "spec": ".specify/templates/spec-template.md",
+      "plan": ".specify/templates/plan-template.md",
+      "tasks": ".specify/templates/tasks-template.md",
+      "security_gateway": ".specify/templates/security-gateway-template.md"
+    },
+    "architecture_pattern": "features-modules-behaviours",
+    "security_gateways": "security-audit"
+  },
+  "hierarchy": {
+    "root": "features",
+    "levels": [
+      "feature",
+      "module",
+      "behaviour"
+    ],
+    "behaviour_colocation": [
+      "services",
+      "designs",
+      "logic",
+      "types",
+      "constants"
+    ],
+    "sharing_tiers": [
+      "behaviour-local",
+      "module-shared",
+      "feature-shared",
+      "global-shared"
+    ]
+  }
+}
