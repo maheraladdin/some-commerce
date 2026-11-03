@@ -4,7 +4,7 @@ Test suite for Agent Generator (generate_agent.py).
 Verifies:
 1. Generation of agent.yaml with correct profiles, rules, and allowed/forbidden paths.
 2. Assembly of context.md with story narratives, Gherkin ACs, and verification commands.
-3. Generation of tasks.md with ordered 7-PR execution checklist.
+3. Generation of tasks.md with ordered 10-PR execution checklist.
 4. Correct support for all software company positions.
 """
 
@@ -53,7 +53,7 @@ class TestAgentGenerator(unittest.TestCase):
         self.assertIn("Strict Rust Zero-Clone Law", yaml_content)
 
         context_content = (workdir / "context.md").read_text(encoding="utf-8")
-        self.assertIn("PR 1: Microkernel Domain Logic & Invariants", context_content)
+        self.assertIn("Pillar 1: Microkernel Domain Logic & Plugin Ports", context_content)
         self.assertIn("validate_microkernel.py", context_content)
 
     def test_all_company_positions_supported(self):

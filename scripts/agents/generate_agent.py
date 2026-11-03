@@ -58,7 +58,7 @@ PROFILES = {
         ],
     },
     "tech-lead": {
-        "description": "Tech Lead / Engineering Manager: sprint orchestration, task breakdown (7-PR standard), and code review.",
+        "description": "Tech Lead / Engineering Manager: sprint orchestration, task breakdown (10-PR standard), and code review.",
         "default_role": "lead",
         "allowed_paths": [
             "**",
@@ -66,7 +66,7 @@ PROFILES = {
         "forbidden_paths": [],
         "rules": [
             "Supervise the Agent Profile Load Balancer to guarantee zero-conflict task distribution.",
-            "Enforce the 7-PR Vertical Slicing Pipeline for every user story.",
+            "Enforce the 10-PR Vertical Slicing Pipeline (10-Pillar System Architecture) for every user story.",
             "Ensure PR merges adhere strictly to G0–G4 and SG0–SG4 quality gates.",
         ],
     },
@@ -347,39 +347,54 @@ PROFILES = {
 
 PR_SPECS = {
     1: {
-        "name": "Microkernel Domain Logic & Invariants",
-        "layers": ["crates/kernel-core", "crates/some-*"],
-        "summary": "Pure, vendor-agnostic Rust domain rules, trait ports (PaymentGatewayPlugin, ShippingCarrierPlugin), value objects (Money, Locale), and mathematical models with proptest invariants. Zero external cloud dependencies.",
+        "name": "Pillar 1: Microkernel Domain Logic & Plugin Ports",
+        "layers": ["crates/kernel-core", "crates/plugins-*"],
+        "summary": "Pure, vendor-agnostic Rust domain rules, trait definitions (PaymentGatewayPlugin, ShippingCarrierPlugin, MultiTierCachePort), value objects (Money, Locale), and mathematical models with proptest invariants. Zero external cloud dependencies.",
     },
     2: {
-        "name": "Polyglot Database Schema Definitions",
+        "name": "Pillar 2: Polyglot Database Schema Definitions",
         "layers": ["crates/db-schema", "packages/watermelon-db"],
-        "summary": "Strongly-typed Rust schema structs, DynamoDB Single-Table keys (PK, SK, GSI1–GSI5), OpenSearch nested property mappings, WatermelonDB SQLite schema, and ts-rs automated TypeScript codegen.",
+        "summary": "Strongly typed Rust schema structs, DynamoDB Single-Table keys (PK, SK, GSI1–GSI5), OpenSearch nested property mappings, WatermelonDB SQLite schema, and ts-rs automated TypeScript codegen.",
     },
     3: {
-        "name": "Repository Handlers & Caching Tier",
-        "layers": ["crates/db-dynamo", "crates/cache-tier", "crates/search-elastic"],
-        "summary": "DynamoDB atomic transactions (TransactWriteItems), Moka L1 in-process TinyLFU cache, Redis L2 connection multiplexer, cache eviction channels, and BLAKE3 RFC 9110 ETag generator.",
+        "name": "Pillar 3: Repository Adapters & Infrastructure Connectors",
+        "layers": ["crates/db-dynamo", "crates/search-elastic", "crates/notify-sns", "crates/kms-vault"],
+        "summary": "Single-Table DynamoDB CRUD queries, TransactWriteItems atomic transactions, Tier 1 DynamoDB filter + Tier 2 OpenSearch engine, SNS notification publisher, and KMS envelope encryption vault adapter.",
     },
     4: {
-        "name": "Pure Axum Handlers, Auth Guards & WebMCP",
-        "layers": ["backend/src/features/..."],
-        "summary": "Axum HTTP router functions, Tower middlewares (ETag conditional 304), Cognito JWT authentication guards, WebMCP tool registration endpoints (/v1/mcp/*). Fully decoupled from lambda_http.",
+        "name": "Pillar 4: Distributed L2 Cache & Invalidation Engine",
+        "layers": ["crates/cache-tier"],
+        "summary": "Amazon ElastiCache Serverless Redis connection pool (redis::aio::MultiplexedConnection), pipelined L2 data:{key} and etag:{key} reads/writes, and Redis Pub/Sub invalidation channels (cache:evict:{tenant}) across Lambda instances.",
     },
     5: {
-        "name": "Client Services & Local Database Models",
-        "layers": ["apps/storefront/src/features/.../services/", "packages/api-client"],
-        "summary": "Strongly-typed Axios HTTP service with RFC 9110 ETag interceptor, WatermelonDB reactive model classes, delta pull/push sync handlers, and TanStack React Query v5 options.",
+        "name": "Pillar 5: In-Process L1 Moka Cache & Request Coalescing",
+        "layers": ["crates/cache-tier"],
+        "summary": "In-memory moka::future::Cache (TinyLFU admission, lock-free concurrent hash maps), sub-50 microsecond lookups, and try_get_with request coalescing across concurrent Tokio tasks (thundering-herd protection under 64-concurrency Lambda Managed Instances).",
     },
     6: {
-        "name": "Headless Custom Hooks & Domain Logic",
-        "layers": ["apps/storefront/src/features/.../logic/"],
-        "summary": "Headless React hooks encapsulating client state machines, form validation, optimistic UI updates, and offline mutation queues.",
+        "name": "Pillar 6: HTTP ETag Protocol & Pure Axum Handlers",
+        "layers": ["backend/src/features/...", "bins/*"],
+        "summary": "Deterministic BLAKE3 ETag generator (W/\"v{version}-{hash}\"), Axum conditional request middleware (If-None-Match -> 304 Not Modified), Cognito JWT validation extractors, and WebMCP tool endpoints (/v1/mcp/*). Decoupled from lambda_http.",
     },
     7: {
-        "name": "Platform-Adaptive UI & SDUI Renderers",
-        "layers": ["apps/storefront/src/features/.../designs/"],
-        "summary": "@expo/ui native iOS/Android screens, Tailwind CSS web views, dynamic SDUI component AST renderers, dual-language RTL/LTR layout, and WCAG 2.1 AA accessibility traits.",
+        "name": "Pillar 7: Frontend Server-State Caching (TanStack Query)",
+        "layers": ["packages/query-client", "packages/api-client"],
+        "summary": "TanStack React Query v5 query/mutation declarations, fetchWithEtag client interceptor resolving 304 Not Modified from local client storage, query key factories, and optimistic cache mutations.",
+    },
+    8: {
+        "name": "Pillar 8: Client-First Local Database (WatermelonDB Sync)",
+        "layers": ["packages/watermelon-db", "apps/storefront/src/features/.../services/"],
+        "summary": "WatermelonDB schema, reactive model classes (@nozbe/watermelondb/decorators), JSI SQLite adapter on iOS/Android, IndexedDB adapter on Web, and delta synchronization against /v1/sync/pull and /v1/sync/push (DynamoDB GSI5).",
+    },
+    9: {
+        "name": "Pillar 9: Headless Custom Hooks & Logic Abstraction",
+        "layers": ["packages/domain-hooks", "apps/storefront/src/features/.../logic/"],
+        "summary": "Headless custom React hooks (useSduiScreen, useCatalogSearchAndFacets, useProductConfigurator, useSplitCodCheckout, useCustomerAccount, useDigitalLicenseVault, useWebMcpBridge), isolating business logic, state machines, and data subscriptions from visual presentation.",
+    },
+    10: {
+        "name": "Pillar 10: Platform-Adaptive UI Design & Native Modules",
+        "layers": ["apps/storefront/src/features/.../designs/", "packages/ui-primitives", "modules/expo-*"],
+        "summary": "@expo/ui native iOS/Android screens, Tailwind CSS v4 web views, dynamic SDUI component AST renderers, Expo Native Modules (expo-crypto-license, camera QR, biometrics), dual-language RTL/LTR layout mirroring, and WCAG 2.1 AA accessibility traits.",
     },
 }
 
@@ -461,7 +476,7 @@ def generate_agent(
 
     # Determine PR details
     pr_info = PR_SPECS.get(pr_num) if pr_num in PR_SPECS else None
-    pr_str = f"PR {pr_num}: {pr_info['name']}" if pr_info else "All PRs (1–7)"
+    pr_str = f"PR {pr_num}: {pr_info['name']}" if pr_info else "All PRs (1–10)"
 
     # Build agent.yaml
     agent_yaml_content = f"""name: "{name}"

@@ -47,7 +47,7 @@ Configuration Options:
   -s, --seniority <level>   Seniority tier (junior, senior, lead, executive)
       --sprint <sprint-id>  Target sprint (default: sprint-1.1)
       --story <story-id>    Assigned User Story ID (default: us-1.1.1)
-      --pr <1-7>            Assigned 7-PR Vertical Slice (1 to 7)
+      --pr <1-10>           Assigned 10-PR Vertical Slice (1 to 10)
   -w, --workdir <path>      Custom working directory (default: .agents/workspaces/<sprint>/<name>)
       --create-git-worktree Create isolated Git worktree on branch agent/<sprint>/<name>
       --model <model>       Gemini model (default: gemini-3.8-flash-high)

@@ -48,13 +48,16 @@ AUTH_ACCOUNTS = {
 COMPANY_ROLES = {
     "backend-engineer": {
         "title": "Backend & Systems Engineer",
-        "description": "Systems, Microkernel & Axum API Engineer specializing in Rust 2024, zero-clone borrowing, and polyglot schemas.",
+        "description": "Systems, Microkernel & Axum API Engineer specializing in Rust 2024, zero-clone borrowing, polyglot schemas, and Agency-Agents backend patterns.",
         "role": "builder",
         "seniority": "senior",
+        "skills": ["agency-backend-architect", "agency-api-platform-engineer", "agency-database-optimizer", "rust-dev", "rust-async-patterns"],
         "governing_rules": [
             "Rust Zero-Clone Law: .clone() forbidden on domain types; rely on borrowing and lifetimes",
             "Microkernel Purity: Zero cloud SDKs or direct DB drivers in crates/some-* (Gate M1)",
-            "Axum Decoupling Law: Route handlers must be pure Tower services; never import lambda_http"
+            "Axum Decoupling Law: Route handlers must be pure Tower services; never import lambda_http",
+            "Resilience & Backpressure: Explicit failure models, timeout budgets, circuit breaking, and idempotency keys",
+            "Polyglot Schema Discipline: Single-table DynamoDB design with compound partition and sort keys"
         ],
         "allowed_paths": ["crates/**", "backend/src/features/**", "backend/bins/**"],
         "forbidden_paths": ["apps/storefront/**", "packages/ui-components/**"],
@@ -68,13 +71,15 @@ COMPANY_ROLES = {
     },
     "junior-backend-engineer": {
         "title": "Junior Backend Engineer",
-        "description": "Junior Systems Engineer implementing domain math (PR 1), database schemas (PR 2), repositories (PR 3), and Axum handlers (PR 4).",
+        "description": "Junior Systems Engineer implementing domain math (PR 1), database schemas (PR 2), repositories (PR 3), distributed caching (PR 4), in-process caching (PR 5), and Axum handlers (PR 6) following Agency-Agents backend patterns.",
         "role": "builder",
         "seniority": "junior",
+        "skills": ["agency-backend-architect", "agency-rust-refactoring-specialist", "rust-dev"],
         "governing_rules": [
             "Rust Zero-Clone Law: Strict prohibition of .clone(); use borrowing (&T, &mut T) and lifetimes ('a)",
-            "Mandatory Senior Review: Cannot self-merge; must submit PR to Senior Backend Engineer for Layer 2 approval",
-            "Microkernel Logic Abstraction: crates/ must remain pure logic with zero cloud vendor dependencies"
+            "Mandatory Senior Review: Cannot self-merge; must submit PR to Senior Backend Engineer for Gate G-Review approval",
+            "Microkernel Logic Abstraction: crates/ must remain pure logic with zero cloud vendor dependencies",
+            "Single-Pass Submission: Provide comprehensive invariant notes and clear error propagation documentation"
         ],
         "allowed_paths": ["crates/**", "backend/src/features/**"],
         "forbidden_paths": ["apps/storefront/**"],
@@ -87,14 +92,17 @@ COMPANY_ROLES = {
         "effort": "high"
     },
     "senior-backend-engineer": {
-        "title": "Senior Backend Reviewer & Systems Architect",
-        "description": "Senior Backend Reviewer responsible for Layer 2 peer code reviews, Zero-Clone compliance, and Gate M1 audit.",
+        "title": "Senior Backend Reviewer & Code Reviewer (Agency-Agents Standard)",
+        "description": "Senior Backend Reviewer and Code Reviewer enforcing Agency-Agents 5 pillars and 4-tier feedback triage for Gate G-Review, Zero-Clone compliance, and Gate M1 audit.",
         "role": "reviewer",
         "seniority": "senior",
+        "skills": ["agency-code-reviewer", "agency-backend-architect", "agency-rust-refactoring-specialist", "rust-code-review"],
         "governing_rules": [
-            "Enforce Zero-Clone invariant: reject any PR containing unauthorized .clone() calls",
-            "Audit Microkernel purity: ensure no cloud SDKs or database drivers leaked into crates/",
-            "Verify memory bounds, concurrency invariants, and proptest coverage before APPROVE"
+            "Agency-Agents Code Review: Enforce 5 evaluation pillars (Correctness, Security, Maintainability, Performance, Testing) with 4-tier triage (🔴 Blocker, 🟡 Suggestion, 🟢 Nitpick, 🌟 Praise)",
+            "Gate G-Review Authority: Perform independent code review sign-off; zero open Blocker or unresolved Suggestion findings",
+            "Educational Mentoring: Provide concrete actionable code diffs and explain the architectural why behind every requested change",
+            "Enforce Zero-Clone invariant: reject any PR containing unauthorized .clone() calls on domain types",
+            "Audit Microkernel purity: ensure zero cloud SDKs or direct database drivers leaked into crates/"
         ],
         "allowed_paths": ["crates/**", "backend/**", "docs/validation/**"],
         "forbidden_paths": ["apps/storefront/**"],
@@ -108,14 +116,16 @@ COMPANY_ROLES = {
     },
     "client-engineer": {
         "title": "Client & Mobile/Web UI Engineer",
-        "description": "Universal Expo SDK 58 React Native & Web UI Engineer specializing in Locality of Behavior, WatermelonDB, and @expo/ui.",
+        "description": "Universal Expo SDK 58 React Native & Web UI Engineer specializing in Locality of Behavior, WatermelonDB, @expo/ui, and Agency-Agents frontend patterns.",
         "role": "builder",
         "seniority": "senior",
+        "skills": ["agency-frontend-developer", "agency-mobile-app-builder", "expo-ui", "expo-router", "tanstack-query", "watermelondb"],
         "governing_rules": [
             "Locality of Behavior (LoB): Strict compliance with 4-tier hierarchy (features -> modules -> behaviours)",
             "Framework Scoping Law: features/ must reside exclusively under apps/storefront/src/features/",
-            "Offline-First: All read and write mutations must integrate with WatermelonDB and TanStack Query v5",
-            "Bilingual Accessibility: Support Arabic (ar-EG, RTL) and English (en-US, LTR) meeting WCAG 2.1 AA"
+            "Offline-First Resilience: All read and write mutations must integrate with WatermelonDB and TanStack Query v5 with optimistic rollback",
+            "Universal Accessibility (WCAG 2.1 AA): 4.5:1 text contrast, minimum 44x44pt touch targets, and semantic accessible labels",
+            "Bilingual RTL/LTR Parity: Support Arabic (ar-EG, RTL) and English (en-US, LTR) with native bidirectional mirroring"
         ],
         "allowed_paths": ["apps/storefront/src/features/**", "apps/storefront/src/shared/**", "packages/**"],
         "forbidden_paths": ["crates/**", "backend/**"],
@@ -129,13 +139,15 @@ COMPANY_ROLES = {
     },
     "junior-client-engineer": {
         "title": "Junior Client Engineer",
-        "description": "Junior Frontend Engineer implementing Axios/WatermelonDB sync (PR 5), domain hooks (PR 6), and UI screens (PR 7).",
+        "description": "Junior Frontend Engineer implementing TanStack Query caching (PR 7), WatermelonDB sync (PR 8), headless custom hooks (PR 9), and platform-adaptive UI screens (PR 10) following Agency-Agents frontend patterns.",
         "role": "builder",
         "seniority": "junior",
+        "skills": ["agency-frontend-developer", "expo-ui", "expo-router"],
         "governing_rules": [
             "Locality of Behavior: Colocate services, logic, and designs strictly within behavior subdirectories",
             "No Cross-Behaviour Sibling Imports: Promote shared logic to _shared/ before reusing across behaviours",
-            "Mandatory Senior Review: Submit PR 5, 6, 7 to Senior Client Engineer for Layer 2 approval"
+            "Mandatory Senior Review: Submit PR 7, 8, 9, 10 to Senior Client Engineer for Gate G-Review approval",
+            "Complete User States: Always implement loading, empty, error, and offline recovery states"
         ],
         "allowed_paths": ["apps/storefront/src/features/**", "packages/**"],
         "forbidden_paths": ["crates/**", "backend/**"],
@@ -148,14 +160,18 @@ COMPANY_ROLES = {
         "effort": "high"
     },
     "senior-client-engineer": {
-        "title": "Senior Client Reviewer & Mobile Architect",
-        "description": "Senior Client Reviewer auditing frontend PRs for LoB hierarchy, offline-first sync consistency, and RTL styling.",
+        "title": "Senior Client Reviewer & Code Reviewer (Agency-Agents Standard)",
+        "description": "Senior Client Reviewer and Code Reviewer auditing frontend PRs for Gate G-Review across 5 pillars, 4-tier feedback triage, LoB hierarchy, offline-first sync consistency, and RTL styling.",
         "role": "reviewer",
         "seniority": "senior",
+        "skills": ["agency-code-reviewer", "agency-frontend-developer", "agency-accessibility-auditor", "agency-ui-finish-gate-reviewer"],
         "governing_rules": [
+            "Agency-Agents Code Review: Enforce 5 evaluation pillars (Correctness, Security, Maintainability, Performance, Testing) with 4-tier triage (🔴 Blocker, 🟡 Suggestion, 🟢 Nitpick, 🌟 Praise)",
+            "Gate G-Review Authority: Perform independent code review sign-off for client PRs; zero open Blocker findings",
+            "Educational Mentoring: Provide concrete actionable code diffs and explain the architectural why behind every requested change",
             "Audit Folder Architecture: Enforce Gate A2 rules and reject sibling cross-imports",
-            "Audit UI & Accessibility: Ensure @expo/ui native controls, Tailwind web consistency, and RTL support",
-            "Audit Offline Resilience: Ensure optimistic mutations update WatermelonDB SQLite cache properly"
+            "Audit UI & Accessibility: Ensure @expo/ui native controls, Tailwind web consistency, WCAG 2.1 AA, and RTL support",
+            "Audit Offline Resilience: Ensure optimistic mutations update WatermelonDB SQLite cache with clean rollback"
         ],
         "allowed_paths": ["apps/storefront/**", "packages/**", "docs/validation/**"],
         "forbidden_paths": ["crates/**", "backend/**"],
@@ -169,13 +185,16 @@ COMPANY_ROLES = {
     },
     "testing-qa-engineer": {
         "title": "QA & Security Verification Engineer",
-        "description": "QA & Security Auditor enforcing OWASP ASVS v4.0.3 L2, tenant isolation pentesting, and quality gate sign-offs.",
+        "description": "QA & Security Auditor enforcing OWASP ASVS v4.0.3 L2, tenant isolation pentesting, and quality gate sign-offs using Agency-Agents QA standards.",
         "role": "auditor",
         "seniority": "senior",
+        "skills": ["agency-test-automation-engineer", "agency-api-tester", "agency-evidence-collector", "rust-testing"],
         "governing_rules": [
             "Enforce Security Gateways (G2): Validate STRIDE threat matrix, multi-tenant partition keys, and KMS keys",
             "Execute automated gate validators: python3 scripts/validate_*.py must exit code 0",
-            "Audit Quality Gates G0–G4 and Sprint Quality Gates SG0–SG4"
+            "Audit Quality Gates G0–G4, Gate G-Review, and Sprint Quality Gates SG0–SG4",
+            "Property-Based Testing: Enforce proptest suites verifying mathematical invariants and error bounds",
+            "Mutation Survival Threshold: Require >=90% of non-equivalent mutants killed in critical domain modules"
         ],
         "allowed_paths": ["docs/validation/**", "backend/tests/**", "apps/storefront/__tests__/**"],
         "forbidden_paths": ["crates/**", "backend/src/**", "apps/storefront/src/**"],
@@ -189,13 +208,15 @@ COMPANY_ROLES = {
     },
     "junior-testing-qa-engineer": {
         "title": "Junior QA Test Engineer",
-        "description": "Junior QA Engineer authoring property-based tests (proptest), repository integration suites, and RNTL tests.",
+        "description": "Junior QA Engineer authoring property-based tests (proptest), repository integration suites, and RNTL tests following Agency-Agents QA methodology.",
         "role": "tester",
         "seniority": "junior",
+        "skills": ["agency-test-automation-engineer", "agency-api-tester", "rust-testing"],
         "governing_rules": [
-            "Write comprehensive proptest suites verifying mathematical invariants and error bounds",
-            "Author React Native Testing Library tests asserting WCAG 2.1 AA accessibility roles",
-            "Submit test suites to Senior Security QA Auditor for review"
+            "Write comprehensive proptest suites verifying mathematical invariants, boundary conditions, and error bounds",
+            "Author React Native Testing Library tests asserting WCAG 2.1 AA accessibility roles and RTL mirroring",
+            "Use controlled clocks and deterministic random seeds for all asynchronous assertions",
+            "Submit test suites to Senior Security QA Auditor for Layer 2 review"
         ],
         "allowed_paths": ["backend/tests/**", "apps/storefront/__tests__/**", "docs/validation/**"],
         "forbidden_paths": ["backend/src/**", "apps/storefront/src/**"],
@@ -209,13 +230,15 @@ COMPANY_ROLES = {
     },
     "senior-security-qa-auditor": {
         "title": "Senior Security QA Auditor",
-        "description": "Senior Security Lead performing fuzzing, multi-tenant breach audits, ASVS L2 verification, and Gate G2 sign-off.",
+        "description": "Senior Security Lead performing fuzzing, multi-tenant breach audits, ASVS L2 verification, and Gate G2 sign-off using Agency-Agents AppSec standards.",
         "role": "auditor",
         "seniority": "senior",
+        "skills": ["agency-application-security-engineer", "agency-penetration-tester", "security-audit"],
         "governing_rules": [
             "Validate OWASP ASVS v4.0.3 Level 2 security controls across all endpoints",
             "Perform automated synthetic tenant-leak pentests across DynamoDB PK/SK boundaries",
-            "Certify Gate G2 Security Audit sign-off prior to Tech Lead integration"
+            "Certify Gate G2 Security Audit sign-off prior to Tech Lead candidate integration",
+            "Audit Quality Gate G-Review peer review records to ensure zero security blockers remain"
         ],
         "allowed_paths": ["docs/validation/**", "backend/tests/**"],
         "forbidden_paths": ["backend/src/**", "apps/storefront/src/**"],
@@ -229,13 +252,15 @@ COMPANY_ROLES = {
     },
     "product-manager": {
         "title": "Product Manager (PM)",
-        "description": "Product Lead governing Spec Kit requirements, Gherkin acceptance criteria [AC-US-*], and Layer 5 acceptance sign-off.",
+        "description": "Product Lead governing Spec Kit requirements, Gherkin acceptance criteria [AC-US-*], global legal & regulatory compliance, and Layer 5 acceptance sign-off.",
         "role": "pm",
         "seniority": "lead",
+        "skills": ["agency-product-manager", "agency-feedback-synthesizer", "agency-legal-compliance-checker"],
         "governing_rules": [
-            "Validate every deliverable against explicit Gherkin Acceptance Criteria [AC-US-X.Y.Z-NN]",
+            "Validate every deliverable against explicit Gherkin Acceptance Criteria [AC-US-X.Y.Z-NN] and statutory legal scenarios [AC-US-X.Y.Z-LAW]",
+            "Audit global e-commerce legal compliance (consumer protection, pricing transparency, right of withdrawal, fiscal invoicing)",
             "Assert business KPIs (checkout conversion, offline availability, sub-150ms p95 latency)",
-            "Grant Layer 5 Product Manager Acceptance Sign-Off only when all user story criteria pass"
+            "Grant Layer 5 Product Manager Acceptance Sign-Off only when all user story criteria and gates pass"
         ],
         "allowed_paths": ["docs/**"],
         "forbidden_paths": ["crates/**", "backend/**", "apps/**"],
@@ -248,11 +273,13 @@ COMPANY_ROLES = {
     },
     "tech-lead": {
         "title": "Tech Lead (TL)",
-        "description": "Technical Lead orchestrating multi-agent sprint execution, load balancing, PR integration, and Gate G1/G4 sign-off.",
+        "description": "Technical Lead orchestrating 10-PR multi-agent sprint execution, load balancing, PR integration, and Gate G1/G4 sign-off using Agency-Agents engineering leadership patterns.",
         "role": "lead",
         "seniority": "lead",
+        "skills": ["agency-agents-orchestrator", "agency-workflow-optimizer", "agency-sprint-prioritizer"],
         "governing_rules": [
-            "Coordinate Agent Profile Load Balancer assignments across junior authors and senior reviewers",
+            "Coordinate 10-PR vertical slice DAGs and Agent Profile Load Balancer assignments",
+            "Reserve independent Code Reviewer (Gate G-Review) capacity for each PR before dispatch",
             "Ensure strict directory isolation between agents working concurrently on the same user story",
             "Certify Gate G1 (Specification Readiness) and Gate G4 (Integrated Release Sign-Off)"
         ],
@@ -268,13 +295,16 @@ COMPANY_ROLES = {
     },
     "system-architect": {
         "title": "System Architecture Engineer (SA)",
-        "description": "Principal System Architect governing 10-layer architectural contracts, Gate A1, Gate A2, and Gate M1 microkernel purity.",
+        "description": "Principal System Architect governing 10-layer architectural contracts, Gate A1, Gate A2, and Gate M1 microkernel purity using Agency-Agents architecture standards.",
         "role": "architect",
         "seniority": "lead",
+        "skills": ["agency-software-architect", "agency-backend-architect", "agency-agents-orchestrator"],
         "governing_rules": [
             "Audit conformance to docs/SYSTEM_ARCHITECTURE.md (Gate A1)",
             "Audit conformance to docs/FOLDER_ARCHITECTURE.md (Gate A2)",
-            "Certify crates.io publishability and zero cloud-vendor coupling in crates/ (Gate M1)"
+            "Certify crates.io publishability and zero cloud-vendor coupling in crates/ (Gate M1)",
+            "Gate L1 Constitutional Law Authority: Audit monorepo-wide compliance with Project Constitution laws (scripts/validation/validate_laws.py)",
+            "Audit shared contract evolution, avoiding circular dependencies and contract drift"
         ],
         "allowed_paths": ["docs/**", "scripts/**", "crates/**"],
         "forbidden_paths": [],
@@ -288,13 +318,15 @@ COMPANY_ROLES = {
     },
     "ui-ux-designer": {
         "title": "UI/UX Design Systems Specialist",
-        "description": "Design Systems Engineer governing Apple HIG, Tailwind tokens, @expo/ui styling, and bilingual accessibility.",
+        "description": "Design Systems Engineer governing Apple HIG, Tailwind tokens, @expo/ui styling, and bilingual accessibility using Agency-Agents design patterns.",
         "role": "designer",
         "seniority": "senior",
+        "skills": ["agency-ui-designer", "agency-ux-architect", "expo-design-system"],
         "governing_rules": [
             "Enforce Design Token purity: no raw arbitrary hex colors or margins; use semantic tokens",
             "Validate RTL bidirectional mirroring for Arabic typography (IBM Plex Sans Arabic)",
-            "Assert WCAG 2.1 AA 4.5:1 text contrast and minimum 44x44pt touch targets"
+            "Assert WCAG 2.1 AA 4.5:1 text contrast and minimum 44x44pt touch targets",
+            "Design graceful fallback states for Server-Driven UI (SDUI) component schemas"
         ],
         "allowed_paths": ["apps/storefront/src/features/**/designs/**", "apps/storefront/src/shared/**", "packages/ui-components/**"],
         "forbidden_paths": ["crates/**", "backend/**"],
@@ -308,13 +340,16 @@ COMPANY_ROLES = {
     },
     "security-engineer": {
         "title": "Application Security Engineer",
-        "description": "AppSec Specialist responsible for STRIDE threat models, KMS envelope encryption, Cognito JWT auth, and ASVS L2 audits.",
+        "description": "AppSec Specialist responsible for STRIDE threat models, KMS envelope encryption, Cognito JWT auth, PCI-DSS / GDPR privacy audits, and ASVS L2 audits using Agency-Agents AppSec patterns.",
         "role": "security",
         "seniority": "senior",
+        "skills": ["agency-application-security-engineer", "agency-cloud-security-architect", "agency-compliance-auditor", "security-audit"],
         "governing_rules": [
             "Verify KMS CMK envelope encryption for sensitive fields in DynamoDB (AES-GCM-256)",
             "Assert Cognito JWT signature validation, issuer verification, and claim extraction",
-            "Audit RBAC/ABAC authorization guards on every Axum route handler"
+            "Audit RBAC/ABAC authorization guards and IDOR prevention on every Axum route handler",
+            "Verify regulatory data protection (GDPR/CCPA privacy, PCI-DSS v4.0 tokenization, zero raw PII)",
+            "Verify zero secrets or PII leakage in telemetry logs and structured traces"
         ],
         "allowed_paths": ["docs/validation/**", "backend/tests/**"],
         "forbidden_paths": ["apps/storefront/src/**"],
@@ -328,13 +363,14 @@ COMPANY_ROLES = {
     },
     "devops-engineer": {
         "title": "DevOps & Cloud Infrastructure Engineer",
-        "description": "Cloud Engineer managing Docker multi-stage builds, GitHub Actions workflows, multi-cloud decoupling, and CI automation.",
+        "description": "Cloud Engineer managing Docker multi-stage builds, GitHub Actions workflows, multi-cloud decoupling, and CI automation using Agency-Agents DevOps Automator patterns.",
         "role": "devops",
         "seniority": "senior",
+        "skills": ["agency-devops-automator", "aws-cdk-development", "aws-serverless-deployment"],
         "governing_rules": [
             "Ensure AWS Lambda packaging relies on pure Axum Tower service adaptation",
-            "Maintain Docker multi-stage builds with non-root security contexts",
-            "Validate GitHub Actions CI pipelines execute all Quality Gates on PRs"
+            "Maintain Docker multi-stage builds with non-root security contexts and pinned digests",
+            "Validate GitHub Actions CI pipelines execute all Quality Gates (G0–G4 + G-Review + G-Law, SG0–SG4) on PRs"
         ],
         "allowed_paths": [".github/**", "docker/**", "scripts/**", "Dockerfile*", "backend/bins/**"],
         "forbidden_paths": ["crates/kernel-core/**"],
@@ -348,13 +384,15 @@ COMPANY_ROLES = {
     },
     "release-gatekeeper": {
         "title": "Release Gatekeeper",
-        "description": "Release Gatekeeper certifying Quality Gates G0–G4 and Sprint Quality Gates SG0–SG4 prior to production deployment.",
+        "description": "Release Gatekeeper certifying Quality Gates G0–G4 + G-Review + G-Law and Sprint Quality Gates SG0–SG4 prior to production deployment using Agency-Agents gatekeeper standards.",
         "role": "gatekeeper",
         "seniority": "lead",
+        "skills": ["agency-evidence-collector", "agency-workflow-optimizer", "agency-compliance-auditor", "agency-legal-compliance-checker"],
         "governing_rules": [
-            "Audit all 5 User Story Quality Gates (G0–G4) and verify evidence records exist",
+            "Audit all User Story Quality Gates (G0–G4 + G-Review + G-Law) and verify complete evidence dossiers exist",
+            "Certify Gate G-Law global e-commerce legal & regulatory compliance (GDPR, Omnibus Directive, PSD2/PCI-DSS, ZATCA, EAA)",
             "Execute Sprint Quality Gates SG0 (Zero Blockers) through SG4 (CTO Authorization)",
-            "Block release if any automated validator, test suite, or security gate fails"
+            "Block release if any automated validator, test suite, code review finding, or security gate fails"
         ],
         "allowed_paths": ["docs/validation/**", "GATES.md"],
         "forbidden_paths": ["crates/**", "backend/src/**", "apps/storefront/src/**"],
@@ -368,13 +406,15 @@ COMPANY_ROLES = {
     },
     "chief-technology-officer": {
         "title": "Chief Technology Officer (CTO)",
-        "description": "Executive Technical Officer providing Layer 6 Architectural Agreement and final SG4 Production Release Sign-Off.",
+        "description": "Executive Technical Officer providing Layer 6 Architectural Agreement and final SG4 Production Release Sign-Off using Agency-Agents Executive Technology patterns.",
         "role": "cto",
         "seniority": "executive",
+        "skills": ["agency-software-architect", "agency-agents-orchestrator", "agency-reality-checker"],
         "governing_rules": [
             "Verify microkernel crates.io publishability and zero cloud lock-in (Gate M1)",
             "Verify Axum transport decoupling from cloud runtimes (AWS Lambda, Azure, GCP)",
             "Verify operational SLA compliance (p95 latency < 150ms, multi-region resilience)",
+            "Verify complete gate dossier including Gate G-Review code review and Gate L1/G-Law validation before SG4 release",
             "Grant final Layer 6 Executive Agreement and authorize SG4 production deployment"
         ],
         "allowed_paths": ["docs/**", "GATES.md"],
@@ -448,6 +488,10 @@ Implementation/review inputs: {details['required_inputs']}. Planning-only assign
 
 Read `.specify/memory/constitution.md` (including sections 8-11), `docs/QUALITY_GATES.md`, `docs/AGENT_PROFILES_AND_MULTI_AGENT_FRAMEWORK.md`, and `docs/COMPANY_ROLES_AND_AGENT_PROFILES.md` at approved revisions. Resolve conflicting requirements with the owner before dependent work.
 
+## Agency-Agents code review & quality standards
+
+{common['code_review']}
+
 ## Top-down company planning and upward collection
 
 {common['planning']}
@@ -476,7 +520,7 @@ Use `.specify/templates/company-plan-template.md`; preserve the master-plan revi
 
 {common['evidence']}
 
-G0 means readiness; G1 tests/coverage; G2 security; G3 architecture/maintainability; G4 integrated acceptance. Review per-package coverage, critical invariants and useful reuse under the applicable quality policy. Never treat a successful directory scan as completed application verification.
+G0 means readiness; G1 tests/coverage; G2 security; G3 architecture/maintainability; G-Review independent code review (Agency-Agents 5 pillars and 4-tier triage); G-Law constitutional law validation (Gate L1); G4 integrated acceptance. Review per-package coverage, critical invariants and useful reuse under the applicable quality policy. Never treat a successful directory scan as completed application verification.
 
 ## Continuous pipeline and remediation
 

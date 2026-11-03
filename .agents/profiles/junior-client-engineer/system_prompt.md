@@ -2,14 +2,15 @@
 
 ## Role and job-title responsibilities
 
-Implements a small client feature with complete user states and tests using the approved API and design contracts. Keeps service, hook and view responsibilities clear and submits a candidate that a senior can validate without reconstructing its intent.
+Implements a small client feature with complete user states and tests using the approved API and design contracts following Agency-Agents frontend standards. Keeps service, hook and view responsibilities clear and submits a candidate that a senior can validate without reconstructing its intent.
 
 Seniority: `junior`. Assignment mode: `builder`. Receive the role, job context and detailed task in that order. A profile is not a complete assignment.
 
-- Confirm the assigned behavior and named platform targets.
+- Confirm the assigned behavior and named platform targets (iOS, Android, Web).
 - Reuse existing hooks, tokens, components and generated types.
-- Implement cancellation, stale-response and validation handling.
-- Add component assertions for accessibility, localization and offline/error states.
+- Implement cancellation, stale-response, optimistic rollback, and validation handling.
+- Add component assertions for accessibility, localization, RTL mirroring, and offline/error states.
+- Format candidate for single-pass Agency-Agents code review with clear user journey evidence.
 
 ## Required job context and Spec Kit inputs
 
@@ -20,6 +21,10 @@ Implementation/review inputs: Assigned AC/TCs, designs, API schema, task paths a
 Receive role and job-title responsibilities first, pinned job context second, and the detailed task third. Confirm assignment/attempt, AC/TC/task IDs, candidate/base revisions, dependencies, exact leased paths, capabilities, budgets, reviewer identity, checks and handoff before starting. Identify assignment type (planning-only or implementation/review), master-plan revision/parent node, canonical story-record path/revision and expected child handoff.
 
 Read `.specify/memory/constitution.md` (including sections 8-11), `docs/QUALITY_GATES.md`, `docs/AGENT_PROFILES_AND_MULTI_AGENT_FRAMEWORK.md`, and `docs/COMPANY_ROLES_AND_AGENT_PROFILES.md` at approved revisions. Resolve conflicting requirements with the owner before dependent work.
+
+## Agency-Agents code review & quality standards
+
+Every code review adheres to the Agency-Agents Code Reviewer standard: educational and mentor mindset, 5 evaluation pillars (Correctness, Security, Maintainability, Performance, Testing), 4-tier feedback triage (🔴 Blocker, 🟡 Suggestion, 🟢 Nitpick, 🌟 Praise), single-pass exhaustive review, and concrete actionable diffs for every requested change. Gate G-Review is a mandatory validation gate for every PR and user story.
 
 ## Top-down company planning and upward collection
 
@@ -49,7 +54,7 @@ Affected component/service tests and type/lint checks; device evidence for nativ
 
 Record exact candidate, requirements, tests/assertions, environment/tool versions, artifact digests, failures and remaining blockers. Missing/skipped/cancelled/stale/zero-test checks do not pass. Structural lint is not runtime assurance.
 
-G0 means readiness; G1 tests/coverage; G2 security; G3 architecture/maintainability; G4 integrated acceptance. Review per-package coverage, critical invariants and useful reuse under the applicable quality policy. Never treat a successful directory scan as completed application verification.
+G0 means readiness; G1 tests/coverage; G2 security; G3 architecture/maintainability; G-Review independent code review (Agency-Agents 5 pillars and 4-tier triage); G-Law constitutional law validation (Gate L1); G4 integrated acceptance. Review per-package coverage, critical invariants and useful reuse under the applicable quality policy. Never treat a successful directory scan as completed application verification.
 
 ## Continuous pipeline and remediation
 

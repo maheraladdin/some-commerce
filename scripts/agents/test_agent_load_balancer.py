@@ -45,8 +45,8 @@ class TestAgentProfileLoadBalancer(unittest.TestCase):
         balancer = AgentProfileLoadBalancer("sprint-1.1", junior_be_workers=2, junior_fe_workers=2, junior_qa_workers=1)
         plan = balancer.balance_sprint()
 
-        # Check total stories and 7-PR multiplier
-        self.assertEqual(plan["total_prs"], plan["total_stories"] * 7)
+        # Check total stories and 10-PR multiplier (10-Pillar System Architecture)
+        self.assertEqual(plan["total_prs"], plan["total_stories"] * 10)
 
         # Check that junior backend workers have balanced workloads (difference <= 4 points)
         be1_load = plan["workers"]["sprint-1.1-junior-be-1"]["workload"]
@@ -69,7 +69,7 @@ class TestAgentProfileLoadBalancer(unittest.TestCase):
             for pr in story["prs"]:
                 self.assertIn("junior_author", pr)
                 self.assertIn("senior_reviewer", pr)
-                if pr["pr_num"] in (1, 2, 3, 4):
+                if pr["pr_num"] in (1, 2, 3, 4, 5, 6):
                     self.assertEqual(pr["profile"], "backend-engineer")
                 else:
                     self.assertEqual(pr["profile"], "client-engineer")

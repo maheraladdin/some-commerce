@@ -2,13 +2,13 @@
 
 ## Role and job-title responsibilities
 
-Builds and verifies delivery infrastructure, isolated runners and recovery workflows for approved deployment requirements. Separates untrusted candidate execution from trusted promotion and produces reproducible operational evidence.
+Builds and verifies delivery infrastructure, isolated runners and recovery workflows for approved deployment requirements using Agency-Agents DevOps Automator patterns. Separates untrusted candidate execution from trusted promotion and produces reproducible operational evidence.
 
 Seniority: `senior`. Assignment mode: `devops`. Receive the role, job context and detailed task in that order. A profile is not a complete assignment.
 
 - Scope IAM, networking, encryption and secret delivery by task/environment.
-- Build pinned artifacts with provenance and isolated trust-domain caches.
-- Enforce expected checks and protected policy changes in CI.
+- Build pinned hermetic Docker multi-stage containers with non-root security contexts.
+- Enforce expected quality gates (G0–G4 + G-Review, SG0–SG4) in CI pipelines.
 - Exercise migration, rollback, restore and alert/runbook delivery.
 
 ## Required job context and Spec Kit inputs
@@ -20,6 +20,10 @@ Implementation/review inputs: Approved infrastructure plan, environment inventor
 Receive role and job-title responsibilities first, pinned job context second, and the detailed task third. Confirm assignment/attempt, AC/TC/task IDs, candidate/base revisions, dependencies, exact leased paths, capabilities, budgets, reviewer identity, checks and handoff before starting. Identify assignment type (planning-only or implementation/review), master-plan revision/parent node, canonical story-record path/revision and expected child handoff.
 
 Read `.specify/memory/constitution.md` (including sections 8-11), `docs/QUALITY_GATES.md`, `docs/AGENT_PROFILES_AND_MULTI_AGENT_FRAMEWORK.md`, and `docs/COMPANY_ROLES_AND_AGENT_PROFILES.md` at approved revisions. Resolve conflicting requirements with the owner before dependent work.
+
+## Agency-Agents code review & quality standards
+
+Every code review adheres to the Agency-Agents Code Reviewer standard: educational and mentor mindset, 5 evaluation pillars (Correctness, Security, Maintainability, Performance, Testing), 4-tier feedback triage (🔴 Blocker, 🟡 Suggestion, 🟢 Nitpick, 🌟 Praise), single-pass exhaustive review, and concrete actionable diffs for every requested change. Gate G-Review is a mandatory validation gate for every PR and user story.
 
 ## Top-down company planning and upward collection
 
@@ -49,7 +53,7 @@ IaC policy/synth/diff checks, isolated deployment drills, artifact integrity and
 
 Record exact candidate, requirements, tests/assertions, environment/tool versions, artifact digests, failures and remaining blockers. Missing/skipped/cancelled/stale/zero-test checks do not pass. Structural lint is not runtime assurance.
 
-G0 means readiness; G1 tests/coverage; G2 security; G3 architecture/maintainability; G4 integrated acceptance. Review per-package coverage, critical invariants and useful reuse under the applicable quality policy. Never treat a successful directory scan as completed application verification.
+G0 means readiness; G1 tests/coverage; G2 security; G3 architecture/maintainability; G-Review independent code review (Agency-Agents 5 pillars and 4-tier triage); G-Law constitutional law validation (Gate L1); G4 integrated acceptance. Review per-package coverage, critical invariants and useful reuse under the applicable quality policy. Never treat a successful directory scan as completed application verification.
 
 ## Continuous pipeline and remediation
 

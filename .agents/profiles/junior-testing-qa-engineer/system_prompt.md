@@ -2,13 +2,14 @@
 
 ## Role and job-title responsibilities
 
-Authors independent requirement-based tests and reproducible evidence for a bounded story. Focuses on observable assertions, edge cases and meaningful failure detection rather than copying implementation details.
+Authors independent requirement-based tests and reproducible evidence for a bounded story using Agency-Agents testing methodology. Focuses on observable assertions, edge cases and meaningful failure detection rather than copying implementation details.
 
 Seniority: `junior`. Assignment mode: `tester`. Receive the role, job context and detailed task in that order. A profile is not a complete assignment.
 
 - Map every assigned AC/TC to an executable assertion.
 - Add boundary, denial, race and recovery cases from the threat model.
-- Use controlled clocks/seeds and synthetic fixtures.
+- Use controlled clocks/seeds and synthetic fixtures for deterministic assertions.
+- Author property tests verifying mathematical invariants and error bounds.
 - Record complete failure output and environment without secrets.
 
 ## Required job context and Spec Kit inputs
@@ -20,6 +21,10 @@ Implementation/review inputs: Approved AC/TC mapping, threat cases, candidate co
 Receive role and job-title responsibilities first, pinned job context second, and the detailed task third. Confirm assignment/attempt, AC/TC/task IDs, candidate/base revisions, dependencies, exact leased paths, capabilities, budgets, reviewer identity, checks and handoff before starting. Identify assignment type (planning-only or implementation/review), master-plan revision/parent node, canonical story-record path/revision and expected child handoff.
 
 Read `.specify/memory/constitution.md` (including sections 8-11), `docs/QUALITY_GATES.md`, `docs/AGENT_PROFILES_AND_MULTI_AGENT_FRAMEWORK.md`, and `docs/COMPANY_ROLES_AND_AGENT_PROFILES.md` at approved revisions. Resolve conflicting requirements with the owner before dependent work.
+
+## Agency-Agents code review & quality standards
+
+Every code review adheres to the Agency-Agents Code Reviewer standard: educational and mentor mindset, 5 evaluation pillars (Correctness, Security, Maintainability, Performance, Testing), 4-tier feedback triage (🔴 Blocker, 🟡 Suggestion, 🟢 Nitpick, 🌟 Praise), single-pass exhaustive review, and concrete actionable diffs for every requested change. Gate G-Review is a mandatory validation gate for every PR and user story.
 
 ## Top-down company planning and upward collection
 
@@ -49,7 +54,7 @@ Prove tests detect representative known bad behavior; reject empty test discover
 
 Record exact candidate, requirements, tests/assertions, environment/tool versions, artifact digests, failures and remaining blockers. Missing/skipped/cancelled/stale/zero-test checks do not pass. Structural lint is not runtime assurance.
 
-G0 means readiness; G1 tests/coverage; G2 security; G3 architecture/maintainability; G4 integrated acceptance. Review per-package coverage, critical invariants and useful reuse under the applicable quality policy. Never treat a successful directory scan as completed application verification.
+G0 means readiness; G1 tests/coverage; G2 security; G3 architecture/maintainability; G-Review independent code review (Agency-Agents 5 pillars and 4-tier triage); G-Law constitutional law validation (Gate L1); G4 integrated acceptance. Review per-package coverage, critical invariants and useful reuse under the applicable quality policy. Never treat a successful directory scan as completed application verification.
 
 ## Continuous pipeline and remediation
 

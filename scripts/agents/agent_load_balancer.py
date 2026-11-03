@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
 Agent Profile Load Balancer for some-commerce.
-Balances user story implementation tasks and 7-PR vertical slices across
+Balances user story implementation tasks and 10-PR vertical slices (10-Pillar System Architecture) across
 the 3 core execution agent profiles:
-1. backend-engineer (PR 1, PR 2, PR 3, PR 4)
-2. client-engineer (PR 5, PR 6, PR 7)
+1. backend-engineer (PR 1–6: Pillars 1–6)
+2. client-engineer (PR 7–10: Pillars 7–10)
 3. qa-security-auditor (Gates G0–G4, Gate M1, ASVS L2 Audit)
 
 Provides:
@@ -26,15 +26,18 @@ from typing import Dict, List, Optional, Tuple
 REPO_ROOT = Path(__file__).resolve().parents[2]
 from scripts.agents.generate_agent import generate_agent, find_user_story_file, PR_SPECS
 
-# Profile mapping for the 7 PR layers
+# Profile mapping for the 10 PR layers (aligned with 10-Pillar System Architecture)
 PR_PROFILE_ROUTING = {
-    1: "backend-engineer",   # Microkernel Logic & Invariants
-    2: "backend-engineer",   # Polyglot Database Schemas (Co-owned with client-engineer)
-    3: "backend-engineer",   # Repositories & Caching Tier
-    4: "backend-engineer",   # Pure Axum Handlers & WebMCP
-    5: "client-engineer",    # Client Services & WatermelonDB Sync
-    6: "client-engineer",    # Headless Custom Hooks & Logic
-    7: "client-engineer",    # Platform-Adaptive UI & SDUI Renderers
+    1: "backend-engineer",   # Pillar 1: Microkernel Logic & Plugin Ports
+    2: "backend-engineer",   # Pillar 2: Polyglot Database Schemas
+    3: "backend-engineer",   # Pillar 3: Repository Adapters & Connectors
+    4: "backend-engineer",   # Pillar 4: Distributed L2 Cache & Invalidation
+    5: "backend-engineer",   # Pillar 5: In-Process L1 Moka Cache & Coalescing
+    6: "backend-engineer",   # Pillar 6: HTTP ETag Protocol & Pure Axum Handlers
+    7: "client-engineer",    # Pillar 7: Frontend Server-State Caching (TanStack Query)
+    8: "client-engineer",    # Pillar 8: Client-First Local Database (WatermelonDB Sync)
+    9: "client-engineer",    # Pillar 9: Headless Custom Hooks & Logic Abstraction
+    10: "client-engineer",   # Pillar 10: Platform-Adaptive UI Design & Native Modules
 }
 
 
@@ -117,7 +120,7 @@ class AgentProfileLoadBalancer:
         self.cto = {"id": f"{sprint_id}-cto", "profile": "chief-technology-officer", "role": "cto", "tasks": []}
 
     def balance_sprint(self) -> Dict:
-        """Distributes all stories and 7 PR slices across worker pools using least-loaded algorithm."""
+        """Distributes all stories and 10 PR slices across worker pools using least-loaded algorithm."""
         stories = parse_sprint_stories(self.sprint_id)
         if not stories:
             raise ValueError(f"No user stories found in sprint {self.sprint_id}")
@@ -131,7 +134,7 @@ class AgentProfileLoadBalancer:
             "required_story_record_pattern": "docs/validation/story-records/US-<id>.md",
             "planning_note": "P0-P4 approvals, exact task scopes and verified parent/record references must be established outside this allocation proposal before dispatch.",
             "total_stories": len(stories),
-            "total_prs": len(stories) * 7,
+            "total_prs": len(stories) * 10,
             "governance_ladder": [
                 "Layer 1: Junior Author Implementation",
                 "Layer 2: Senior Peer Code Review",
@@ -164,8 +167,8 @@ class AgentProfileLoadBalancer:
                 "prs": [],
             }
 
-            # Distribute each of the 7 PRs for this story
-            for pr_num in range(1, 8):
+            # Distribute each of the 10 PRs for this story (matching 10 Pillars)
+            for pr_num in range(1, 11):
                 profile_target = PR_PROFILE_ROUTING[pr_num]
                 pr_info = PR_SPECS[pr_num]
                 pr_weight = max(1, points // 4)
@@ -329,7 +332,7 @@ def main():
     print(f"\n========================================================")
     print(f"AGENT PROFILE LOAD BALANCER: {args.sprint.upper()}")
     print("Status: ALLOCATION PROPOSAL; start with CTO charter and approved top-down planning before dispatch.")
-    print(f"Stories: {plan['total_stories']} | 7-PR Vertical Slices: {plan['total_prs']}")
+    print(f"Stories: {plan['total_stories']} | 10-PR Vertical Slices: {plan['total_prs']}")
     print("Company cycle: " + " -> ".join(stage["phase"] + ":" + stage["owner"] for stage in COMPANY_PIPELINE))
     print("Return validation: Junior -> Senior -> Arch/Sec -> TechLead integration -> PM -> CTO")
     print(f"========================================================\n")
@@ -341,7 +344,7 @@ def main():
         print(f"{wid:<24} | {wdata['profile']:<20} | {wdata['seniority']:<10} | {wdata['total_tasks']:<6} | {wdata['total_reviews']:<7} | {workdir_rel}")
 
     print("\n--------------------------------------------------------")
-    print("STORY-BY-STORY 7-PR ROUTING & 6-LAYER VALIDATION PIPELINE")
+    print("STORY-BY-STORY 10-PR ROUTING & 6-LAYER VALIDATION PIPELINE (10-PILLAR ALIGNED)")
     print("--------------------------------------------------------")
     for s in plan["story_allocations"]:
         print(f"\n[{s['story_id'].upper()}] {s['title']} ({s['points']} pts)")

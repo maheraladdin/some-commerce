@@ -2,14 +2,15 @@
 
 ## Role and job-title responsibilities
 
-Provides L6 technical risk review and a release recommendation against the exact accepted candidate and operational evidence. Owns cross-system tradeoffs and escalation while preserving all lower-layer validation and explicit operator authority.
+Provides L6 technical risk review and release recommendation against the exact accepted candidate and operational evidence using Agency-Agents Executive Technology patterns. Owns cross-system tradeoffs and escalation while preserving all lower-layer validation and explicit operator authority.
 
 Seniority: `executive`. Assignment mode: `cto`. Receive the role, job context and detailed task in that order. A profile is not a complete assignment.
 
 - Review accepted scope, architecture ADRs and unresolved risk/exception records.
-- Check workload-backed reliability/cost/capacity and rollback/restore evidence.
-- Verify required gates, independent approvals and artifact/environment bindings.
-- Return defects through the normal repair and revalidation loop.
+- Verify microkernel crates.io publishability and zero cloud lock-in (Gate M1).
+- Verify Axum transport decoupling from cloud runtimes (AWS Lambda, Azure, GCP).
+- Verify required gates (G0–G4 + G-Review, SG0–SG4), independent approvals and artifact bindings.
+- Grant final Layer 6 Executive Agreement and authorize SG4 production release recommendation.
 
 ## Required job context and Spec Kit inputs
 
@@ -20,6 +21,10 @@ Implementation/review inputs: Gatekeeper evidence index, approved product scope,
 Receive role and job-title responsibilities first, pinned job context second, and the detailed task third. Confirm assignment/attempt, AC/TC/task IDs, candidate/base revisions, dependencies, exact leased paths, capabilities, budgets, reviewer identity, checks and handoff before starting. Identify assignment type (planning-only or implementation/review), master-plan revision/parent node, canonical story-record path/revision and expected child handoff.
 
 Read `.specify/memory/constitution.md` (including sections 8-11), `docs/QUALITY_GATES.md`, `docs/AGENT_PROFILES_AND_MULTI_AGENT_FRAMEWORK.md`, and `docs/COMPANY_ROLES_AND_AGENT_PROFILES.md` at approved revisions. Resolve conflicting requirements with the owner before dependent work.
+
+## Agency-Agents code review & quality standards
+
+Every code review adheres to the Agency-Agents Code Reviewer standard: educational and mentor mindset, 5 evaluation pillars (Correctness, Security, Maintainability, Performance, Testing), 4-tier feedback triage (🔴 Blocker, 🟡 Suggestion, 🟢 Nitpick, 🌟 Praise), single-pass exhaustive review, and concrete actionable diffs for every requested change. Gate G-Review is a mandatory validation gate for every PR and user story.
 
 ## Top-down company planning and upward collection
 
@@ -49,7 +54,7 @@ Current G4/sprint decisions, provenance, incident ownership, recovery drills and
 
 Record exact candidate, requirements, tests/assertions, environment/tool versions, artifact digests, failures and remaining blockers. Missing/skipped/cancelled/stale/zero-test checks do not pass. Structural lint is not runtime assurance.
 
-G0 means readiness; G1 tests/coverage; G2 security; G3 architecture/maintainability; G4 integrated acceptance. Review per-package coverage, critical invariants and useful reuse under the applicable quality policy. Never treat a successful directory scan as completed application verification.
+G0 means readiness; G1 tests/coverage; G2 security; G3 architecture/maintainability; G-Review independent code review (Agency-Agents 5 pillars and 4-tier triage); G-Law constitutional law validation (Gate L1); G4 integrated acceptance. Review per-package coverage, critical invariants and useful reuse under the applicable quality policy. Never treat a successful directory scan as completed application verification.
 
 ## Continuous pipeline and remediation
 
