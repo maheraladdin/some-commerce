@@ -238,7 +238,7 @@ flowchart TD
 
 ## 6. Validation Gates & Acceptance Sign-Off
 
-**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
+**Status: Pending — specification only; no implementation evidence.** All [G0–G4 quality gates + G-Review + G-Borrow + G-UI + G-Law](../../QUALITY_GATES.md) apply to this story. The following checks add to its acceptance criteria and test cases; they do not replace them.
 
 ### G1 — Test coverage
 - [ ] **US-4.1.2-G1:** Automated test suite maps 100% of acceptance criteria and test cases with >=90% line and >=85% branch coverage in affected packages.
@@ -251,6 +251,12 @@ flowchart TD
 
 ### G-Review — Code review
 - [ ] **US-4.1.2-G-Review:** Independent senior code review signed off by the Code Reviewer; verification across Correctness, Security, Maintainability, Performance, and Testing using the Agency-Agents code review standard; zero open Blocker or unresolved Suggestion findings.
+
+### G-Borrow — Rust zero-clone borrowing validation
+- [ ] **US-4.1.2-G-Borrow:** Backend code relies strictly on borrowing (&T, &mut T), explicit lifetimes, zero-copy byte buffers (bytes::Bytes), and zero unauthorized deep .clone() calls on domain entities and models (Arc::clone and Rc::clone pointer copies permitted only); certified by systems reviewer.
+
+### G-UI — UI/UX validation
+- [ ] **US-4.1.2-G-UI:** Pure separation of presentation (designs/, owned by ui-ux-designer) and headless hooks (logic/, owned by client-engineer); mobile components use @expo/ui primitives and native modules; web components use semantic HTML5 styled with Tailwind CSS; WCAG 2.1 AA and Arabic RTL layout parity verified; certified by UI/UX designer.
 
 ### G-Law — Law validation
 - [ ] **US-4.1.2-G-Law:** Independent verification against global e-commerce legal and statutory requirements: national statutory Anti-Money Laundering cash caps, mandatory fiscal cash receipt delivery, and consumer refusal rights; certified by compliance reviewer (`agency-legal-compliance-checker`).

@@ -44,6 +44,8 @@ REQUIRED_SUBSECTIONS = [
     "### G2 — Security audit",
     "### G3 — Architecture and maintainability",
     "### G-Review — Code review",
+    "### G-Borrow — Rust zero-clone borrowing validation",
+    "### G-UI — UI/UX validation",
     "### G-Law — Law validation",
     "### G4 — Integrated acceptance"
 ]
@@ -88,6 +90,14 @@ def validate_all_stories():
                 # Check for law validation gate
                 if f"{story_id}-G-Law" not in content:
                     errors.append(f"{path} ({story_id}): Missing law validation gate check '{story_id}-G-Law'")
+
+                # Check for Rust zero-clone borrowing gate
+                if f"{story_id}-G-Borrow" not in content:
+                    errors.append(f"{path} ({story_id}): Missing Rust zero-clone borrowing gate check '{story_id}-G-Borrow'")
+
+                # Check for UI/UX validation gate
+                if f"{story_id}-G-UI" not in content:
+                    errors.append(f"{path} ({story_id}): Missing UI/UX validation gate check '{story_id}-G-UI'")
 
                 # Check for behavior folder blueprint
                 if "features/" not in content or "behaviours/" not in content:
