@@ -668,7 +668,7 @@ See detailed instructions and context in:
     agent_profiles_dir = REPO_ROOT / ".agent_profiles"
     agent_home = agent_profiles_dir / name
     (agent_home / ".gemini" / "antigravity-cli").mkdir(parents=True, exist_ok=True)
-    (agent_home / ".gemini" / "antigravity-cli" / "settings.json").write_text('{"modelProvider": "gemini"}\n', encoding="utf-8")
+    (agent_home / ".gemini" / "antigravity-cli" / "settings.json").write_text('{}\n', encoding="utf-8")
     env_path = agent_profiles_dir / f"{name}.env"
     env_content = f"""# Environment configuration for Antigravity Agent: {name}
 MODEL="gemini-3.8-flash-high"

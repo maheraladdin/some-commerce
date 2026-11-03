@@ -289,11 +289,11 @@ PR="${PR:-all}"
 WORKDIR="${WORKDIR}"
 EOF
 
-cat << EOF > "${AGENT_HOME}/.gemini/antigravity-cli/settings.json"
-{
-  "modelProvider": "gemini"
-}
-EOF
+if [[ -n "${API_KEY:-}" ]]; then
+  echo '{"modelProvider": "gemini"}' > "${AGENT_HOME}/.gemini/antigravity-cli/settings.json"
+else
+  echo '{}' > "${AGENT_HOME}/.gemini/antigravity-cli/settings.json"
+fi
 
 # 4. Create one-click runner script in workdir: run.sh
 cat << 'EOF' > "${WORKDIR}/run.sh"

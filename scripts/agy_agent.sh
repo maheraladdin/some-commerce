@@ -154,10 +154,27 @@ export HOME="${PROFILE_HOME}"
 # Load custom environment config from account env
 MODEL="gemini-3.8-flash-high"
 EFFORT="high"
+GEMINI_API_KEY=""
 ENV_FILE="${AGENT_PROFILES_DIR}/${AUTH_ACCOUNT}.env"
 if [[ -f "${ENV_FILE}" ]]; then
   # shellcheck disable=SC1090
   source "${ENV_FILE}"
+fi
+
+SETTINGS_DIR="${PROFILE_HOME}/.gemini/antigravity-cli"
+SETTINGS_FILE="${SETTINGS_DIR}/settings.json"
+mkdir -p "${SETTINGS_DIR}"
+
+if [[ -n "${GEMINI_API_KEY:-}" ]]; then
+  export GEMINI_API_KEY="${GEMINI_API_KEY}"
+  echo '{"modelProvider": "gemini"}' > "${SETTINGS_FILE}"
+else
+  # Use default backend to trigger browser OAuth sign-in for Google AI Pro accounts
+  if [[ -f "${SETTINGS_FILE}" ]] && grep -q '"modelProvider"' "${SETTINGS_FILE}"; then
+    echo '{}' > "${SETTINGS_FILE}"
+  elif [[ ! -f "${SETTINGS_FILE}" ]]; then
+    echo '{}' > "${SETTINGS_FILE}"
+  fi
 fi
 
 # Determine Working Directory

@@ -1,398 +1,136 @@
-# Software Company Roles, Agent Profiles & Multi-Agent Orchestration
+# Software Company Roles, Agent Profiles & Validation Authority
 
-## 1. Executive Overview
+## 1. Governance contract
 
-`some-commerce` structures its autonomous engineering organization around the full spectrum of software company positions. Every role operates as a specialized agent profile with explicit responsibilities, bounded write-permissions, and non-overlapping working directories (`workdir`).
+Every agent receives **role and job-title responsibilities → pinned job context → detailed task**, in that order, using the [launch brief](AGENT_PROFILES_AND_MULTI_AGENT_FRAMEWORK.md#4-agent-launch-brief-role-job-context-detailed-task). All positions use [Spec Kit](../.specify/memory/constitution.md): approved specification, architecture, plan, assigned task IDs, Security Gateway and traceable gate evidence. This includes leadership, orchestration, review and release tasks. No role can bypass the lifecycle because it does not author production code.
 
-To achieve high-concurrency delivery across the **12 Sprints**, sprint execution is coordinated through an **Agent Profile Load Balancer** that maps user stories and the **7-PR Vertical Slicing Pipeline** to available agent pools.
+The three execution profiles are reusable skill/capability sets, not privileged identities. Junior/senior/executive titles describe responsibilities; authority comes from authenticated identities, independently assigned capabilities and trusted repository/environment controls. An agent acting as CTO can prepare a release recommendation; production authority remains with the explicitly authorized operator and deployment service.
 
----
+**Status:** this document specifies hardened governance. It does not assert that current generators, CI, branch protection, sandboxing or production permissions enforce it. [The framework stress-test register](AGENT_PROFILES_AND_MULTI_AGENT_FRAMEWORK.md#8-stress-test-register-and-operational-acceptance) tracks the required implementation evidence. The constitution remains binding. If these documents, generated prompts or existing gate policies conflict, the dependent assignment is BLOCKED until an authorized policy owner resolves the conflict; agents cannot choose the weaker rule.
 
-## 2. Master Company Role Catalog & Agent Profiles
+## 2. Role and authority matrix
 
-```mermaid
-flowchart TD
-    subgraph "Executive & Technical Leadership Tier"
-        CTO["<b>Chief Technology Officer (CTO)</b><br/>• Executive Architectural Agreement<br/>• Multi-Cloud Strategy & Crates.io<br/>• Final SG4 Production Release Sign-Off"]
-        PM["<b>Product Manager (PM)</b><br/>• Spec Kit Specifications<br/>• Acceptance Criteria [AC-US-*]<br/>• Business KPIs & G4 Product Sign-Off"]
-        TL["<b>Tech Lead (TL)</b><br/>• Sprint Delivery Orchestration<br/>• Load Balancer Supervision<br/>• PR Integration & Code Review"]
-        SA["<b>System Architecture Engineer (SA)</b><br/>• SYSTEM_ARCHITECTURE.md<br/>• Microkernel Boundaries & Gate M1<br/>• Gate A1 & Gate A2 Certification"]
-    end
+All paths below describe eligible task scope, not repository-wide write grants. Each assignment must name exact approved paths. Review artifacts are drafts until a trusted service records the decision. No agent can modify final evidence, issue credentials to itself or remove a required check.
 
-    subgraph "3 Core Implementation & Delivery Profiles (Junior-Senior Pairs)"
-        subgraph "Backend Engineering Track"
-            JR_BE["<b>Junior Backend Engineer</b><br/>• Writes PR 1, 2, 3, 4<br/>• Implements domain math & Axum"]
-            SR_BE["<b>Senior Backend Engineer</b><br/>• Reviews Junior PRs<br/>• Enforces Zero-Clone & Gate M1<br/>• Invariant Architecture"]
-            JR_BE -->|Submits PR| SR_BE
-        end
+| Job title / role ID | Job context and concrete responsibility | Eligible deliverables | Decision boundary |
+|:-------------------|:----------------------------------------|:----------------------|:------------------|
+| Junior Backend Engineer / `junior-backend-engineer` | Implement approved domain/schema/repository/API/worker tasks through `backend-engineer` | Assigned source/tests under `crates/`, `backend/`; AC/task evidence | No self-review, policy/CI edits, merge or deploy |
+| Senior Backend Engineer / `senior-backend-engineer` | Independently trace domain invariants, ownership, failure paths and adapter boundaries | Review findings and assigned regression tests | If they fix production code, they become an author and another reviewer must approve |
+| Junior Client Engineer / `junior-client-engineer` | Implement assigned API/sync/hooks/UI tasks through `client-engineer` | Assigned files under `apps/storefront/`, named client packages | No client-authoritative pricing/auth, no implicit permission to publish builds |
+| Senior Client Engineer / `senior-client-engineer` | Review state ownership, contract compatibility, offline conflicts, performance, accessibility and RTL | Independent consumer/build/device review | Cannot certify unsupported platforms from mock-only evidence |
+| Junior QA Engineer / `junior-qa-engineer` | Derive tests from Spec Kit AC/TCs and threats; run approved synthetic checks | Assigned test suites/fixtures and draft evidence | Cannot change requirements or implement the system under test to make own tests pass |
+| Senior QA Engineer / `senior-qa-engineer` | Validate test oracles, scope, coverage denominator, mutation survivors and flakiness | G1 recommendation and independent test review | Cannot treat percentages as proof of all invariants or approve own test changes alone |
+| Security Engineer / `security-engineer` | Map applicable pinned ASVS controls, threat boundaries, abuse cases and findings | Assigned security tests, threat review, G2 recommendation | No production probes or credentials by default; cannot waive critical/high defects |
+| System Architect / `system-architect` | Review dependency direction, canonical policy ownership, reuse and contracts | ADRs and G3/A1/A2/M1 recommendation | New abstractions need concrete use; authoring shared code removes independence for that change |
+| UI/UX Designer / `ui-ux-designer` | Translate approved personas and accessibility/localization requirements into designs | Assigned tokens, view specs and visual evidence | Cannot reduce ACs or publish SDUI without the approved publish workflow |
+| Product Manager / `product-manager` | Own problem/personas, stable AC IDs and scope decisions | Assigned specs, plans, backlog and product acceptance | Can approve product scope, not override failed engineering/security gates |
+| Tech Lead / `tech-lead` | Build the task DAG, narrow leases, reserve reviewers and resolve blocked ownership | Assignment manifests, integration plans and triage | Coordinates; no blanket `**` write permission, no automatic merge or policy override |
+| DevOps Engineer / `devops-engineer` | Specify/build isolated runners, IaC, artifact provenance, observability and recovery | Separately assigned `infra/`, CI and operational runbooks | CI/trust changes need independent security review; no long-lived worker production secrets |
+| Release Gatekeeper / `release-gatekeeper` | Verify expected evidence, identities, freshness, conflicts and candidate binding | Release evidence index and approval recommendation | Cannot edit check results, waive a rejection or certify their own implementation |
+| Chief Technology Officer / `chief-technology-officer` | Own cross-system risk, architecture strategy and release recommendation | Approved strategy/ADR/release decision drafts | No technical bypass, identity escalation or implied production/publishing authorization |
 
-        subgraph "Client Engineering Track"
-            JR_FE["<b>Junior Client Engineer</b><br/>• Writes PR 5, 6, 7<br/>• Implements @expo/ui & sync"]
-            SR_FE["<b>Senior Client Engineer</b><br/>• Reviews Junior PRs<br/>• Enforces LoB & WCAG 2.1 AA<br/>• Performance & RTL Polish"]
-            JR_FE -->|Submits PR| SR_FE
-        end
+`backend-builder`, `backend-tester`, `client-builder`, `client-tester`, `security-tester` and `gatekeeper` are task modes mapped to these titles, not additional sources of privilege. A person/service may cover several roles only when author independence and capability separation remain intact. Different agent names, prompts or model instances sharing a credential do not constitute separate authenticated approval authorities. Independent model review adds scrutiny; protected external controls enforce authority.
 
-        subgraph "Testing & QA Track"
-            JR_QA["<b>Junior QA Engineer</b><br/>• Writes integration & unit tests<br/>• Executes sandbox tests"]
-            SR_QA["<b>Senior QA & Security Lead</b><br/>• Reviews test suites & coverage<br/>• Gate G1/G2 & ASVS Audit<br/>• Certifies PR for Gatekeeper"]
-            JR_QA -->|Submits Tests| SR_QA
-        end
-    end
+### 2.1 Separation of duties
 
-    subgraph "Specialized Domain & Operations Profiles"
-        DES["<b>UI/UX Designer & SDUI Specialist</b><br/>• SDUI Component AST<br/>• RTL / LTR Design Tokens<br/>• Visual Studio Wireframes"]
-        SEC["<b>Security Engineer & Auditor</b><br/>• Security Gateways (G2)<br/>• OWASP ASVS v4.0.3 L2<br/>• Zero-Trust Tenant Pentest"]
-        OPS["<b>DevOps & Cloud Engineer</b><br/>• AWS CDK Infrastructure<br/>• FTR Compliance & Metering<br/>• CI/CD & CloudWatch"]
-        REL["<b>Release Gatekeeper</b><br/>• Quality Gates (G0–G4, SG0–SG4)<br/>• Gate A1, A2, M1 Audit<br/>• Production Release Sign-Off"]
-    end
+- The authenticated author/contributor set includes anyone who changed production code, tests, required-check definitions, fixtures or policy relevant to the decision. The lead records conflicts before assigning reviewers. Reviewers cannot authorize themselves through an editable manifest.
+- L2 peer review must be independent of relevant authors. G2 security and G3 architecture require qualified independent reviewers; one reviewer may cover both when qualified, but cannot be an author of the reviewed change.
+- An author may explain or remediate findings, but cannot erase or downgrade them. Independent reviewers own dispositions. No review shopping after rejection; reassignment retains the finding history and requires an accountable lead's reason.
+- A reviewer who needs to edit implementation opens a remediation task and returns the change for fresh independent review. Review and remediation modes have separate grants.
+- CI policy, scanner suppressions, coverage exclusions, Spec Kit/constitution changes, generators and release configuration require independent control-owner review. The candidate must not choose or weaken its own acceptance policy.
+- Agent workers have no merge/signing/deploy credentials. A trusted integration service may merge only within existing authorization after required checks and reviewers pass. Production release/publishing needs explicit operator authorization bound to the release manifest and environment. A release title or checklist does not supply it.
 
-    CTO --> PM
-    CTO --> SA
-    CTO --> TL
-    PM --> TL
-    SA --> TL
-    TL --> SR_BE
-    TL --> SR_FE
-    TL --> SR_QA
-    DES -.-> JR_FE
-    SEC -.-> SR_BE
-    SEC -.-> SR_QA
-    OPS -.-> SR_BE
-    SR_BE --> REL
-    SR_FE --> REL
-    SR_QA --> REL
-    REL --> PM
-    PM --> CTO
-```
+## 3. Six validation layers
 
----
+Layers are distinct decisions with evidence, not six model opinions. No upper layer can convert a lower-layer Fail/Pending into Pass. G0 precedes dispatch; G1–G3 protect PR integration; G4 protects story completion; SG0–SG4 validate the sprint-wide candidate under [quality gates](QUALITY_GATES.md). The expected check manifest is established before work, with scope and N/A rules independently approved.
 
-## 3. The 6-Layer Validation Hierarchy: From Junior Author to CTO Agreement
-
-Every user story and pull request in `some-commerce` passes through a strict **6-Layer Governance Ladder** before production deployment:
+| Layer | Responsible party | Input and required decision | Reject / invalidate when |
+|:------|:------------------|:----------------------------|:-------------------------|
+| L1 — Author verification | Assigned junior/builder/test author | Acknowledged Spec Kit chain; scoped patch; AC/TC/task map; approved test commands; complete failures and artifacts | Missing requirements, undeclared files, failed tests, expired lease, unsupported claim |
+| L2 — Independent peer review | Assigned qualified senior | Review exact diff and approved spec; inspect assertions, errors, data ownership, concurrency, complexity and reuse; record actionable verdict | Reviewer is a contributor, only summary reviewed, requirements weakened, critical paths untested |
+| L3 — Security and architecture | Independent security and architecture reviewers | G2 threat/authorization/scans and G3 design/dependency checks, plus applicable A1/A2/M1; authenticated evidence | Missing scan scope, stale advisory data, unresolved critical/high defect, forged/suppressed finding or unmet architecture contract |
+| L4 — Candidate integration | Tech lead + trusted CI + gatekeeper | Rebuild/test exact combined tree; consumer/provider contracts and cross-story workflows; validate all expected checks and reviewer identities | Changed merge base/candidate, incompatible schema, missing/skipped/cancelled checks, artifact mismatch |
+| L5 — Product acceptance | PM + test/release reviewer | Verify every AC with observable evidence on required personas/platforms/locales; G4 for completed story | Mock-only full-flow claim, omitted AC/platform, unacceptable product behavior, stale scope approval |
+| L6 — Release authorization | Accountable operator/CTO + release/operations | SG4 manifest links accepted stories, signed artifact digests, provenance, deployment plan, numeric budgets, rollback/restore evidence and authorized environment | Any required prior gate incomplete, expired exception, unknown artifact/source, missing operational approval or rollback capability |
 
 ```mermaid
 flowchart TD
-    L1["<b>Layer 1: Junior Author Implementation</b><br/>• Writes PR in isolated sprint workdir<br/>• Passes local unit tests, lints & Gate M1/A1/A2 sanity"]
-    --> L2["<b>Layer 2: Senior Peer Code Review</b><br/>• Enforces Rust Zero-Clone Law, LoB folder layout<br/>• Verifies cyclomatic complexity <= 10 & duplication < 3%<br/>• Issues formal APPROVE sign-off"]
-    --> L3["<b>Layer 3: Security & Architecture Gate Audit</b><br/>• Security Engineer: Gate G2 (OWASP ASVS L2, 0 CVEs, tenant pentest)<br/>• System Architect: Gate G3 (Gate A1, Gate A2, Gate M1 microkernel)"]
-    --> L4["<b>Layer 4: Tech Lead & Gatekeeper Integration</b><br/>• Verifies cross-story end-to-end integration & G1 coverage (>=90%/85%)<br/>• Verifies Gate G4 integrated sandbox acceptance<br/>• Merges approved PRs into integration branch"]
-    --> L5["<b>Layer 5: Product Manager (PM) Acceptance Sign-Off</b><br/>• Verifies 100% Gherkin Acceptance Criteria [AC-US-X.Y.Z-NN]<br/>• Validates business KPIs, user personas & bilingual RTL/LTR parity<br/>• Issues official Product Acceptance Sign-Off"]
-    --> L6["<b>Layer 6: Chief Technology Officer (CTO) Agreement & Release Authorization</b><br/>• Strategic architectural agreement (microkernel crates.io publishability)<br/>• Cloud portability & AWS FTR compliance review<br/>• Production SLA verification (p95 < 150ms) & SG4 release authorization"]
+    S[Approved Spec Kit chain and G0] --> A[Independent READY junior PRs run in parallel]
+    A --> P[L1 evidence and L2 peer review per PR]
+    P --> Q[L3 security and architecture]
+    Q --> I[L4 exact integration candidate]
+    I --> U[L5 product acceptance and G4]
+    U --> R[L6 authorized SG4 release]
+    P -->|changes required| A
+    Q -->|changes required| A
+    I -->|new candidate| P
 ```
 
-### 3.1 Layer 1: Junior Implementation & Self-Validation
-- **Owner**: `junior-backend-engineer`, `junior-client-engineer`, `junior-qa-engineer`.
-- **Exit Criteria**: PR compiles cleanly without warnings; local test suites pass; no syntax or lint errors; zero stray files.
+### 3.1 L1–L2: tests, design and maintainability
 
-### 3.2 Layer 2: Senior Peer Code Review
-- **Owner**: `senior-backend-engineer`, `senior-client-engineer`, `senior-qa-engineer`.
-- **Exit Criteria**:
-  - **Backend**: Strict zero-clone borrowing verified; pure microkernel logic free of cloud SDKs; pure Axum router functions.
-  - **Client**: 4-tier LoB directory placement verified; WatermelonDB offline sync correctly integrated; `@expo/ui` native components used.
-  - **Testing**: Line coverage $\ge 90\%$, branch coverage $\ge 85\%$, mutation kill rate $\ge 90\%$.
-  - Formal Senior Review Approval recorded in review comments.
+Apply G1 per affected package: at least 90% changed line and 85% branch coverage; critical domain modules require at least 95% branch and all identified invariant/deny/error outcomes. Critical pure-rule mutation coverage targets at least 90% of non-equivalent mutations killed; triage every survivor. Unsupported branch instrumentation is Pending until an approved alternative measures the decisions. Empty test discovery or absent manifests cannot establish application coverage.
 
-### 3.3 Layer 3: Security & Architecture Gate Audit
-- **Owner**: `security-engineer` & `system-architect`.
-- **Exit Criteria**:
-  - **Gate G2 (Security)**: Automated SAST, dependency vulnerability audit, secret scan, and adversarial multi-tenant fuzzing passed with 0 critical/high findings.
-  - **Gate G3 / Gate A1 (System Architecture)**: 10-layer architectural contracts verified (`python3 scripts/validate_system_architecture.py`).
-  - **Gate G3 / Gate A2 (Folder Architecture)**: Framework-scoped LoB verified (`python3 scripts/validate_folder_architecture.py`).
-  - **Gate G3 / Gate M1 (Microkernel)**: Crate purity and zero-clone verified (`python3 scripts/validate_microkernel.py`).
+Require deterministic unit/property tests, real repository conditional-write/transaction tests, provider contract checks, client/device checks and concurrency/fault tests according to scope. Inject clock/IDs/randomness where useful. Assert final state and side-effect counts, not only HTTP success. Pin test environments and record seeds. Diagnose flakiness; rerunning until green without disposition is insufficient.
 
-### 3.4 Layer 4: Tech Lead & Gatekeeper Integration
-- **Owner**: `tech-lead` & `release-gatekeeper`.
-- **Exit Criteria**:
-  - Cross-PR and cross-story integration tests pass in unified staging environment.
-  - No coverage regression across monorepo packages.
-  - PR merged to release candidate branch.
+Review actual imports/build graph, no cycles, canonical business-rule owners, typed interfaces/errors and a concrete change exercise demonstrating reuse. Duplication and complexity follow G3: above-threshold results need refactoring or the narrowly permitted reviewed disposition, never silent suppression. Strict constitutional clone rules remain in effect until an authorized amendment; shallow handle copies and allocation behavior need semantic review. Do not add unsafe code, redundant abstractions or meaningless wrappers to satisfy a lexical scanner.
 
-### 3.5 Layer 5: Product Manager (PM) Acceptance Sign-Off
-- **Owner**: `product-manager`.
-- **Exit Criteria**:
-  - 100% of Gherkin Acceptance Criteria `[AC-US-X.Y.Z-NN]` verified in functional sandbox.
-  - User persona journeys validated across Web and Native Mobile (iOS/Android).
-  - Bilingual localization (`ar-EG` RTL and `en-US` LTR) verified.
-  - Formal PM Acceptance Sign-off recorded on the story evidence record.
+### 3.2 L3: independent adversarial and architecture validation
 
-### 3.6 Layer 6: Chief Technology Officer (CTO) Agreement & Release Authorization
-- **Owner**: `chief-technology-officer`.
-- **Exit Criteria**:
-  - Executive architectural agreement: Microkernel packages confirmed ready for [crates.io](https://crates.io) distribution.
-  - Cloud portability confirmed (Axum router decoupled from Lambda runtime; runs on AWS, GCP, Azure, or Docker).
-  - AWS Marketplace FTR compliance and metering verification verified.
-  - Production SLA budgets confirmed (p95 latency $< 150\text{ms}$ on warm endpoints, $< 400\text{ms}$ cold start).
-  - Rollback drill and disaster recovery plan verified.
-  - Formal **CTO Agreement** granted for Sprint Release Gate **SG4**.
+G2 checks unauthenticated, wrong-role and same-role/different-user/vendor/org/tenant cases across reads, mutations, search counts, cache, sync, jobs, downloads and tools. Include stale/revoked authority, replay, malformed input and bounded abuse. Use isolated synthetic data. Tenant ID partitioning alone cannot establish authorization within a tenant. Pin the adopted ASVS version and record applicable control IDs and omissions; do not claim blanket conformance from SAST.
 
----
+G3/A1/A2/M1 require both structural lint and behavioral/build evidence for the affected scope. Forbid cloud/transport/storage dependencies in pure domain packages, keep runtime adapters at composition roots, compile supported consumers, inspect feature flags/transitive dependencies, and verify codegen compatibility. Folder conformance, wasm compilation and absence of a forbidden string do not establish cloud portability, crates.io readiness or runtime safety. Public publishing is a separately authorized release.
 
-## 4. Junior Engineers & Senior Code Review Pairing Workflow
+Every critical/high finding blocks merge/release. Other permitted exceptions need independent approval, compensating evidence, owner, remediation issue and expiry. Credential exposure, isolation and financial invariants cannot be waived. Executives cannot override these blockers by signing a risk statement.
 
-To maintain the highest caliber of code quality, zero-clone memory efficiency, and strict architectural compliance, all implementation in `some-commerce` follows an explicit **Junior Author / Senior Reviewer Pairing Protocol**:
+### 3.3 L4: exact-candidate and CI trust
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Junior as Junior Engineer (Author)
-    participant Workdir as Agent Sprint Workdir
-    actor Senior as Senior Engineer (Reviewer)
-    participant Gates as Gatekeeper / CI (M1, A1, A2)
+Integrate through a protected queue or equivalent serialized merge service. Produce the combined tree commit before acceptance; build and check that tree, not only the separate PR heads. Any new commit/rebase/conflict resolution invalidates relevant evidence and reviews. Re-evaluate downstream dependency/contract changes and reverse dependency suites. The service verifies check issuer/workflow and current policy, not a same-name status posted by an untrusted actor.
 
-    Junior->>Workdir: Implements assigned PR slice (PR 1–7)
-    Junior->>Junior: Runs local tests (coverage, lint, zero-clone check)
-    Junior->>Senior: Submits PR for Senior Peer Review
-    
-    rect rgb(240, 248, 255)
-        Note over Senior: Senior Review Checklist:<br/>1. Rust Zero-Clone Borrowing Law<br/>2. Framework-Scoped LoB Folder Hierarchy<br/>3. Microkernel Purity (Gate M1)<br/>4. OWASP ASVS L2 & Zero-Trust Isolation<br/>5. Cyclomatic Complexity <= 10 & Duplication < 3%
-        alt Changes Required
-            Senior-->>Junior: REQUEST_CHANGES (Actionable Review Feedback)
-            Junior->>Workdir: Remediates findings & updates branch
-            Junior->>Senior: Re-submits PR
-        else Review Approved
-            Senior->>Senior: APPROVE PR (Senior Review Sign-Off)
-        end
-    end
+Untrusted PR jobs receive no release secrets and cannot write final gate records. Trusted check definitions come from protected policy; a proposed policy change is reviewed separately before it can authorize itself. Pin tool/action revisions, keep environments/caches isolated by trust domain, and validate artifact size/path/type and provenance before promotion. Failed infrastructure or scanner outage is Pending/Fail, not “no vulnerabilities.”
 
-    Senior->>Gates: Forwards approved PR to Gatekeeper
-    Gates->>Gates: Automated Gate M1, A1, A2, G1-G4 verification
-    Gates-->>Senior: Gate Passed & PR Merged
-```
+The aggregator must compare results with an expected check manifest. Missing, skipped, cancelled, timed-out, malformed, stale, empty-scope and zero-test checks block approval. N/A is only for reviewed unaffected sub-checks. Preserve original failures and reasons for reruns. Evidence digests bind content; authenticated issuers and protected storage establish who produced it.
 
-### 3.1 Senior Review Invariants
-1. **Rust Zero-Clone Verification**: Senior Backend Engineers MUST reject any junior PR that invokes `.clone()` on non-`Arc`/`Rc` types. Junior authors must use borrowing (`&T`, `&mut T`), lifetimes (`'a`), or zero-copy byte buffers.
-2. **Framework-Scoped LoB Verification**: Senior Client Engineers MUST reject any junior PR that places components outside the 4-tier hierarchy or creates sibling cross-behaviour imports without promoting to `_shared/`.
-3. **Coverage & Mutation Verification**: Senior QA Engineers MUST verify that changed code achieves $\ge 90\%$ line and $\ge 85\%$ branch coverage, with $\ge 90\%$ of mutations killed in pure domain rules.
-4. **Independent Approval Required**: Under the Constitution, a junior engineer CANNOT self-approve their own PR. A documented senior review approval is a hard prerequisite for Gate G3 and Gatekeeper merge.
+### 3.4 L5–L6: product and release validation
 
----
+PM acceptance is requirements acceptance, never a substitute for security or design verification. A partially implemented story stays In Progress and cannot be exposed in production before G4. Required provider/device/accessibility checks need actual environment evidence, with limitations recorded.
 
-## 5. Detailed Position Specifications
+The release manifest binds repository, source/integration commit, spec/plan/tasks/policy digests, dependencies, test/build run IDs, SBOM, artifact digests, target environment, approvers, deployment window, rollback version and expiry. Rebuilds create new artifacts and invalidate old artifact approval. Deploy only the approved digest; environment changes require re-authorization.
 
-### 5.1 Chief Technology Officer (`chief-technology-officer`)
-* **Primary Scope**: Executive architectural strategy, multi-cloud governance, crates.io ecosystem vision, and final release agreement.
-* **Core Deliverables**:
-  * Final executive agreement on **Gate SG4 (Sprint Release Gate)**.
-  * Approves additions of new abstract microkernel crates (`crates/some-*`) targeted for public distribution.
-  * Authorizes cloud portability strategies (AWS vs GCP vs Azure vs bare-metal Docker).
-  * Validates disaster recovery, RPO/RTO metrics, and AWS Marketplace FTR compliance.
-* **Allowed Paths**: Global architectural documents, release manifests, and executive dashboards.
+Define latency/error/cost/capacity budgets at G0 with workload, data size, device, region, cold/warm state, run duration and samples. Fixed p95 values without that context are not release evidence. Demonstrate migration compatibility, data restore RPO/RTO, rollback triggers, alert delivery and incident ownership for affected stateful services. Release failure freezes promotion, preserves evidence and invokes the approved rollback/reconciliation runbook.
 
-### 5.2 Product Manager (`product-manager`)
-* **Primary Scope**: Defines *what* is built, who the user is, and why it matters.
-* **Core Deliverables**:
-  * Owns GitHub Spec Kit user story specifications (`docs/user-stories/**/us-*.md`).
-  * Establishes stable Gherkin Acceptance Criteria (`[AC-US-X.Y.Z-NN]`).
-  * Prioritizes sprint backlogs (P0/P1/P2) and tracks business value metrics.
-  * Signs off on **Gate G0 (Ready)** and verifies **Gate G4 (Integrated Acceptance)** from the user perspective.
-* **Allowed Paths**: `docs/user-stories/**`, `docs/sprints/**`.
+## 4. Parallel junior implementation and review capacity
 
-### 5.3 Tech Lead / Engineering Manager (`tech-lead`)
-* **Primary Scope**: Coordinates end-to-end sprint engineering, resolves blockers, and reviews code.
-* **Core Deliverables**:
-  * Deconstructs user stories into the standardized **7-PR Pipeline**.
-  * Supervises the **Agent Profile Load Balancer** (`scripts/agent_load_balancer.py`) to balance workload.
-  * Ensures non-conflicting directory isolation across parallel agents.
-  * Facilitates PR merges and cross-team interface contracts.
-* **Allowed Paths**: Workspace-wide read access; review access to PRs.
+Several juniors may implement independent PRs at once, including several juniors with the same title or profile. The [framework scheduler](AGENT_PROFILES_AND_MULTI_AGENT_FRAMEWORK.md#5-parallel-juniors-and-the-dependency-scheduler) admits each assignment from its Spec Kit task DAG, contracts and leases. A backend PR and client PR can proceed from the same approved contract while unrelated stories continue; dependency-bound PRs wait for their declared verified prerequisite.
 
-### 5.4 System Architecture Engineer (`system-architect`)
-* **Primary Scope**: Owns platform architectural contracts, microkernel logic abstraction, and multi-cloud portability.
-* **Core Deliverables**:
-  * Owns [`docs/SYSTEM_ARCHITECTURE.md`](file:///Users/maheraladdin/Desktop/some-commerce/docs/SYSTEM_ARCHITECTURE.md), [`docs/FOLDER_ARCHITECTURE.md`](file:///Users/maheraladdin/Desktop/some-commerce/docs/FOLDER_ARCHITECTURE.md), and [`docs/MICROKERNEL_AND_CLOUD_PORTABILITY.md`](file:///Users/maheraladdin/Desktop/some-commerce/docs/MICROKERNEL_AND_CLOUD_PORTABILITY.md).
-  * Enforces **Gate A1** (System Architecture Conformance) and **Gate A2** (Folder Architecture Conformance).
-  * Enforces **Gate M1** (Microkernel Logic Abstraction & Cloud Decoupling).
-  * Validates trait Ports (`BlobStoragePort`, `DocumentDbPort`, `MessagingPort`) and ensures pure domain packages remain 100% free of cloud SDKs.
-* **Allowed Paths**: `docs/**`, `crates/**`, architecture validation scripts.
+The tech lead plans author and reviewer capacity together. Reserve reviewers before dispatch, cap work in progress and prioritize unblocking reviews. Never auto-approve because a senior is busy or a review deadline expires. Record a review due time and bounded escalation to another qualified independent reviewer; retain rejections and conflicts. No available reviewer means BLOCKED, with an owner and next action.
 
-### 5.5 Backend & Systems Engineer (`backend-engineer`)
-* **Primary Scope**: Microkernel crates, polyglot databases, caching, and pure Axum HTTP services.
-* **Governing Rules**:
-  * **Strict Rust Zero-Clone Law**: Zero `.clone()` calls on domain structs, strings, or payloads. Borrowing (`&T`, `&mut T`), lifetimes, and zero-copy references only.
-  * **Axum Decoupling Law**: Feature route handlers must be pure Tower services and never import `lambda_http`.
-* **Sub-Roles & Seniority**:
-  * `junior-backend-engineer`: Authors PR 1 (Domain logic), PR 2 (Schemas), PR 3 (Repos/Caching), and PR 4 (Axum routes).
-  * `senior-backend-engineer`: Reviews junior PRs, enforces zero-clone borrowing, approves Gate M1 microkernel purity.
-  * `backend-tester`: Delivers exhaustive property-based tests (`proptest`), unit tests, and integration suites.
-* **Allowed Paths**: `crates/**`, `backend/src/features/**`, `backend/bins/**`, `backend/tests/**`.
+Each PR has one accountable owner even if several authors contribute. Give contributors disjoint task leases and record them all for independence checks. Shared schemas, generated DTOs, lockfiles, workflow files and inline tests require a named single writer or explicit serialization. A profile pool assignment does not authorize concurrent writes to the same file.
 
-### 5.6 Client & Mobile Engineer (`client-engineer`)
-* **Primary Scope**: Universal Expo SDK 58 application on mobile (iOS/Android) and Web.
-* **Governing Rules**:
-  * **Locality of Behavior (LoB)**: Files must reside strictly in `apps/storefront/src/features/<feature>/modules/<module>/behaviours/<behaviour>/[services, designs, logic, types, constants]`.
-  * **Platform Adaptation**: `@expo/ui` native controls on mobile, Tailwind CSS on Web, and SDUI AST renderers.
-  * **Offline-First & RTL**: WatermelonDB local cache first; bilingual Arabic (`ar-EG`, RTL) and English (`en-US`, LTR) layout.
-* **Sub-Roles & Seniority**:
-  * `junior-client-engineer`: Authors PR 5 (API clients & WatermelonDB sync), PR 6 (Custom hooks & logic), and PR 7 (Platform-adaptive UI).
-  * `senior-client-engineer`: Reviews junior PRs, verifies LoB folder compliance, enforces WCAG 2.1 AA accessibility and RTL layout.
-  * `client-tester`: Delivers Jest component tests, React Native Testing Library suites, and offline sync mock tests.
-* **Allowed Paths**: `apps/storefront/src/features/**`, `apps/storefront/src/shared/**`, `packages/**`.
+## 5. Decision records, disagreement and incident handling
 
-### 5.7 UI/UX Designer & SDUI Specialist (`ui-ux-designer`)
-* **Primary Scope**: Visual design systems, Server-Driven UI (SDUI) widget specifications, and accessibility tokens.
-* **Core Deliverables**:
-  * SDUI widget AST models and JSON component schemas.
-  * Visual SDUI Drag-and-Drop Studio layout specifications.
-  * Design tokens (`tokens.md`), typography scales, and WCAG 2.1 AA color contrast compliance.
-* **Allowed Paths**: `apps/storefront/src/shared/tokens/**`, `docs/SDUI_AND_LOCALIZATION.md`, UI design specs.
+Record each approval/rejection with authenticated reviewer ID, contributor/conflict set, exact candidate, Spec Kit chain and policy revisions, scoped findings, artifacts, timestamp and expiry. The trusted controller owns append-only final records; agents propose decisions. Signed text in a Markdown file is only a draft unless a trusted service verifies identity and subject.
 
-### 5.8 Testing & QA Engineer (`testing-qa-engineer`)
-* **Primary Scope**: Cross-story integration testing, provider sandbox certification, and regression verification.
-* **Sub-Roles & Seniority**:
-  * `junior-qa-engineer`: Authors integration and unit tests, executes provider sandbox scenarios.
-  * `senior-qa-engineer`: Audits coverage metrics, validates mutation kill rates, and signs off on Gate G1.
-* **Allowed Paths**: `tests/**`, `backend/tests/**`, `apps/storefront/__tests__/**`.
+Security/architecture rejection stops affected dependent work. The lead routes a concrete disputed requirement to its accountable owner; unresolved disagreement is BLOCKED. Scope/AC changes go through PM and affected control owners, update Spec Kit artifacts and invalidate dependent approvals. No agent may delete findings, downgrade severity or edit its own exemption expiry.
 
-### 5.9 Security Engineer & Auditor (`security-engineer`)
-* **Primary Scope**: Security Gateways, OWASP ASVS v4.0.3 L2 compliance, and zero-trust multi-tenancy.
-* **Core Deliverables**:
-  * Enforces **Gate G2** sign-off on all user stories and PRs.
-  * Synthetic penetration testing asserting 0 cross-tenant data leaks.
-  * AWS KMS cryptographic envelope key management and zero-PII logging audits.
-  * Dependency security scans (`cargo audit`, `npm audit`, `deny.toml`) with 0 critical/high findings.
-* **Allowed Paths**: `docs/validation/**`, security scanners, audit evidence.
+On suspected prompt injection, evidence tampering, scope escape or leaked credential: stop the affected task, isolate the workspace, revoke capabilities, preserve bounded redacted evidence and alert the accountable security/runtime owner through an authorized channel. Resume only after independently approved containment and a fresh assignment. Ordinary agents cannot initiate external messages merely because the incident procedure mentions escalation.
 
-### 5.10 DevOps & Cloud Infrastructure Engineer (`devops-engineer`)
-* **Primary Scope**: AWS CDK v2 infrastructure, CI/CD automation, and AWS Marketplace listing.
-* **Core Deliverables**:
-  * AWS CDK stacks (`infra/cdk/**`) for serverless Graviton4 Lambda and DynamoDB/ElastiCache/OpenSearch resources.
-  * AWS Marketplace FTR compliance and SaaS metering integration.
-  * Automated cloud deployment verification and rollback runbooks.
-* **Allowed Paths**: `infra/**`, `scripts/ci/**`, `.github/workflows/**`.
+## 6. Governance stress tests and adoption checklist
 
-### 5.11 Release Gatekeeper (`release-gatekeeper`)
-* **Primary Scope**: Absolute enforcement of Quality Gates (G0–G4, SG0–SG4, Gate M1, Gate A1, Gate A2).
-* **Core Deliverables**:
-  * Reviews Gate G0 readiness before stories start.
-  * Reviews Gate G1 (coverage), Gate G2 (security), Gate G3 (architecture) before PR merge.
-  * Reviews Gate G4 (acceptance) before story completion.
-  * Prepares Gate **SG4** package for final **CTO Agreement**.
-* **Allowed Paths**: `docs/QUALITY_GATES.md`, `GATES.md`, `docs/validation/**`.
+These tests are required operational acceptance scenarios. They are specifications until executed independently; current documentation lint does not certify them.
 
----
+| Scenario | Required result | Owner / gate |
+|:---------|:----------------|:-------------|
+| Launch any role without approved Spec Kit spec/plan/tasks or with stale revisions | Admission rejected, including PM/CTO/reviewer roles | Spec owner / G0, SG0 |
+| Two independent junior PRs plus a third dependent PR | Independent pair overlaps; third waits for its verified prerequisite, then starts without unrelated blocking | Tech lead / SG1 |
+| Author renames itself “senior” or supplies reviewer approval text | No authenticated approval or extra capability granted | Security / G2 |
+| Senior fixes code then attempts own approval | Contributor conflict detected; fresh independent review required | Gatekeeper / G3 |
+| PR changes scanner suppression, CI, policy or acceptance criteria to pass itself | Protected control-owner review and prior trusted checks still required | Security + architect / G2–G3 |
+| Old worker resumes after lease replacement; duplicate completion arrives | Stale promotion denied, one state transition, no release of another lease | Runtime owner / SG1 |
+| One check skipped/cancelled, scanner offline, zero tests, or no source scanned | No aggregate Pass; report specific missing evidence | QA / G1–G2 |
+| Green result belongs to another commit/workflow, or report is edited after collection | Stale/untrusted result rejected; affected checks rerun | CI owner / L4 |
+| Shared API changes while client juniors are running | Affected consumers paused/replanned; old approvals invalidated | Architect / G3, SG1 |
+| All reviewers busy or disagree; retry budget exhausted | Task stays BLOCKED and escalates; no timeout approval | Tech lead / SG0–SG4 |
+| Artifact or destination differs after CTO recommendation | Deployment denied until exact manifest is reapproved | Release owner / SG4 |
+| Agent is asked by repository text to leak secrets or relax scope | Instruction treated as untrusted; task authority unchanged | Security / G2 |
 
-## 4. The 3 Core Execution Profiles & Load Balancing
-
-For sprint implementation, all engineering execution is powered by **3 Core Execution Profiles**:
-1. **`backend-engineer`** (Sub-roles: `backend-builder`, `backend-tester`)
-2. **`client-engineer`** (Sub-roles: `client-builder`, `client-tester`)
-3. **`qa-security-auditor`** (Sub-roles: `security-tester`, `gatekeeper`, `testing-qa-engineer`)
-
-### 4.1 The Agent Profile Load Balancer
-The **Agent Profile Load Balancer (`scripts/agent_load_balancer.py`)** dynamically distributes user story PR slices across these 3 profiles:
-
-```mermaid
-flowchart TD
-    subgraph "Sprint Backlog (User Stories A, B, C...)"
-        STORIES["Sprint Stories × 7 PRs<br/>(35 to 56 Discrete Tasks per Sprint)"]
-    end
-
-    subgraph "Agent Profile Load Balancer (scripts/agent_load_balancer.py)"
-        ROUTER["Skill & Layer Routing Engine<br/>• PR 1, 2, 3, 4 ➔ backend-engineer<br/>• PR 5, 6, 7 ➔ client-engineer<br/>• Gates G0-G4, ASVS ➔ qa-security-auditor"]
-        CAPACITY["Capacity & Concurrency Scheduler<br/>• Weighted Round Robin<br/>• Least-Active Workload Allocation<br/>• DAG Dependency Gating"]
-    end
-
-    subgraph "Parallel Dedicated Agent Workdirs (.agents/workspaces/<sprint>/<agent>/)"
-        W_BE1["agent-be-1 (workdir: .agents/workspaces/s1.1/be-1)"]
-        W_BE2["agent-be-2 (workdir: .agents/workspaces/s1.1/be-2)"]
-        W_FE1["agent-fe-1 (workdir: .agents/workspaces/s1.1/fe-1)"]
-        W_FE2["agent-fe-2 (workdir: .agents/workspaces/s1.1/fe-2)"]
-        W_QA1["agent-qa-1 (workdir: .agents/workspaces/s1.1/qa-1)"]
-    end
-
-    STORIES --> ROUTER
-    ROUTER --> CAPACITY
-    CAPACITY --> W_BE1
-    CAPACITY --> W_BE2
-    CAPACITY --> W_FE1
-    CAPACITY --> W_FE2
-    CAPACITY --> W_QA1
-```
-
-### 4.2 Non-Conflicting Concurrency Rules
-
-1. **Physical Workdir Isolation**: Each agent runs in its own directory:
-   `.agents/workspaces/<sprint-id>/<agent-name>/`
-   backed by an independent Git branch (`agent/<sprint-id>/<agent-name>`).
-2. **Write-Path Whitelisting**:
-   * Backend agents may write **only** to `crates/` and `backend/`.
-   * Client agents may write **only** to `apps/storefront/` and `packages/`.
-   * QA/Security agents may write **only** to `tests/` and `docs/validation/`.
-3. **Contract-Driven Parallelism**: Once PR 2 merges schema definitions and exports TypeScript types via `ts-rs`, the **Backend Track (PR 3 & 4)** and **Client Track (PR 5, 6 & 7)** execute concurrently without blocking each other.
-
----
-
-## 6. The 3 Google AI Pro Authentication Accounts (Physical Sign-In)
-
-To optimize subscription credentials without duplicate logins, `some-commerce` enforces **exactly 3 physical authentication profiles** corresponding to the user's **3 Google AI Pro Accounts**:
-
-```mermaid
-flowchart TD
-    subgraph "3 Physical Google AI Pro Sign-In Profiles"
-        ACC_A["<b>Account A (agent-a)</b><br/>Auth Home: .agent_profiles/agent-a/<br/>• Google AI Pro Account 1<br/>• Systems, Microkernel & Axum APIs Track"]
-        ACC_B["<b>Account B (agent-b)</b><br/>Auth Home: .agent_profiles/agent-b/<br/>• Google AI Pro Account 2<br/>• Universal Expo SDK 58 & Client Track"]
-        ACC_C["<b>Account C (agent-c)</b><br/>Auth Home: .agent_profiles/agent-c/<br/>• Google AI Pro Account 3<br/>• QA, Security, Release & Governance Track"]
-    end
-
-    subgraph "Unlimited Logical Agents with Arbitrary Roles & Context"
-        BE_AGENTS["<b>Backend Engineering Pool</b><br/>• Junior Backend Engineer<br/>• Senior Backend Reviewer<br/>• System Architect<br/>• DevOps Engineer"]
-        FE_AGENTS["<b>Client Engineering Pool</b><br/>• Junior Client Engineer<br/>• Senior Client Reviewer<br/>• UI/UX Designer"]
-        QA_AGENTS["<b>QA, Security & Governance Pool</b><br/>• Junior QA Test Engineer<br/>• Senior Security QA Auditor<br/>• Release Gatekeeper<br/>• Tech Lead<br/>• Product Manager<br/>• Chief Technology Officer"]
-    end
-
-    ACC_A -->|Inherits Auth (No Repeated Sign-In)| BE_AGENTS
-    ACC_B -->|Inherits Auth (No Repeated Sign-In)| FE_AGENTS
-    ACC_C -->|Inherits Auth (No Repeated Sign-In)| QA_AGENTS
-```
-
-### 6.1 Authentication Workflow
-1. **Sign-In Once**: The user logs in via browser OAuth once per account:
-   ```bash
-   ./scripts/agy_agent.sh a   # Authenticates Google AI Pro Account 1 (agent-a)
-   ./scripts/agy_agent.sh b   # Authenticates Google AI Pro Account 2 (agent-b)
-   ./scripts/agy_agent.sh c   # Authenticates Google AI Pro Account 3 (agent-c)
-   ```
-2. **Zero-Friction Role Execution**: Any role or sprint agent executes automatically using the authenticated session of its mapped account, completely bypassing repeated login prompts.
-
----
-
-## 7. Dedicated Git Worktree per Role (`.worktrees/`)
-
-To prevent dirty-file collisions when multiple roles and agents operate concurrently, every role and account possesses an isolated Git worktree under `.worktrees/`:
-
-```
-.worktrees/
-├── agent-a/                     # branch: agent/a
-├── agent-b/                     # branch: agent/b
-├── agent-c/                     # branch: agent/c
-├── backend-engineer/            # branch: role/backend-engineer
-├── junior-backend-engineer/     # branch: role/junior-backend-engineer
-├── senior-backend-engineer/     # branch: role/senior-backend-engineer
-├── client-engineer/             # branch: role/client-engineer
-├── junior-client-engineer/      # branch: role/junior-client-engineer
-├── senior-client-engineer/      # branch: role/senior-client-engineer
-├── testing-qa-engineer/         # branch: role/testing-qa-engineer
-├── junior-testing-qa-engineer/  # branch: role/junior-testing-qa-engineer
-├── senior-security-qa-auditor/  # branch: role/senior-security-qa-auditor
-├── product-manager/             # branch: role/product-manager
-├── tech-lead/                   # branch: role/tech-lead
-├── system-architect/            # branch: role/system-architect
-├── ui-ux-designer/              # branch: role/ui-ux-designer
-├── security-engineer/           # branch: role/security-engineer
-├── devops-engineer/             # branch: role/devops-engineer
-├── release-gatekeeper/          # branch: role/release-gatekeeper
-└── chief-technology-officer/    # branch: role/chief-technology-officer
-```
-
-### 7.1 Worktree Management Script (`scripts/manage_agent_worktrees.sh`)
-```bash
-# View all active worktrees and git branches:
-./scripts/manage_agent_worktrees.sh status
-
-# Switch a role's worktree to work on a specific user story branch:
-./scripts/manage_agent_worktrees.sh switch junior-backend-engineer US-1.1.1
-
-# Reset a role worktree to origin/main:
-./scripts/manage_agent_worktrees.sh reset junior-backend-engineer
-```
+Before adoption, assign named owners and evidence locations for every AO finding in the [framework register](AGENT_PROFILES_AND_MULTI_AGENT_FRAMEWORK.md#8-stress-test-register-and-operational-acceptance). Verify runtime confinement, task admission, authenticated independent approvals, protected CI policy, exact-candidate checks, immutable evidence and release authorization. Reconcile generated profiles and existing quality-gate scripts with these contracts. Until then, generated allocations remain proposals requiring supervised execution.

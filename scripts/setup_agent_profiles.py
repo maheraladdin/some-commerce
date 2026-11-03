@@ -421,7 +421,7 @@ def setup_all():
         (acc_home / ".gemini" / "antigravity-cli").mkdir(parents=True, exist_ok=True)
         settings_file = acc_home / ".gemini" / "antigravity-cli" / "settings.json"
         if not settings_file.exists():
-            settings_file.write_text('{"modelProvider": "gemini"}\n', encoding="utf-8")
+            settings_file.write_text('{}\n', encoding="utf-8")
 
         env_file = AGENT_PROFILES_DIR / f"{account_key}.env"
         env_content = f"""# Authentication Profile for {data['account_label']}
