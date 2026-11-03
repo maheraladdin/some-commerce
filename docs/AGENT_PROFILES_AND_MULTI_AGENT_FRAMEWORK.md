@@ -184,25 +184,74 @@ Contains the exact subset of information required by that agent:
 
 ---
 
-## 5. Tooling: Automated Agent Generation Scripts
+## 5. Tooling: Automated Antigravity CLI Agent Scripts & Profiles
 
-### 5.1 Single Agent Generator (`scripts/generate_agent.py`)
-Generates an individual agent with customized profile, role, story, PR, and isolated workdir:
+### 5.1 The Agent Profiles Catalog (`.agents/profiles/`)
+All software company positions and agent profiles are codified inside the `.agents/profiles/` directory:
+- `backend-engineer`, `junior-backend-engineer`, `senior-backend-engineer`
+- `client-engineer`, `junior-client-engineer`, `senior-client-engineer`
+- `testing-qa-engineer`, `junior-testing-qa-engineer`, `senior-security-qa-auditor`
+- `product-manager`, `tech-lead`, `system-architect`, `ui-ux-designer`
+- `security-engineer`, `devops-engineer`, `release-gatekeeper`, `chief-technology-officer`
+
+Each profile directory contains:
+- `profile.yaml`: Metadata, allowed write paths, forbidden paths, governing invariants, tools, and recommended Gemini model & effort.
+- `system_prompt.md`: Comprehensive system instructions enforcing the 6-Layer Validation Ladder, Zero-Clone borrowing, LoB, and ASVS L2.
+- `env.template`: Default environment configuration template.
+
+Every profile is also registered for native discovery in `.agents/agents/<profile>/agent.md`, enabling immediate recognition via:
+```bash
+agy agents
+```
+
+---
+
+### 5.2 Antigravity CLI Agent Maker Shell Script (`scripts/make_agy_agent.sh`)
+Generates an individual Antigravity CLI agent with customized profile, role, story, PR, native CLI registration, and isolated workdir:
 
 ```bash
-python3 scripts/generate_agent.py \
-  --name s11-us111-be-builder \
-  --profile backend-engineer \
-  --role builder \
+./scripts/make_agy_agent.sh \
+  -n s11-us111-be-builder \
+  -p backend-engineer \
+  -s junior \
+  -r builder \
   --sprint sprint-1.1 \
   --story us-1.1.1 \
   --pr 1 \
   --create-git-worktree
 ```
 
-### 5.2 Sprint Batch Generator (`scripts/generate_sprint_agents.py`)
-Generates all agent instances, workdirs, and contexts required to deliver an entire sprint:
+This single command provisions:
+1. Native Antigravity CLI agent: `.agents/agents/s11-us111-be-builder/agent.md`
+2. Isolated agent profile home & credentials: `.agent_profiles/s11-us111-be-builder/`
+3. Sprint workdir artifacts: `.agents/workspaces/sprint-1.1/s11-us111-be-builder/` (`agent.yaml`, `context.md`, `tasks.md`, `run.sh`)
+4. Isolated Git worktree: `workspace/` on branch `agent/sprint-1.1/s11-us111-be-builder`
+
+---
+
+### 5.3 Antigravity CLI Agent Launcher (`scripts/agy_agent.sh`)
+Launches any registered agent or base profile in an isolated `$HOME` environment with configured models, reasoning effort, and target directories:
 
 ```bash
-python3 scripts/generate_sprint_agents.py --sprint sprint-1.1
+# Launch interactive Antigravity CLI session for an agent:
+./scripts/agy_agent.sh s11-us111-be-builder
+
+# Run a non-interactive single prompt:
+./scripts/agy_agent.sh s11-us111-be-builder -p "Implement PR 1 domain logic for US-1.1.1"
+
+# List all available registered agents:
+./scripts/agy_agent.sh --list
+```
+
+---
+
+### 5.4 Agent Profile Load Balancer (`scripts/agent_load_balancer.py`)
+Balances sprint workload across Junior Implementers and Senior Reviewers, enforcing DAG dependency gating and directory isolation:
+
+```bash
+# View balanced workload matrix:
+python3 scripts/agent_load_balancer.py --sprint sprint-1.1 --balance
+
+# Spawn all isolated agent workspaces for a sprint:
+python3 scripts/agent_load_balancer.py --sprint sprint-1.1 --spawn
 ```

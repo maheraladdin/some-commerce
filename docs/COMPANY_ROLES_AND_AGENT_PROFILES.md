@@ -320,3 +320,79 @@ flowchart TD
    * Client agents may write **only** to `apps/storefront/` and `packages/`.
    * QA/Security agents may write **only** to `tests/` and `docs/validation/`.
 3. **Contract-Driven Parallelism**: Once PR 2 merges schema definitions and exports TypeScript types via `ts-rs`, the **Backend Track (PR 3 & 4)** and **Client Track (PR 5, 6 & 7)** execute concurrently without blocking each other.
+
+---
+
+## 6. The 3 Google AI Pro Authentication Accounts (Physical Sign-In)
+
+To optimize subscription credentials without duplicate logins, `some-commerce` enforces **exactly 3 physical authentication profiles** corresponding to the user's **3 Google AI Pro Accounts**:
+
+```mermaid
+flowchart TD
+    subgraph "3 Physical Google AI Pro Sign-In Profiles"
+        ACC_A["<b>Account A (agent-a)</b><br/>Auth Home: .agent_profiles/agent-a/<br/>• Google AI Pro Account 1<br/>• Systems, Microkernel & Axum APIs Track"]
+        ACC_B["<b>Account B (agent-b)</b><br/>Auth Home: .agent_profiles/agent-b/<br/>• Google AI Pro Account 2<br/>• Universal Expo SDK 58 & Client Track"]
+        ACC_C["<b>Account C (agent-c)</b><br/>Auth Home: .agent_profiles/agent-c/<br/>• Google AI Pro Account 3<br/>• QA, Security, Release & Governance Track"]
+    end
+
+    subgraph "Unlimited Logical Agents with Arbitrary Roles & Context"
+        BE_AGENTS["<b>Backend Engineering Pool</b><br/>• Junior Backend Engineer<br/>• Senior Backend Reviewer<br/>• System Architect<br/>• DevOps Engineer"]
+        FE_AGENTS["<b>Client Engineering Pool</b><br/>• Junior Client Engineer<br/>• Senior Client Reviewer<br/>• UI/UX Designer"]
+        QA_AGENTS["<b>QA, Security & Governance Pool</b><br/>• Junior QA Test Engineer<br/>• Senior Security QA Auditor<br/>• Release Gatekeeper<br/>• Tech Lead<br/>• Product Manager<br/>• Chief Technology Officer"]
+    end
+
+    ACC_A -->|Inherits Auth (No Repeated Sign-In)| BE_AGENTS
+    ACC_B -->|Inherits Auth (No Repeated Sign-In)| FE_AGENTS
+    ACC_C -->|Inherits Auth (No Repeated Sign-In)| QA_AGENTS
+```
+
+### 6.1 Authentication Workflow
+1. **Sign-In Once**: The user logs in via browser OAuth once per account:
+   ```bash
+   ./scripts/agy_agent.sh a   # Authenticates Google AI Pro Account 1 (agent-a)
+   ./scripts/agy_agent.sh b   # Authenticates Google AI Pro Account 2 (agent-b)
+   ./scripts/agy_agent.sh c   # Authenticates Google AI Pro Account 3 (agent-c)
+   ```
+2. **Zero-Friction Role Execution**: Any role or sprint agent executes automatically using the authenticated session of its mapped account, completely bypassing repeated login prompts.
+
+---
+
+## 7. Dedicated Git Worktree per Role (`.worktrees/`)
+
+To prevent dirty-file collisions when multiple roles and agents operate concurrently, every role and account possesses an isolated Git worktree under `.worktrees/`:
+
+```
+.worktrees/
+├── agent-a/                     # branch: agent/a
+├── agent-b/                     # branch: agent/b
+├── agent-c/                     # branch: agent/c
+├── backend-engineer/            # branch: role/backend-engineer
+├── junior-backend-engineer/     # branch: role/junior-backend-engineer
+├── senior-backend-engineer/     # branch: role/senior-backend-engineer
+├── client-engineer/             # branch: role/client-engineer
+├── junior-client-engineer/      # branch: role/junior-client-engineer
+├── senior-client-engineer/      # branch: role/senior-client-engineer
+├── testing-qa-engineer/         # branch: role/testing-qa-engineer
+├── junior-testing-qa-engineer/  # branch: role/junior-testing-qa-engineer
+├── senior-security-qa-auditor/  # branch: role/senior-security-qa-auditor
+├── product-manager/             # branch: role/product-manager
+├── tech-lead/                   # branch: role/tech-lead
+├── system-architect/            # branch: role/system-architect
+├── ui-ux-designer/              # branch: role/ui-ux-designer
+├── security-engineer/           # branch: role/security-engineer
+├── devops-engineer/             # branch: role/devops-engineer
+├── release-gatekeeper/          # branch: role/release-gatekeeper
+└── chief-technology-officer/    # branch: role/chief-technology-officer
+```
+
+### 7.1 Worktree Management Script (`scripts/manage_agent_worktrees.sh`)
+```bash
+# View all active worktrees and git branches:
+./scripts/manage_agent_worktrees.sh status
+
+# Switch a role's worktree to work on a specific user story branch:
+./scripts/manage_agent_worktrees.sh switch junior-backend-engineer US-1.1.1
+
+# Reset a role worktree to origin/main:
+./scripts/manage_agent_worktrees.sh reset junior-backend-engineer
+```
