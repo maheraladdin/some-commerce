@@ -35,3 +35,6 @@ __pycache__/
 # OS metadata
 .DS_Store
 Thumbs.db
+
+# GitHub Actions Workflows (preserved in scripts/ci/ until workflow OAuth scope is granted)
+.github/workflows/
