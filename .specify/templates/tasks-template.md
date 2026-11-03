@@ -44,11 +44,16 @@ Complete this section for implementation, testing, review, remediation and leade
 - [ ] Task 3.3: Implement RTL/LTR bidirectional styling and localized fonts
 - [ ] Task 3.4: Write component tests for loading, empty, error, and offline states
 
-## Phase 4: Security Gateway & Verification (G0–G4)
+## Phase 4: Quality Gate Verification & Release Readiness (G0–G4 + G-Review + G-Borrow + G-UI + G-Law)
 - [ ] Task 4.1: Execute security audit abuse tests (rate limits, IDOR, tampering)
-- [ ] Task 4.2: Verify zero-trust tenant isolation on all queries and mutations
+- [ ] Task 4.2: Verify zero-trust tenant isolation on all queries and mutations (`PK = TENANT#<id>`)
 - [ ] Task 4.3: Execute SAST / secret scanning / dependency checks
 - [ ] Task 4.4: Complete G2 Security Gateway sign-off and compile integrated evidence
+- [ ] Task 4.5: Complete G-Review independent senior code review across 5 pillars
+- [ ] Task 4.6: Verify Gate R1 / G-Borrow zero deep `.clone()` borrowing discipline in backend code
+- [ ] Task 4.7: Verify Gate F1 / G-UI `@expo/ui` mobile and semantic HTML/Tailwind web presentation
+- [ ] Task 4.8: Verify Gate L1 / G-Law global e-commerce statutory legal compliance (`[AC-US-X.Y.Z-LAW]`)
+- [ ] Task 4.9: Complete Gate G4 integrated sandbox validation across target platforms
 
 ## Phase 5: End-of-Sprint Test Gate (before SG4 / CTO review)
 

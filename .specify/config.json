@@ -5,16 +5,49 @@
   "standards": {
     "constitution": ".specify/memory/constitution.md",
     "templates": {
+      "user_story": ".specify/templates/user-story-template.md",
+      "company_plan": ".specify/templates/company-plan-template.md",
       "spec": ".specify/templates/spec-template.md",
       "plan": ".specify/templates/plan-template.md",
       "tasks": ".specify/templates/tasks-template.md",
       "security_gateway": ".specify/templates/security-gateway-template.md"
     },
     "architecture_pattern": "features-modules-behaviours",
-    "security_gateways": "security-audit"
+    "security_gateways": "security-audit",
+    "quality_gates": {
+      "story_gates": [
+        "G0",
+        "G1",
+        "G2",
+        "G3",
+        "G-Review",
+        "G-Borrow",
+        "G-UI",
+        "G-Law",
+        "G4"
+      ],
+      "monorepo_gates": [
+        "M1",
+        "A1",
+        "A2",
+        "L1",
+        "R1",
+        "F1"
+      ],
+      "sprint_gates": [
+        "SG0",
+        "SG1",
+        "SG2",
+        "SG3",
+        "SG4"
+      ]
+    }
   },
   "hierarchy": {
-    "root": "features",
+    "framework_roots": {
+      "client": "apps/storefront/src/features",
+      "backend": "backend/src/features"
+    },
     "levels": [
       "feature",
       "module",

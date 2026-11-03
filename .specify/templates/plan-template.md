@@ -30,7 +30,11 @@ features/<feature-name>/modules/<module-name>/behaviours/<behaviour-name>/
 | **Global-Shared** | `shared/` | Cross-cutting infrastructure, base kernel traits, HTTP envelopes |
 
 ## 2. Technical Contracts & Invariants
+- **Multi-Tenancy**: Mandatory `PK = TENANT#<tenant_id>` partition key isolation on all queries and mutations.
 - **Data Model**: [DynamoDB PK/SK, GSI mappings, WatermelonDB tables]
+- **Rust Zero-Clone Memory Law**: Strict borrowing (`&T`, `&mut T`), lifetimes, zero-copy buffers, zero deep `.clone()` calls (`Arc::clone` only).
+- **Platform Presentation**: `@expo/ui` primitives for mobile, semantic HTML5 + Tailwind CSS for web; strict separation between `designs/` (presentation) and `logic/` (headless custom hooks).
+- **Two-Phase Legal Conformance**: Pre-implementation statutory mapping (`AC-*-LAW`) and post-implementation test assertions (`TC-*-LAW`).
 - **State Transitions**: [Allowed state transitions and guard conditions]
 - **RFC 9110 ETag / Freshness**: [ETag generation and 304 revalidation strategy]
 
