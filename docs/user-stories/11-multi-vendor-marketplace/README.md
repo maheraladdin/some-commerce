@@ -26,234 +26,67 @@ Covers vendor onboarding, RBAC-scoped catalog management, automatic sub-order sp
 
 ---
 
-## US-11.1.1: Vendor Onboarding & RBAC-Scoped Catalog
+## User Stories Catalog
 
-**As a** Marketplace Vendor,  
-**I want to** register, manage only my own products, and have strict RBAC isolation,  
-**So that** I cannot see or modify other vendors' data.
+This module contains **4 detailed user stories**. Each user story has its own dedicated specification document containing Gherkin acceptance criteria (`Given/When/Then`), comprehensive test matrices (happy path, edge cases, error handling, security, and concurrency), Mermaid activity diagrams, and the 7-PR implementation slice plan.
 
-### Acceptance Criteria
-
-```gherkin
-Feature: Vendor Onboarding & RBAC
-
-  Scenario: Vendor registration
-    Given a new vendor submits registration with business details
-    When the STORE_ADMIN approves the application
-    Then a vendor_id is created and the user's Cognito group updates to VENDOR
-    And the vendor can access /[locale]/vendor/dashboard
-
-  Scenario: Vendor-scoped product listing
-    Given Vendor A (vnd_77) opens the vendor dashboard
-    Then only products with vendor_id=vnd_77 are shown
-    And Vendor A cannot query or see Vendor B's products
-
-  Scenario: Vendor creates product
-    When Vendor A creates a new product
-    Then the product is automatically tagged with vendor_id=vnd_77
-    And is visible to shoppers in the storefront
-
-  Scenario: Cross-vendor data access attempt
-    Given Vendor A tries to access PRODUCT#p99 belonging to Vendor B
-    Then a 403 Forbidden is returned
-    And the attempt is logged for audit
-```
-
-### Test Cases
-
-| # | Test Case | Type | Expected Result |
-|:--|:----------|:-----|:----------------|
-| TC-11.1.1-01 | Vendor registration | Happy Path | Vendor created |
-| TC-11.1.1-02 | Scoped product list | Happy Path | Only own products |
-| TC-11.1.1-03 | Create product | Happy Path | Tagged with vendor_id |
-| TC-11.1.1-04 | Cross-vendor access | Security | 403 Forbidden |
-| TC-11.1.1-05 | Admin sees all vendors | Happy Path | Full list |
-| TC-11.1.1-06 | Vendor edits own product | Happy Path | Updated |
-| TC-11.1.1-07 | Vendor deletes another's | Security | 403 |
-| TC-11.1.1-08 | Vendor deactivation | Happy Path | Products hidden |
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-    A([Vendor submits registration]) --> B[POST /v1/vendor/onboarding]
-    B --> C[Create pending vendor record]
-    C --> D[SNS notify STORE_ADMIN]
-    D --> E{Admin decision?}
-    E -->|Approve| F[Create vendor_id, update Cognito]
-    E -->|Reject| G[Notify vendor: rejected]
-    F --> H([Vendor accesses dashboard])
-    H --> I[All queries filtered by JWT vendor_id]
-    I --> J{Request touches own data?}
-    J -->|Yes| K[Proceed with operation]
-    J -->|No| L[403 Forbidden + audit log]
-```
+| Story ID | Title | Target Persona | Sprint | Specification Document |
+| :--- | :--- | :--- | :--- | :--- |
+| **[US-11.1.1](us-11.1.1-vendor-onboarding-rbac-scoped-catalog.md)** | Vendor Onboarding & RBAC-Scoped Catalog | Marketplace Vendor | Sprint 4.1 / 4.2 | [View Specification →](us-11.1.1-vendor-onboarding-rbac-scoped-catalog.md) |
+| **[US-11.1.2](us-11.1.2-automatic-sub-order-splitting-at-checkout.md)** | Automatic Sub-Order Splitting at Checkout | Shopper with items from multiple vendors | Sprint 4.1 / 4.2 | [View Specification →](us-11.1.2-automatic-sub-order-splitting-at-checkout.md) |
+| **[US-11.1.3](us-11.1.3-double-entry-escrow-ledger-vendor-payouts.md)** | Double-Entry Escrow Ledger & Vendor Payouts | Marketplace Operator and Vendor | Sprint 4.1 / 4.2 | [View Specification →](us-11.1.3-double-entry-escrow-ledger-vendor-payouts.md) |
+| **[US-11.1.4](us-11.1.4-vendor-portal-dashboard.md)** | Vendor Portal Dashboard | Vendor | Sprint 4.1 / 4.2 | [View Specification →](us-11.1.4-vendor-portal-dashboard.md) |
 
 ---
 
-## US-11.1.2: Automatic Sub-Order Splitting at Checkout
+## Story Summaries
 
-**As a** Shopper with items from multiple vendors,  
-**I want** my order to automatically split into per-vendor sub-orders,  
-**So that** each vendor fulfills independently without seeing other vendors' data.
+#### [US-11.1.1: Vendor Onboarding & RBAC-Scoped Catalog](us-11.1.1-vendor-onboarding-rbac-scoped-catalog.md)
+- **Target Persona**: Marketplace Vendor
+- **Summary**: register
+- **Specification**: [`us-11.1.1-vendor-onboarding-rbac-scoped-catalog.md`](us-11.1.1-vendor-onboarding-rbac-scoped-catalog.md)
 
-### Acceptance Criteria
+#### [US-11.1.2: Automatic Sub-Order Splitting at Checkout](us-11.1.2-automatic-sub-order-splitting-at-checkout.md)
+- **Target Persona**: Shopper with items from multiple vendors
+- **Summary**: Automatic Sub-Order Splitting at Checkout
+- **Specification**: [`us-11.1.2-automatic-sub-order-splitting-at-checkout.md`](us-11.1.2-automatic-sub-order-splitting-at-checkout.md)
 
-```gherkin
-Feature: Sub-Order Splitting
+#### [US-11.1.3: Double-Entry Escrow Ledger & Vendor Payouts](us-11.1.3-double-entry-escrow-ledger-vendor-payouts.md)
+- **Target Persona**: Marketplace Operator and Vendor
+- **Summary**: Double-Entry Escrow Ledger & Vendor Payouts
+- **Specification**: [`us-11.1.3-double-entry-escrow-ledger-vendor-payouts.md`](us-11.1.3-double-entry-escrow-ledger-vendor-payouts.md)
 
-  Scenario: Multi-vendor checkout
-    Given the cart has items from Vendor A (vnd_77) and Vendor B (vnd_88)
-    When the customer completes checkout
-    Then a parent ORDER#o1 is created
-    And SUBORDER#vnd_77#s1 and SUBORDER#vnd_88#s2 are created atomically
-    And each sub-order has its own status, AWB, and escrow entry
+#### [US-11.1.4: Vendor Portal Dashboard](us-11.1.4-vendor-portal-dashboard.md)
+- **Target Persona**: Vendor
+- **Summary**: Vendor Portal Dashboard
+- **Specification**: [`us-11.1.4-vendor-portal-dashboard.md`](us-11.1.4-vendor-portal-dashboard.md)
 
-  Scenario: Single-vendor order
-    Given all cart items are from the same vendor
-    Then only one sub-order is created (or the parent order serves directly)
-
-  Scenario: Split COD allocation
-    Given a DEPOSIT_COD multi-vendor order
-    Then the deposit is proportionally split across sub-orders
-    And each vendor's COD collection is calculated separately
-```
-
-### Test Cases
-
-| # | Test Case | Type | Expected Result |
-|:--|:----------|:-----|:----------------|
-| TC-11.1.2-01 | 2-vendor cart split | Happy Path | 2 sub-orders |
-| TC-11.1.2-02 | 5-vendor cart split | Happy Path | 5 sub-orders |
-| TC-11.1.2-03 | Single vendor | Edge Case | 1 sub-order |
-| TC-11.1.2-04 | COD proportional split | Happy Path | Correct amounts |
-| TC-11.1.2-05 | Atomic transaction | Concurrency | All or nothing |
-| TC-11.1.2-06 | Vendor A fulfills before B | Happy Path | Independent statuses |
-| TC-11.1.2-07 | Sub-order cancellation | Happy Path | Only cancelled sub-order affected |
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-    A([Customer completes checkout]) --> B[Group cart items by vendor_id]
-    B --> C[Calculate per-vendor subtotals + shipping]
-    C --> D{Multi-vendor?}
-    D -->|No| E[Create single ORDER# + SUBORDER#]
-    D -->|Yes| F[Proportional split deposits/COD]
-    F --> G["TransactWriteItems: ORDER#o1 + SUBORDER#vnd_77#s1 + SUBORDER#vnd_88#s2"]
-    E --> H[TransactWriteItems: ORDER# + SUBORDER#]
-    G --> I[SNS notify each vendor]
-    H --> I
-    I --> J([Each vendor fulfills independently])
-```
 
 ---
 
-## US-11.1.3: Double-Entry Escrow Ledger & Vendor Payouts
+## Autonomous Agent Implementation Standard
 
-**As a** Marketplace Operator and Vendor,  
-**I want** vendor payouts held in escrow until the delivery + return window completes,  
-**So that** vendors are paid fairly and customers are protected during the return period.
+Every user story in this module is executed by an autonomous AI agent across the standardized **7-PR vertical slice framework**:
 
-### Acceptance Criteria
-
-```gherkin
-Feature: Escrow Ledger & Payouts
-
-  Scenario: Escrow hold after delivery
-    When a sub-order is marked DELIVERED
-    Then the vendor's ledger is credited: ESCROW_HOLD (subtotal - 15% commission)
-    And a 14-day durable timer starts
-
-  Scenario: No RMA — escrow released
-    Given no RMA is filed within 14 days
-    Then the ledger transitions ESCROW_HOLD → AVAILABLE_FOR_PAYOUT
-    And the vendor's available balance updates
-
-  Scenario: RMA filed — escrow frozen
-    Given an RMA is filed within 14 days
-    Then the escrow remains frozen until the return is resolved
-    And the vendor is notified
-
-  Scenario: Vendor requests payout
-    Given the vendor has AVAILABLE_FOR_PAYOUT balance of $5,000
-    When the vendor clicks "Request Payout"
-    Then a payout transfer is initiated
-    And the balance is deducted
-
-  Scenario: Commission breakdown visible
-    Then the vendor dashboard shows per-sub-order: subtotal, commission %, commission amount, net payout
+```
+[PR 1: Kernel Core] ──> [PR 2: DB Schema] ──> [PR 3: Repo & Cache] ──> [PR 4: Axum API]
+                                                                            │
+[PR 7: Platform UI] <── [PR 6: Headless Hooks] <── [PR 5: Client Service & DB] <┘
 ```
 
-### Test Cases
-
-| # | Test Case | Type | Expected Result |
-|:--|:----------|:-----|:----------------|
-| TC-11.1.3-01 | Escrow hold on delivery | Happy Path | ESCROW_HOLD credited |
-| TC-11.1.3-02 | 14-day release | Happy Path | AVAILABLE_FOR_PAYOUT |
-| TC-11.1.3-03 | RMA freezes escrow | Happy Path | Remains frozen |
-| TC-11.1.3-04 | Request payout | Happy Path | Transfer initiated |
-| TC-11.1.3-05 | Payout > available | Validation | Error |
-| TC-11.1.3-06 | Commission math | Happy Path | 15% deducted |
-| TC-11.1.3-07 | Multiple sub-orders settled | Happy Path | Sum correctly |
-| TC-11.1.3-08 | Concurrent payout requests | Concurrency | Only one succeeds |
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-    A([Sub-order DELIVERED]) --> B[Credit vendor ledger: ESCROW_HOLD]
-    B --> C[Deduct commission 15%]
-    C --> D[Start 14-day durable timer]
-    D --> E{RMA filed within 14 days?}
-    E -->|Yes| F[Freeze escrow]
-    F --> G{RMA resolved?}
-    G -->|Refund issued| H[Debit escrow, refund customer]
-    G -->|Return rejected| I[Release escrow → AVAILABLE]
-    E -->|No, timer expires| J[Transition → AVAILABLE_FOR_PAYOUT]
-    J --> K[Update vendor available balance]
-    K --> L{Vendor requests payout?}
-    L -->|Yes| M[Initiate payout transfer]
-    M --> N[Debit AVAILABLE balance]
-```
+1. **PR 1: Microkernel Logic** (`crates/kernel-core`)
+2. **PR 2: Database Schema** (`crates/db-schema`)
+3. **PR 3: Repository Handlers & Caching** (`crates/db-dynamo`, `crates/cache-tier`)
+4. **PR 4: Axum Handlers & Middleware** (`bins/...`)
+5. **PR 5: Client Services & Local Database** (`packages/api-client`, `packages/db-client`)
+6. **PR 6: Headless Domain Hooks & Native Modules** (`packages/domain-hooks`, `modules/...`)
+7. **PR 7: Platform-Adaptive UI** (`apps/storefront-mobile` with `@expo/ui`, `apps/storefront-web` with Tailwind CSS v4)
 
 ---
 
-## US-11.1.4: Vendor Portal Dashboard
+## Navigation & Cross-References
 
-**As a** Vendor,  
-**I want** a comprehensive dashboard showing sub-orders, inventory, escrow balance, and fulfillment actions,  
-**So that** I can manage my marketplace presence efficiently.
-
-### Acceptance Criteria
-
-```gherkin
-Feature: Vendor Dashboard
-
-  Scenario: View pending sub-orders
-    Given the vendor opens "/[locale]/vendor/dashboard"
-    Then a table shows all sub-orders with status, items, and ship-by deadline
-
-  Scenario: Print AWB label
-    When the vendor clicks "Print Label" on a sub-order
-    Then the pre-generated Bosta/carrier AWB PDF downloads
-
-  Scenario: Quick inventory edit
-    When the vendor updates stock for a SKU
-    Then the stock is updated in DynamoDB
-    And Elasticsearch re-indexes the product
-
-  Scenario: View escrow balance
-    Then a card shows: ESCROW_HOLD, AVAILABLE_FOR_PAYOUT, and total settled
-```
-
-### Test Cases
-
-| # | Test Case | Type | Expected Result |
-|:--|:----------|:-----|:----------------|
-| TC-11.1.4-01 | View sub-order queue | Happy Path | Table with statuses |
-| TC-11.1.4-02 | Print AWB label | Happy Path | PDF downloads |
-| TC-11.1.4-03 | Update inventory | Happy Path | Stock updated + ES reindex |
-| TC-11.1.4-04 | View escrow balance | Happy Path | Card with balances |
-| TC-11.1.4-05 | Empty queue | Edge Case | "No pending sub-orders" |
-| TC-11.1.4-06 | Dashboard performance | Performance | Loads <500ms |
+- [← Back to Master User Stories Index](../README.md)
+- [Sprint Schedule & 3-Agent Parallel Framework](../../sprints/README.md)
+- [System Architecture & Multi-Tier Caching](../../SYSTEM_ARCHITECTURE.md)
+- [Deployment & AWS Marketplace Guide](../../DEPLOYMENT_AND_AWS_MARKETPLACE.md)
