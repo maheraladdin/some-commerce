@@ -1,0 +1,39 @@
+{
+  "name": "some-commerce-storefront",
+  "version": "1.0.0",
+  "main": "expo-router/entry",
+  "private": true,
+  "scripts": {
+    "dev": "expo start",
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint \"src/**/*.{ts,tsx}\" \"app/**/*.{ts,tsx}\""
+  },
+  "dependencies": {
+    "@expo/ui": "~58.0.20",
+    "@nozbe/watermelondb": "^0.28.0",
+    "@tanstack/react-query": "^5.104.3",
+    "clsx": "^2.1.1",
+    "expo": "~58.0.14",
+    "expo-constants": "~58.0.12",
+    "expo-linking": "~58.0.13",
+    "expo-router": "~58.0.23",
+    "expo-secure-store": "^58.0.2",
+    "expo-status-bar": "~58.0.3",
+    "lucide-react-native": "^1.58.0",
+    "nativewind": "^4.2.7",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-native": "0.88.0",
+    "tailwind-merge": "^3.5.0",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@types/react": "~19.1.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.9.3"
+  }
+}

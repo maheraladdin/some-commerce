@@ -138,14 +138,11 @@ def validate_no_sibling_cross_imports(features_root: Path) -> List[str]:
     if not features_root.exists():
         return errors
 
-    # Regex detecting traversal up to sibling behaviour: e.g. ../../sibling/ or ../other-behaviour/
-    # Handles:
-    # 1. import ... from '../../sibling/...'
-    # 2. import '../../sibling/...'
-    # 3. require('../../sibling/...')
-    # 4. use super::super::sibling::...
+    # Regex detecting traversal up to sibling behaviour: e.g. ../../sibling/ or ../../../other-behaviour/
+    # Intra-behaviour imports (e.g. ../services/ or ../constants/ within the same behaviour) are allowed.
+    # Traversal to module or feature _shared/ (e.g. ../../_shared/) is allowed.
     sibling_import_regex = re.compile(
-        r"""(?:from\s+['"]|import\s+['"]|require\s*\(\s*['"])[.]{2}/(?:\.\./)*(?!_shared/)[a-zA-Z0-9_-]+"""
+        r"""(?:from\s+['"]|import\s+['"]|require\s*\(\s*['"])[.]{2}/[.]{2}/(?:\.\./)*(?!_shared/)[a-zA-Z0-9_-]+"""
     )
     rust_sibling_regex = re.compile(r"""use\s+super::super::(?!_shared)[a-zA-Z0-9_]+""")
 
