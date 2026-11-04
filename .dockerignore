@@ -1,0 +1,11 @@
+.git
+.github
+.agents
+.specify
+node_modules
+target
+dist
+.expo
+.cache
+*.log
+.DS_Store
