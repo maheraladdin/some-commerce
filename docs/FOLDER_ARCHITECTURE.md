@@ -17,23 +17,33 @@
 ```
 some-commerce/
 ├── apps/
-│   └── storefront/                      # Universal Expo SDK 58 Application (iOS, Android, Web)
-│       ├── app/                         # Expo Router v5 file-based route entrypoints
+│   ├── storefront/                      # Universal Expo SDK 58 Storefront (iOS, Android, Web)
+│   │   ├── dist/                        # Static site build output (deployed via AWS CDK & CloudFront)
+│   │   ├── app/                         # Customer Expo Router v5 route entrypoints
+│   │   └── src/
+│   │       ├── shared/                  # Client-wide shared UI tokens, global providers, client utilities
+│   │       └── features/                # ◄◄ STOREFRONT BEHAVIORAL HIERARCHY
+│   │           └── <feature-name>/
+│   │               ├── _shared/         # Shared across modules in this feature
+│   │               └── modules/
+│   │                   └── <module-name>/
+│   │                       ├── _shared/ # Shared across behaviours in this module
+│   │                       └── behaviours/
+│   │                           └── <behaviour-name>/
+│   │                               ├── services/    # TanStack Query hooks, WatermelonDB queries, API fetchers
+│   │                               ├── designs/     # @expo/ui components, screens, SDUI widget blocks
+│   │                               ├── logic/       # Headless custom hooks, local state machines, validation
+│   │                               ├── types/       # TypeScript interfaces, DTOs, Zod schemas
+│   │                               └── constants/   # Route URLs, query keys, error strings, action tags
+│   │
+│   └── dashboard/                       # Admin & Vendor Portal Web Application (Static SPA)
+│       ├── dist/                        # Static site build output (deployed via AWS CDK & CloudFront)
+│       ├── app/                         # Admin & vendor routes (/admin/sdui-studio, /vendor/dashboard)
 │       └── src/
-│           ├── shared/                  # Client-wide shared UI tokens, global providers, client utilities
-│           └── features/                # ◄◄ CLIENT BEHAVIORAL HIERARCHY
-│               └── <feature-name>/
-│                   ├── _shared/         # Shared across modules in this feature
-│                   └── modules/
-│                       └── <module-name>/
-│                           ├── _shared/ # Shared across behaviours in this module
-│                           └── behaviours/
-│                               └── <behaviour-name>/
-│                                   ├── services/    # TanStack Query hooks, WatermelonDB queries, API fetchers
-│                                   ├── designs/     # @expo/ui components, screens, SDUI widget blocks
-│                                   ├── logic/       # Headless custom hooks, local state machines, validation
-│                                   ├── types/       # TypeScript interfaces, DTOs, Zod schemas
-│                                   └── constants/   # Route URLs, query keys, error strings, action tags
+│           ├── shared/
+│           └── features/                # ◄◄ DASHBOARD BEHAVIORAL HIERARCHY
+│               ├── administration-and-operations/
+│               └── commercial-models/
 │
 ├── backend/                             # Cargo Lambda + Axum 0.8 Rust Workspace
 │   ├── Cargo.toml                       # Root Cargo workspace manifest

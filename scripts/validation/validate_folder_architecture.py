@@ -175,10 +175,12 @@ def run_folder_arch_validation(repo_root: Path) -> Tuple[int, List[str]]:
     # 2. Validate Framework Scoping Law
     all_errors.extend(validate_framework_scoping(repo_root))
 
-    # 3. Validate Client Features hierarchy (if directory exists)
-    client_features = repo_root / "apps" / "storefront" / "src" / "features"
-    all_errors.extend(validate_behaviour_directory_structure(client_features, is_client=True))
-    all_errors.extend(validate_no_sibling_cross_imports(client_features))
+    # 3. Validate Client Features hierarchy for all client apps (if directories exist)
+    for app_name in ("storefront", "dashboard"):
+        client_features = repo_root / "apps" / app_name / "src" / "features"
+        if client_features.exists():
+            all_errors.extend(validate_behaviour_directory_structure(client_features, is_client=True))
+            all_errors.extend(validate_no_sibling_cross_imports(client_features))
 
     # 4. Validate Backend Features hierarchy (if directory exists)
     backend_features = repo_root / "backend" / "src" / "features"

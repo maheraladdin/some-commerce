@@ -66,7 +66,8 @@ def validate_logic_directory(logic_dir: Path) -> List[str]:
     if not logic_dir.exists():
         return errors
 
-    jsx_pattern = re.compile(r"<\s*([A-Z]\w+|div|span|header|footer|section|main|nav|button|input|p|table)\b[^>]*>")
+    # Matches JSX tags (e.g. <Component>, <div>, <button>) while ignoring TypeScript generic type arguments (e.g. useState<T>, Promise<T>)
+    jsx_pattern = re.compile(r"(?<![a-zA-Z0-9_$])<\s*([A-Z]\w+|div|span|header|footer|section|main|nav|button|input|p|table)\b[^>]*>")
 
     for file_path in logic_dir.rglob("*.ts*"):
         content = file_path.read_text(encoding="utf-8")
@@ -190,7 +191,10 @@ def validate_stories_ui_gate(stories_dir: Path) -> List[str]:
 def run_platform_presentation_validation(repo_root: Path) -> Tuple[int, List[str]]:
     """Runs all Gate F1 checks."""
     all_errors = []
-    all_errors.extend(validate_all_presentation_code(repo_root / "apps" / "storefront"))
+    for app_name in ("storefront", "dashboard"):
+        app_dir = repo_root / "apps" / app_name
+        if app_dir.exists():
+            all_errors.extend(validate_all_presentation_code(app_dir))
     all_errors.extend(validate_stories_ui_gate(repo_root / "docs" / "user-stories"))
     return len(all_errors), all_errors
 
