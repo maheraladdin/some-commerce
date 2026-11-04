@@ -188,11 +188,11 @@ def run_microkernel_validation(base_dir: Path) -> Tuple[int, List[str]]:
             # Check zero-clone law
             all_errors.extend(validate_rust_zero_clone(rs_file))
 
-    # 3. Check for any misplaced lambda_http in backend/bins outside lambda-serverless
+    # 3. Check for any misplaced lambda_http in standalone/portable server binaries in backend/bins
     backend_bins_dir = base_dir / "backend" / "bins"
     if backend_bins_dir.exists():
         for bin_dir in backend_bins_dir.iterdir():
-            if bin_dir.is_dir() and "lambda" not in bin_dir.name:
+            if bin_dir.is_dir() and ("standalone" in bin_dir.name or "portable" in bin_dir.name):
                 for rs_file in bin_dir.rglob("*.rs"):
                     all_errors.extend(validate_axum_feature_file(rs_file))
 

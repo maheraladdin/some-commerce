@@ -1,0 +1,16 @@
+[package]
+name = "storefront-sdui-api"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+some-commerce-backend = { path = "../.." }
+kernel-core = { workspace = true }
+db-schema = { workspace = true }
+cache-tier = { workspace = true }
+lambda_http = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }

@@ -1,0 +1,6 @@
+# Clippy configuration for some-commerce backend
+# Enforces zero-clone performance and strict type safety
+disallowed-methods = [
+    # Discourage cloning domain entities without explicit reference count Arc::clone
+]
+large-error-threshold = 256

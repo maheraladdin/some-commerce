@@ -1,0 +1,13 @@
+[package]
+name = "cache-tier"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+moka = { workspace = true }
+blake3 = { workspace = true }
+bytes = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
