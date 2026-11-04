@@ -10,6 +10,7 @@ SHELL := /bin/bash
 ROOT_DIR     := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 BACKEND_DIR  := $(ROOT_DIR)/backend
 FRONTEND_DIR := $(ROOT_DIR)/apps/storefront
+DASHBOARD_DIR := $(ROOT_DIR)/apps/dashboard
 INFRA_DIR    := $(ROOT_DIR)/infra
 DEPLOY_DIR   := $(ROOT_DIR)/deploy
 
@@ -132,6 +133,10 @@ dev-storefront: ## Launch Expo dev server
 dev-web: ## Launch Expo storefront in web mode
 	@cd $(FRONTEND_DIR) && $(BUN) run web
 
+.PHONY: dev-dashboard
+dev-dashboard: ## Launch Expo admin & vendor dashboard in web mode
+	@cd $(DASHBOARD_DIR) && $(BUN) run web
+
 .PHONY: dev-backend
 dev-backend: ## Launch Axum server
 	@cd $(BACKEND_DIR) && $(CARGO) run --bin storefront-sdui-api
@@ -232,8 +237,15 @@ build-backend: ## Build release Rust binaries
 	@if [ -d "$(BACKEND_DIR)" ] && [ -f "$(BACKEND_DIR)/Cargo.toml" ]; then cd $(BACKEND_DIR) && $(CARGO) build --release; fi
 
 .PHONY: build-storefront
-build-storefront: ## Build production Expo web bundle
+build-storefront: ## Build production Expo storefront web bundle
 	@if [ -d "$(FRONTEND_DIR)" ] && [ -f "$(FRONTEND_DIR)/package.json" ]; then cd $(FRONTEND_DIR) && $(BUN) run build:web; fi
+
+.PHONY: build-dashboard
+build-dashboard: ## Build production Expo dashboard web bundle
+	@if [ -d "$(DASHBOARD_DIR)" ] && [ -f "$(DASHBOARD_DIR)/package.json" ]; then cd $(DASHBOARD_DIR) && $(BUN) run build:web; fi
+
+.PHONY: build-static-sites
+build-static-sites: build-storefront build-dashboard ## Build static site bundles for both storefront and dashboard
 
 .PHONY: cdk-synth
 cdk-synth: ## Synthesize AWS CDK CloudFormation

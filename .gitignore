@@ -17,8 +17,10 @@ __pycache__/
 *$py.class
 .pytest_cache/
 
-# Turborepo
+# Turborepo & AWS CDK
 .turbo/
+cdk.out/
+**/cdk.out/
 
 # Environment variables
 .env
